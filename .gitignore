@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Data & models (large, downloaded)
+models/
+data/coco/
+data/pope/
+
+# Logs
+logs/
+*.log
+
+# Colab bundle (generated)
+colab_bundle.tar.gz
+
+# Environment
+.env
+.venv
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude project memory
+.claude/
