@@ -42,6 +42,7 @@ POPE_PROPOSAL=1
 POPE_SCORE_THRESHOLD=0.0
 POPE_SCORE_TEMPERATURE=1.0
 POPE_LAMBDA_DECAY=0.3
+POPE_JS_GAMMA=0.6
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -56,6 +57,7 @@ while [ $# -gt 0 ]; do
         --score_threshold=*) POPE_SCORE_THRESHOLD="${1#--score_threshold=}"; shift ;;
         --score_temperature=*) POPE_SCORE_TEMPERATURE="${1#--score_temperature=}"; shift ;;
         --lambda_decay=*) POPE_LAMBDA_DECAY="${1#--lambda_decay=}"; shift ;;
+        --js_gamma=*) POPE_JS_GAMMA="${1#--js_gamma=}"; shift ;;
         --setups)
             POPE_SETUPS=""; shift
             while [ $# -gt 0 ] && [[ "$1" != --* ]]; do
@@ -247,6 +249,7 @@ POPE_PROPOSAL_OUTER = "__POPE_PROPOSAL_PLACEHOLDER__"
 POPE_SCORE_THRESHOLD_OUTER = "__POPE_SCORE_THRESHOLD_PLACEHOLDER__"
 POPE_SCORE_TEMPERATURE_OUTER = "__POPE_SCORE_TEMPERATURE_PLACEHOLDER__"
 POPE_LAMBDA_DECAY_OUTER = "__POPE_LAMBDA_DECAY_PLACEHOLDER__"
+POPE_JS_GAMMA_OUTER = "__POPE_JS_GAMMA_PLACEHOLDER__"
 
 os.chdir("/content")
 
@@ -286,6 +289,7 @@ run_env["POPE_PROPOSAL"] = str(POPE_PROPOSAL_OUTER)
 run_env["POPE_SCORE_THRESHOLD"] = str(POPE_SCORE_THRESHOLD_OUTER)
 run_env["POPE_SCORE_TEMPERATURE"] = str(POPE_SCORE_TEMPERATURE_OUTER)
 run_env["POPE_LAMBDA_DECAY"] = str(POPE_LAMBDA_DECAY_OUTER)
+run_env["POPE_JS_GAMMA"] = str(POPE_JS_GAMMA_OUTER)
 dbg(f"Forwarding POPE_SETUPS={run_env['POPE_SETUPS']!r} into colab.sh run")
 dbg(f"Forwarding POPE_SHORT={run_env['POPE_SHORT']!r} into colab.sh run")
 dbg(f"Forwarding POPE_TOKENS={run_env['POPE_TOKENS']!r} into colab.sh run")
@@ -319,6 +323,7 @@ PYEOF
     sed -i "s/__POPE_SCORE_THRESHOLD_PLACEHOLDER__/$POPE_SCORE_THRESHOLD/" /tmp/colab_run.py
     sed -i "s/__POPE_SCORE_TEMPERATURE_PLACEHOLDER__/$POPE_SCORE_TEMPERATURE/" /tmp/colab_run.py
     sed -i "s/__POPE_LAMBDA_DECAY_PLACEHOLDER__/$POPE_LAMBDA_DECAY/" /tmp/colab_run.py
+    sed -i "s/__POPE_JS_GAMMA_PLACEHOLDER__/$POPE_JS_GAMMA/" /tmp/colab_run.py
 }
 
 # Download and VERIFY logs from a session. This is hardened against the

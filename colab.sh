@@ -34,7 +34,8 @@ prep() {
         conda run -n "$ENV" python -c "
 import os; os.environ['HF_HUB_ENABLE_HF_TRANSFER'] = '1'
 from huggingface_hub import snapshot_download
-snapshot_download('openai/clip-vit-large-patch14-336', local_dir='$CLIP_DIR', resume_download=True)
+snapshot_download('openai/clip-vit-large-patch14-336', local_dir='$CLIP_DIR',
+                  local_dir_use_symlinks=False, resume_download=True)
 " >/dev/null 2>&1
         dbg "[prep/1] CLIP download complete"
     else
@@ -113,14 +114,15 @@ for tp, pp in [('random','data/test-00000-of-00003.parquet'), ('popular','data/t
         return
     fi
 
-    dbg "=== [prep] Creating code-only tarball (models/data download on Colab) ==="
+    dbg "=== [prep] Creating code-only tarball (models + COCO download on Colab) ==="
     TAR_START=$(date +%s)
     tar cf "$TARBALL" \
         --exclude='*/.git' \
         --exclude='*/__pycache__' \
         --exclude='*.pyc' \
         ONLY/ \
-        colab.sh
+        colab.sh \
+        data/pope/
     TAR_ELAPSED=$(($(date +%s) - TAR_START))
 
     dbg "[prep/tar] Tarball created in ${TAR_ELAPSED}s"
@@ -157,9 +159,10 @@ run() {
     pip install -q --only-binary :all: --no-deps tokenizers==0.19.1 2>&1 | tail -1
     pip install -q accelerate sentencepiece einops timm peft \
         bitsandbytes scipy opencv-python pycocotools pandas pillow 2>&1 | tail -1
-    # hf_transfer: the Rust-accelerated downloader (~2x faster for the 14 GB
-    # LLaVA model). With HF_HUB_ENABLE_HF_TRANSFER=1 set below, huggingface_hub
-    # 0.16.4 RAISES if this package is missing — so it must be installed.
+    # hf_transfer: installed but NOT enabled (was causing RuntimeError on some
+    # Colab connections). It sits unused unless HF_HUB_ENABLE_HF_TRANSFER is
+    # set, which we intentionally don't do. Keep it installed so that toggling
+    # back is a no-op.
     pip install -q --only-binary :all: hf_transfer 2>&1 | tail -1
     # Re-pin the trio in case the line above pulled a wrong version transitively.
     pip install -q --no-deps --force-reinstall --only-binary :all: \
@@ -212,15 +215,23 @@ print(f'  Version checks disabled, transformers=={transformers.__version__}')
     # NOTE: we do NOT silence stderr to /dev/null here. Earlier runs died in 1s
     # at the LLaVA download with no visible error because output was swallowed.
     # We keep stdout quiet (no progress-bar spam) but route stderr to a log so
-    # real failures surface. hf_transfer (installed in [run/1]) gives ~2x speed.
-    export HF_HUB_ENABLE_HF_TRANSFER=1
+    # real failures surface. hf_transfer is intentionally not used: it's ~2x
+    # faster but causes flaky RuntimeError on many Colab connections. The model
+    # downloads happen once and persist on the reused VM, so ~20 min is fine.
     DL_ERR="${ROOT}/logs/download_errors.log"
     mkdir -p "${ROOT}/logs"
 
     # LLaVA
-    if [ -d "$MODEL_DIR" ]; then
+    # A previous failed download (e.g. hf_transfer crash) may have left an empty
+    # or stub directory. Check for an actual model file, not just the dir.
+    LLAMA_CONFIG="${MODEL_DIR}/config.json"
+    if [ -f "$LLAMA_CONFIG" ] && [ "$(stat -c%s "$LLAMA_CONFIG" 2>/dev/null || echo 0)" -gt 100 ]; then
         dbg "[run/3]  ✅ LLaVA exists ($(du -sh "$MODEL_DIR" | cut -f1))"
     else
+        if [ -d "$MODEL_DIR" ]; then
+            dbg "[run/3]  ⚠️  LLaVA dir exists but empty/stub — re-downloading"
+            rm -rf "$MODEL_DIR"
+        fi
         dbg "[run/3] Downloading LLaVA-1.5-7b (~14 GB, may take 10-20 min)..."
         mkdir -p "$MODEL_DIR"
         # Heartbeat: download output is silent (hf_transfer has no progress
@@ -252,9 +263,14 @@ snapshot_download('liuhaotian/llava-v1.5-7b', local_dir='$MODEL_DIR',
     fi
 
     # CLIP
-    if [ -f "$CLIP_DIR/config.json" ]; then
+    CLIP_CONFIG="${CLIP_DIR}/config.json"
+    if [ -f "$CLIP_CONFIG" ] && [ "$(stat -c%s "$CLIP_CONFIG" 2>/dev/null || echo 0)" -gt 100 ]; then
         dbg "[run/3]  ✅ CLIP exists ($(du -sh "$CLIP_DIR" | cut -f1))"
     else
+        if [ -d "$CLIP_DIR" ]; then
+            dbg "[run/3]  ⚠️  CLIP dir exists but empty/stub — re-downloading"
+            rm -rf "$CLIP_DIR"
+        fi
         dbg "[run/3] Downloading CLIP (~1.7 GB)..."
         mkdir -p "$CLIP_DIR"
         (
@@ -368,6 +384,7 @@ for tp, pp in [('random','data/test-00000-of-00003.parquet'), ('popular','data/t
     POPE_SCORE_THRESHOLD="${POPE_SCORE_THRESHOLD:-0.0}"
     POPE_SCORE_TEMPERATURE="${POPE_SCORE_TEMPERATURE:-1.0}"
     POPE_LAMBDA_DECAY="${POPE_LAMBDA_DECAY:-0.3}"
+    POPE_JS_GAMMA="${POPE_JS_GAMMA:-0.6}"
     POPE_MAXQ="${POPE_MAXQ:-0}"       # explicit override; else derived from SHORT below
     mkdir -p "${ROOT}/logs"
     RUN_TS="$(date +%Y-%m-%d_%Hh%Mm%Ss)"
@@ -386,7 +403,7 @@ for tp, pp in [('random','data/test-00000-of-00003.parquet'), ('popular','data/t
         # POPE files are JSONL (one dict per line), so count lines — NOT json.load,
         # which raises on multi-line JSONL and would print "?".
         POPE_COUNT=$(wc -l < "$POPE_FILE" 2>/dev/null | tr -d ' ')
-        dbg "[run/4] >>> Setup: ${SETUP}  (Questions: ${POPE_COUNT}, max_new_tokens=${POPE_TOKENS}, batch_size=1, mask_alpha=${POPE_ALPHA}, proposal=${POPE_PROPOSAL}${POPE_SHORT:+ , SHORT=300})"
+        dbg "[run/4] >>> Setup: ${SETUP}  (Questions: ${POPE_COUNT}, max_new_tokens=${POPE_TOKENS}, batch_size=1, mask_alpha=${POPE_ALPHA}, proposal=${POPE_PROPOSAL}, js_gamma=${POPE_JS_GAMMA}${POPE_SHORT:+ , SHORT=300})"
         dbg "[run/4] pope_path=${POPE_FILE}"
         dbg "[run/4] log=${RUN_DIR}/proposal${POPE_PROPOSAL}_result_${SETUP}.txt"
         dbg "[run/4] Loading model and starting evaluation..."
@@ -423,6 +440,7 @@ for tp, pp in [('random','data/test-00000-of-00003.parquet'), ('popular','data/t
             --score_threshold "${POPE_SCORE_THRESHOLD}" \
             --score_temperature "${POPE_SCORE_TEMPERATURE}" \
             --lambda_decay "${POPE_LAMBDA_DECAY}" \
+            --js_gamma "${POPE_JS_GAMMA}" \
             --batch_size "1" \
             --num_workers "1" \
             --seed "42" \
