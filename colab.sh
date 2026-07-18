@@ -234,6 +234,7 @@ print(f'  Version checks disabled, transformers=={transformers.__version__}')
         fi
         dbg "[run/3] Downloading LLaVA-1.5-7b (~14 GB, may take 10-20 min)..."
         mkdir -p "$MODEL_DIR"
+        EVAL_START_LLAVA=$(date +%s)
         # Heartbeat: download output is silent (hf_transfer has no progress
         # bars), so print $MODEL_DIR size every 60s to prove it's alive.
         (
@@ -247,16 +248,47 @@ print(f'  Version checks disabled, transformers=={transformers.__version__}')
         # local_dir_use_symlinks=False: place files DIRECTLY in $MODEL_DIR
         # (default "auto" symlinks big files into the HF cache, so du -sh
         # reports a misleading ~560K while 14 GB sits in the cache).
-        if python -c "
+        #
+        # Retry loop: HF API gateway is flaky from some Colab regions (504
+        # Gateway Timeout on repo_info). We retry with backoff + optional
+        # mirror + longer timeout.
+        #   POPE_HF_ENDPOINT=https://hf-mirror.com  — use Chinese mirror
+        #   POPE_HF_TIMEOUT=120                     — increase API timeout
+        DL_OK=0
+        for ATTEMPT in 1 2 3; do
+            dbg "[run/3]  LLaVA download attempt ${ATTEMPT}/3..."
+            if python -c "
+import os
+endpoint = os.environ.get('POPE_HF_ENDPOINT', '')
+if endpoint:
+    os.environ['HF_ENDPOINT'] = endpoint
+    print(f'  Using HF endpoint: {endpoint}', flush=True)
+timeout = os.environ.get('POPE_HF_TIMEOUT', '')
+if timeout:
+    os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = timeout
+    print(f'  Using HF download timeout: {timeout}s', flush=True)
 from huggingface_hub import snapshot_download
 snapshot_download('liuhaotian/llava-v1.5-7b', local_dir='$MODEL_DIR',
                   local_dir_use_symlinks=False, resume_download=True)
 " >"$DL_ERR" 2>&1; then
+                DL_OK=1
+                break
+            fi
+            ELAPSED=$(($(date +%s) - EVAL_START_LLAVA))
+            dbg "[run/3]  ❌ Attempt ${ATTEMPT} failed at ${ELAPSED}s — last 5 lines:"
+            tail -n 5 "$DL_ERR" | sed 's/^/      /'
+            if [ "$ATTEMPT" -lt 3 ]; then
+                SLEEP=$((ATTEMPT * 15))
+                dbg "[run/3]  Retrying in ${SLEEP}s..."
+                sleep "$SLEEP"
+            fi
+        done
+        if [ "$DL_OK" -eq 1 ]; then
             kill "$HB_PID" 2>/dev/null || true
             dbg "[run/3]  ✅ LLaVA done ($(du -sh "$MODEL_DIR" | cut -f1))"
         else
             kill "$HB_PID" 2>/dev/null || true
-            dbg "[run/3]  ❌ LLaVA download FAILED — last 15 lines of error log:"
+            dbg "[run/3]  ❌ LLaVA download FAILED after 3 attempts — last 15 lines:"
             tail -n 15 "$DL_ERR" | sed 's/^/      /'
             return 1
         fi

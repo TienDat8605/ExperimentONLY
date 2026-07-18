@@ -1,0 +1,3912 @@
+Starting rank=0, seed=42, world_size=1, device=0
+[2026-07-13 07:49:39] Experiment directory created at /content/logs/pope/llava-v1.5-7b/ONLY_coco_adversarial_3_1_0.1_0.6_layer_0_proposal2
+[2026-07-13 07:49:39] Initializing Model
+[2026-07-13 07:49:39] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:43<00:43, 43.31s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:58<00:00, 26.93s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:58<00:00, 29.39s/it]
+[2026-07-13 07:50:46] Start eval...
+  0%|          | 0/3000 [00:00<?, ?it/s]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000310196.jpg']
+Q: Is there a snowboard in the image?
+A: Yes, there is a snowboard in
+GT: Yes
+TP	FP	TN	FN	
+1	0	0	0
+acc: 100.0, precision: 100.0, recall: 100.0, f1: 100.0, yes_ratio: 100.0
+==================================================
+  0%|          | 1/3000 [00:03<3:18:15,  3.97s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000310196.jpg']
+Q: Is there a car in the image?
+A: No, there is no car in the
+GT: No
+TP	FP	TN	FN	
+1	0	1	0
+acc: 100.0, precision: 100.0, recall: 100.0, f1: 100.0, yes_ratio: 50.0
+==================================================
+  0%|          | 2/3000 [00:05<2:01:00,  2.42s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000310196.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+2	0	1	0
+acc: 100.0, precision: 100.0, recall: 100.0, f1: 100.0, yes_ratio: 66.67
+==================================================
+  0%|          | 3/3000 [00:06<1:36:01,  1.92s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000310196.jpg']
+Q: Is there a sandwich in the image?
+A: No, there is no sandwich in
+GT: No
+TP	FP	TN	FN	
+2	0	2	0
+acc: 100.0, precision: 100.0, recall: 100.0, f1: 100.0, yes_ratio: 50.0
+==================================================
+  0%|          | 4/3000 [00:07<1:24:24,  1.69s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000310196.jpg']
+Q: Is there a skis in the image?
+A: Yes, there is a skier in
+GT: Yes
+TP	FP	TN	FN	
+3	0	2	0
+acc: 100.0, precision: 100.0, recall: 100.0, f1: 100.0, yes_ratio: 60.0
+==================================================
+  0%|          | 5/3000 [00:09<1:18:08,  1.57s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000310196.jpg']
+Q: Is there a couch in the image?
+A: No, there is no couch in
+GT: No
+TP	FP	TN	FN	
+3	0	3	0
+acc: 100.0, precision: 100.0, recall: 100.0, f1: 100.0, yes_ratio: 50.0
+==================================================
+  0%|          | 6/3000 [00:10<1:14:33,  1.49s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000210789.jpg']
+Q: Is there a truck in the image?
+A: Yes, there is a truck in
+GT: Yes
+TP	FP	TN	FN	
+4	0	3	0
+acc: 100.0, precision: 100.0, recall: 100.0, f1: 100.0, yes_ratio: 57.14
+==================================================
+  0%|          | 7/3000 [00:12<1:12:16,  1.45s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000210789.jpg']
+Q: Is there a pizza in the image?
+A: No, there is no pizza in
+GT: No
+TP	FP	TN	FN	
+4	0	4	0
+acc: 100.0, precision: 100.0, recall: 100.0, f1: 100.0, yes_ratio: 50.0
+==================================================
+  0%|          | 8/3000 [00:13<1:12:06,  1.45s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000210789.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person, a
+GT: Yes
+TP	FP	TN	FN	
+5	0	4	0
+acc: 100.0, precision: 100.0, recall: 100.0, f1: 100.0, yes_ratio: 55.56
+==================================================
+  0%|          | 9/3000 [00:14<1:12:28,  1.45s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000210789.jpg']
+Q: Is there a sink in the image?
+A: No, there is no sink in the
+GT: No
+TP	FP	TN	FN	
+5	0	5	0
+acc: 100.0, precision: 100.0, recall: 100.0, f1: 100.0, yes_ratio: 50.0
+==================================================
+  0%|          | 10/3000 [00:16<1:11:16,  1.43s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000210789.jpg']
+Q: Is there an umbrella in the image?
+A: Yes, there is an umbrella
+GT: Yes
+TP	FP	TN	FN	
+6	0	5	0
+acc: 100.0, precision: 100.0, recall: 100.0, f1: 100.0, yes_ratio: 54.55
+==================================================
+  0%|          | 11/3000 [00:17<1:09:56,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000210789.jpg']
+Q: Is there a cell phone in the image?
+A: Yes, there is a cell phone in
+GT: No
+TP	FP	TN	FN	
+6	1	5	0
+acc: 91.67, precision: 85.71, recall: 100.0, f1: 92.31, yes_ratio: 58.33
+==================================================
+  0%|          | 12/3000 [00:19<1:09:05,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000429109.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+7	1	5	0
+acc: 92.31, precision: 87.5, recall: 100.0, f1: 93.33, yes_ratio: 61.54
+==================================================
+  0%|          | 13/3000 [00:20<1:08:33,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000429109.jpg']
+Q: Is there a sheep in the image?
+A: No, there is no sheep in the
+GT: No
+TP	FP	TN	FN	
+7	1	6	0
+acc: 92.86, precision: 87.5, recall: 100.0, f1: 93.33, yes_ratio: 57.14
+==================================================
+  0%|          | 14/3000 [00:21<1:08:03,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000429109.jpg']
+Q: Is there a bicycle in the image?
+A: Yes, there is a bicycle
+GT: Yes
+TP	FP	TN	FN	
+8	1	6	0
+acc: 93.33, precision: 88.89, recall: 100.0, f1: 94.12, yes_ratio: 60.0
+==================================================
+  0%|          | 15/3000 [00:23<1:07:40,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000429109.jpg']
+Q: Is there a broccoli in the image?
+A: No, there is no broccoli
+GT: No
+TP	FP	TN	FN	
+8	1	7	0
+acc: 93.75, precision: 88.89, recall: 100.0, f1: 94.12, yes_ratio: 56.25
+==================================================
+  1%|          | 16/3000 [00:24<1:07:24,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000429109.jpg']
+Q: Is there a car in the image?
+A: Yes, there is a car in the
+GT: Yes
+TP	FP	TN	FN	
+9	1	7	0
+acc: 94.12, precision: 90.0, recall: 100.0, f1: 94.74, yes_ratio: 58.82
+==================================================
+  1%|          | 17/3000 [00:25<1:09:10,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000429109.jpg']
+Q: Is there a tennis racket in the image?
+A: No, there is no tennis racket
+GT: No
+TP	FP	TN	FN	
+9	1	8	0
+acc: 94.44, precision: 90.0, recall: 100.0, f1: 94.74, yes_ratio: 55.56
+==================================================
+  1%|          | 18/3000 [00:27<1:10:19,  1.42s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000211674.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+10	1	8	0
+acc: 94.74, precision: 90.91, recall: 100.0, f1: 95.24, yes_ratio: 57.89
+==================================================
+  1%|          | 19/3000 [00:28<1:09:35,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000211674.jpg']
+Q: Is there a teddy bear in the image?
+A: No, there is no teddy bear
+GT: No
+TP	FP	TN	FN	
+10	1	9	0
+acc: 95.0, precision: 90.91, recall: 100.0, f1: 95.24, yes_ratio: 55.0
+==================================================
+  1%|          | 20/3000 [00:30<1:08:37,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000211674.jpg']
+Q: Is there a potted plant in the image?
+A: No, there is no potted plant
+GT: Yes
+TP	FP	TN	FN	
+10	1	9	1
+acc: 90.48, precision: 90.91, recall: 90.91, f1: 90.91, yes_ratio: 52.38
+==================================================
+  1%|          | 21/3000 [00:31<1:08:01,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000211674.jpg']
+Q: Is there a broccoli in the image?
+A: No, there is no broccoli
+GT: No
+TP	FP	TN	FN	
+10	1	10	1
+acc: 90.91, precision: 90.91, recall: 90.91, f1: 90.91, yes_ratio: 50.0
+==================================================
+  1%|          | 22/3000 [00:32<1:07:37,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000211674.jpg']
+Q: Is there a car in the image?
+A: Yes, there is a red double-
+GT: Yes
+TP	FP	TN	FN	
+11	1	10	1
+acc: 91.3, precision: 91.67, recall: 91.67, f1: 91.67, yes_ratio: 52.17
+==================================================
+  1%|          | 23/3000 [00:34<1:07:24,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000211674.jpg']
+Q: Is there an orange in the image?
+A: Yes, there is an orange in the
+GT: No
+TP	FP	TN	FN	
+11	2	10	1
+acc: 87.5, precision: 84.62, recall: 91.67, f1: 88.0, yes_ratio: 54.17
+==================================================
+  1%|          | 24/3000 [00:35<1:07:16,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000458338.jpg']
+Q: Is there a traffic light in the image?
+A: Yes, there is a traffic light in
+GT: Yes
+TP	FP	TN	FN	
+12	2	10	1
+acc: 88.0, precision: 85.71, recall: 92.31, f1: 88.89, yes_ratio: 56.0
+==================================================
+  1%|          | 25/3000 [00:36<1:07:13,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000458338.jpg']
+Q: Is there a train in the image?
+A: No, there is no train in the
+GT: No
+TP	FP	TN	FN	
+12	2	11	1
+acc: 88.46, precision: 85.71, recall: 92.31, f1: 88.89, yes_ratio: 53.85
+==================================================
+  1%|          | 26/3000 [00:38<1:09:02,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000458338.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+13	2	11	1
+acc: 88.89, precision: 86.67, recall: 92.86, f1: 89.66, yes_ratio: 55.56
+==================================================
+  1%|          | 27/3000 [00:39<1:10:08,  1.42s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000458338.jpg']
+Q: Is there a surfboard in the image?
+A: No, there is no surfboard
+GT: No
+TP	FP	TN	FN	
+13	2	12	1
+acc: 89.29, precision: 86.67, recall: 92.86, f1: 89.66, yes_ratio: 53.57
+==================================================
+  1%|          | 28/3000 [00:41<1:09:41,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000458338.jpg']
+Q: Is there a car in the image?
+A: Yes, there is a car in the
+GT: Yes
+TP	FP	TN	FN	
+14	2	12	1
+acc: 89.66, precision: 87.5, recall: 93.33, f1: 90.32, yes_ratio: 55.17
+==================================================
+  1%|          | 29/3000 [00:42<1:08:44,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000458338.jpg']
+Q: Is there a kite in the image?
+A: Yes, there is a kite h
+GT: No
+TP	FP	TN	FN	
+14	3	12	1
+acc: 86.67, precision: 82.35, recall: 93.33, f1: 87.5, yes_ratio: 56.67
+==================================================
+  1%|          | 30/3000 [00:43<1:08:14,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000283412.jpg']
+Q: Is there a dog in the image?
+A: Yes, there is a small white dog
+GT: Yes
+TP	FP	TN	FN	
+15	3	12	1
+acc: 87.1, precision: 83.33, recall: 93.75, f1: 88.24, yes_ratio: 58.06
+==================================================
+  1%|          | 31/3000 [00:45<1:07:56,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000283412.jpg']
+Q: Is there a toaster in the image?
+A: No, there is no toaster in
+GT: No
+TP	FP	TN	FN	
+15	3	13	1
+acc: 87.5, precision: 83.33, recall: 93.75, f1: 88.24, yes_ratio: 56.25
+==================================================
+  1%|          | 32/3000 [00:46<1:07:46,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000283412.jpg']
+Q: Is there a dining table in the image?
+A: Yes, there is a dining table
+GT: Yes
+TP	FP	TN	FN	
+16	3	13	1
+acc: 87.88, precision: 84.21, recall: 94.12, f1: 88.89, yes_ratio: 57.58
+==================================================
+  1%|          | 33/3000 [00:47<1:07:23,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000283412.jpg']
+Q: Is there a sports ball in the image?
+A: No, there is no sports ball in
+GT: No
+TP	FP	TN	FN	
+16	3	14	1
+acc: 88.24, precision: 84.21, recall: 94.12, f1: 88.89, yes_ratio: 55.88
+==================================================
+  1%|          | 34/3000 [00:49<1:07:20,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000283412.jpg']
+Q: Is there a bed in the image?
+A: No, there is no bed in the
+GT: Yes
+TP	FP	TN	FN	
+16	3	14	2
+acc: 85.71, precision: 84.21, recall: 88.89, f1: 86.49, yes_ratio: 54.29
+==================================================
+  1%|          | 35/3000 [00:50<1:10:11,  1.42s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000283412.jpg']
+Q: Is there a book in the image?
+A: Yes, there is a book in the
+GT: No
+TP	FP	TN	FN	
+16	4	14	2
+acc: 83.33, precision: 80.0, recall: 88.89, f1: 84.21, yes_ratio: 55.56
+==================================================
+  1%|          | 36/3000 [00:52<1:10:48,  1.43s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000265719.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+17	4	14	2
+acc: 83.78, precision: 80.95, recall: 89.47, f1: 85.0, yes_ratio: 56.76
+==================================================
+  1%|          | 37/3000 [00:53<1:10:07,  1.42s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000265719.jpg']
+Q: Is there a traffic light in the image?
+A: No, there is no traffic light in
+GT: No
+TP	FP	TN	FN	
+17	4	15	2
+acc: 84.21, precision: 80.95, recall: 89.47, f1: 85.0, yes_ratio: 55.26
+==================================================
+  1%|▏         | 38/3000 [00:55<1:09:23,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000265719.jpg']
+Q: Is there a spoon in the image?
+A: Yes, there is a spoon in
+GT: Yes
+TP	FP	TN	FN	
+18	4	15	2
+acc: 84.62, precision: 81.82, recall: 90.0, f1: 85.71, yes_ratio: 56.41
+==================================================
+  1%|▏         | 39/3000 [00:56<1:08:52,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000265719.jpg']
+Q: Is there a bird in the image?
+A: No, there is no bird in the
+GT: No
+TP	FP	TN	FN	
+18	4	16	2
+acc: 85.0, precision: 81.82, recall: 90.0, f1: 85.71, yes_ratio: 55.0
+==================================================
+  1%|▏         | 40/3000 [00:57<1:08:12,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000265719.jpg']
+Q: Is there a fork in the image?
+A: Yes, there is a fork in the
+GT: Yes
+TP	FP	TN	FN	
+19	4	16	2
+acc: 85.37, precision: 82.61, recall: 90.48, f1: 86.36, yes_ratio: 56.1
+==================================================
+  1%|▏         | 41/3000 [00:59<1:07:41,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000265719.jpg']
+Q: Is there a truck in the image?
+A: No, there is no truck in
+GT: No
+TP	FP	TN	FN	
+19	4	17	2
+acc: 85.71, precision: 82.61, recall: 90.48, f1: 86.36, yes_ratio: 54.76
+==================================================
+  1%|▏         | 42/3000 [01:00<1:07:36,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000461331.jpg']
+Q: Is there a tv in the image?
+A: No, there is no TV in the
+GT: Yes
+TP	FP	TN	FN	
+19	4	17	3
+acc: 83.72, precision: 82.61, recall: 86.36, f1: 84.44, yes_ratio: 53.49
+==================================================
+  1%|▏         | 43/3000 [01:01<1:07:04,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000461331.jpg']
+Q: Is there a bowl in the image?
+A: No, there is no bowl in
+GT: No
+TP	FP	TN	FN	
+19	4	18	3
+acc: 84.09, precision: 82.61, recall: 86.36, f1: 84.44, yes_ratio: 52.27
+==================================================
+  1%|▏         | 44/3000 [01:03<1:08:38,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000461331.jpg']
+Q: Is there a toaster in the image?
+A: Yes, there is a toaster in
+GT: Yes
+TP	FP	TN	FN	
+20	4	18	3
+acc: 84.44, precision: 83.33, recall: 86.96, f1: 85.11, yes_ratio: 53.33
+==================================================
+  2%|▏         | 45/3000 [01:04<1:09:55,  1.42s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000461331.jpg']
+Q: Is there a cow in the image?
+A: No, there is no cow in the
+GT: No
+TP	FP	TN	FN	
+20	4	19	3
+acc: 84.78, precision: 83.33, recall: 86.96, f1: 85.11, yes_ratio: 52.17
+==================================================
+  2%|▏         | 46/3000 [01:06<1:09:15,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000461331.jpg']
+Q: Is there a microwave in the image?
+A: Yes, there is a microwave
+GT: Yes
+TP	FP	TN	FN	
+21	4	19	3
+acc: 85.11, precision: 84.0, recall: 87.5, f1: 85.71, yes_ratio: 53.19
+==================================================
+  2%|▏         | 47/3000 [01:07<1:08:18,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000461331.jpg']
+Q: Is there a laptop in the image?
+A: No, there is no laptop in the
+GT: No
+TP	FP	TN	FN	
+21	4	20	3
+acc: 85.42, precision: 84.0, recall: 87.5, f1: 85.71, yes_ratio: 52.08
+==================================================
+  2%|▏         | 48/3000 [01:08<1:07:50,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000544456.jpg']
+Q: Is there a backpack in the image?
+A: Yes, there is a backpack in
+GT: Yes
+TP	FP	TN	FN	
+22	4	20	3
+acc: 85.71, precision: 84.62, recall: 88.0, f1: 86.27, yes_ratio: 53.06
+==================================================
+  2%|▏         | 49/3000 [01:10<1:07:11,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000544456.jpg']
+Q: Is there a cell phone in the image?
+A: Yes, there is a cell phone in
+GT: No
+TP	FP	TN	FN	
+22	5	20	3
+acc: 84.0, precision: 81.48, recall: 88.0, f1: 84.62, yes_ratio: 54.0
+==================================================
+  2%|▏         | 50/3000 [01:11<1:06:41,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000544456.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+23	5	20	3
+acc: 84.31, precision: 82.14, recall: 88.46, f1: 85.19, yes_ratio: 54.9
+==================================================
+  2%|▏         | 51/3000 [01:12<1:06:17,  1.35s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000544456.jpg']
+Q: Is there a couch in the image?
+A: No, there is no couch in
+GT: No
+TP	FP	TN	FN	
+23	5	21	3
+acc: 84.62, precision: 82.14, recall: 88.46, f1: 85.19, yes_ratio: 53.85
+==================================================
+  2%|▏         | 52/3000 [01:14<1:06:05,  1.35s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000544456.jpg']
+Q: Is there a skis in the image?
+A: Yes, there is a pair of sk
+GT: Yes
+TP	FP	TN	FN	
+24	5	21	3
+acc: 84.91, precision: 82.76, recall: 88.89, f1: 85.71, yes_ratio: 54.72
+==================================================
+  2%|▏         | 53/3000 [01:15<1:07:47,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000544456.jpg']
+Q: Is there a tennis racket in the image?
+A: No, there is no tennis racket
+GT: No
+TP	FP	TN	FN	
+24	5	22	3
+acc: 85.19, precision: 82.76, recall: 88.89, f1: 85.71, yes_ratio: 53.7
+==================================================
+  2%|▏         | 54/3000 [01:17<1:08:51,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000017708.jpg']
+Q: Is there a bird in the image?
+A: Yes, there is a bird, specifically
+GT: Yes
+TP	FP	TN	FN	
+25	5	22	3
+acc: 85.45, precision: 83.33, recall: 89.29, f1: 86.21, yes_ratio: 54.55
+==================================================
+  2%|▏         | 55/3000 [01:18<1:08:50,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000017708.jpg']
+Q: Is there a fire hydrant in the image?
+A: No, there is no fire hydrant
+GT: No
+TP	FP	TN	FN	
+25	5	23	3
+acc: 85.71, precision: 83.33, recall: 89.29, f1: 86.21, yes_ratio: 53.57
+==================================================
+  2%|▏         | 56/3000 [01:19<1:07:58,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000017708.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+26	5	23	3
+acc: 85.96, precision: 83.87, recall: 89.66, f1: 86.67, yes_ratio: 54.39
+==================================================
+  2%|▏         | 57/3000 [01:21<1:07:28,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000017708.jpg']
+Q: Is there a bed in the image?
+A: No, there is no bed in the
+GT: No
+TP	FP	TN	FN	
+26	5	24	3
+acc: 86.21, precision: 83.87, recall: 89.66, f1: 86.67, yes_ratio: 53.45
+==================================================
+  2%|▏         | 58/3000 [01:22<1:06:49,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000017708.jpg']
+Q: Is there a boat in the image?
+A: Yes, there is a boat in the
+GT: Yes
+TP	FP	TN	FN	
+27	5	24	3
+acc: 86.44, precision: 84.38, recall: 90.0, f1: 87.1, yes_ratio: 54.24
+==================================================
+  2%|▏         | 59/3000 [01:23<1:06:20,  1.35s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000017708.jpg']
+Q: Is there a bench in the image?
+A: Yes, there is a bench in
+GT: No
+TP	FP	TN	FN	
+27	6	24	3
+acc: 85.0, precision: 81.82, recall: 90.0, f1: 85.71, yes_ratio: 55.0
+==================================================
+  2%|▏         | 60/3000 [01:25<1:06:00,  1.35s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000574692.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+28	6	24	3
+acc: 85.25, precision: 82.35, recall: 90.32, f1: 86.15, yes_ratio: 55.74
+==================================================
+  2%|▏         | 61/3000 [01:26<1:05:57,  1.35s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000574692.jpg']
+Q: Is there a bear in the image?
+A: No, there is no bear in the
+GT: No
+TP	FP	TN	FN	
+28	6	25	3
+acc: 85.48, precision: 82.35, recall: 90.32, f1: 86.15, yes_ratio: 54.84
+==================================================
+  2%|▏         | 62/3000 [01:27<1:07:22,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000574692.jpg']
+Q: Is there an orange in the image?
+A: Yes, there is an orange in the
+GT: Yes
+TP	FP	TN	FN	
+29	6	25	3
+acc: 85.71, precision: 82.86, recall: 90.62, f1: 86.57, yes_ratio: 55.56
+==================================================
+  2%|▏         | 63/3000 [01:29<1:08:07,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000574692.jpg']
+Q: Is there a cow in the image?
+A: No, there is no cow in the
+GT: No
+TP	FP	TN	FN	
+29	6	26	3
+acc: 85.94, precision: 82.86, recall: 90.62, f1: 86.57, yes_ratio: 54.69
+==================================================
+  2%|▏         | 64/3000 [01:30<1:07:56,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000574692.jpg']
+Q: Is there a bottle in the image?
+A: Yes, there is a bottle in
+GT: Yes
+TP	FP	TN	FN	
+30	6	26	3
+acc: 86.15, precision: 83.33, recall: 90.91, f1: 86.96, yes_ratio: 55.38
+==================================================
+  2%|▏         | 65/3000 [01:32<1:07:35,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000574692.jpg']
+Q: Is there a bed in the image?
+A: No, there is no bed in the
+GT: No
+TP	FP	TN	FN	
+30	6	27	3
+acc: 86.36, precision: 83.33, recall: 90.91, f1: 86.96, yes_ratio: 54.55
+==================================================
+  2%|▏         | 66/3000 [01:33<1:06:57,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000353180.jpg']
+Q: Is there a backpack in the image?
+A: No, there is no backpack in
+GT: Yes
+TP	FP	TN	FN	
+30	6	27	4
+acc: 85.07, precision: 83.33, recall: 88.24, f1: 85.71, yes_ratio: 53.73
+==================================================
+  2%|▏         | 67/3000 [01:34<1:06:42,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000353180.jpg']
+Q: Is there a potted plant in the image?
+A: No, there is no potted plant
+GT: No
+TP	FP	TN	FN	
+30	6	28	4
+acc: 85.29, precision: 83.33, recall: 88.24, f1: 85.71, yes_ratio: 52.94
+==================================================
+  2%|▏         | 68/3000 [01:36<1:06:22,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000353180.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+31	6	28	4
+acc: 85.51, precision: 83.78, recall: 88.57, f1: 86.11, yes_ratio: 53.62
+==================================================
+  2%|▏         | 69/3000 [01:37<1:06:25,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000353180.jpg']
+Q: Is there a wine glass in the image?
+A: No, there is no wine glass in
+GT: No
+TP	FP	TN	FN	
+31	6	29	4
+acc: 85.71, precision: 83.78, recall: 88.57, f1: 86.11, yes_ratio: 52.86
+==================================================
+  2%|▏         | 70/3000 [01:38<1:06:13,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000353180.jpg']
+Q: Is there a bus in the image?
+A: Yes, there is a bus in the
+GT: Yes
+TP	FP	TN	FN	
+32	6	29	4
+acc: 85.92, precision: 84.21, recall: 88.89, f1: 86.49, yes_ratio: 53.52
+==================================================
+  2%|▏         | 71/3000 [01:40<1:07:45,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000353180.jpg']
+Q: Is there a suitcase in the image?
+A: No, there is no suitcase in
+GT: No
+TP	FP	TN	FN	
+32	6	30	4
+acc: 86.11, precision: 84.21, recall: 88.89, f1: 86.49, yes_ratio: 52.78
+==================================================
+  2%|▏         | 72/3000 [01:41<1:08:49,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000239444.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person, a
+GT: Yes
+TP	FP	TN	FN	
+33	6	30	4
+acc: 86.3, precision: 84.62, recall: 89.19, f1: 86.84, yes_ratio: 53.42
+==================================================
+  2%|▏         | 73/3000 [01:43<1:08:08,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000239444.jpg']
+Q: Is there an airplane in the image?
+A: No, there is no airplane in
+GT: No
+TP	FP	TN	FN	
+33	6	31	4
+acc: 86.49, precision: 84.62, recall: 89.19, f1: 86.84, yes_ratio: 52.7
+==================================================
+  2%|▏         | 74/3000 [01:44<1:07:26,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000239444.jpg']
+Q: Is there a dining table in the image?
+A: Yes, there is a dining table
+GT: Yes
+TP	FP	TN	FN	
+34	6	31	4
+acc: 86.67, precision: 85.0, recall: 89.47, f1: 87.18, yes_ratio: 53.33
+==================================================
+  2%|▎         | 75/3000 [01:45<1:06:50,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000239444.jpg']
+Q: Is there a clock in the image?
+A: Yes, there is a clock in the
+GT: No
+TP	FP	TN	FN	
+34	7	31	4
+acc: 85.53, precision: 82.93, recall: 89.47, f1: 86.08, yes_ratio: 53.95
+==================================================
+  3%|▎         | 76/3000 [01:47<1:06:25,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000239444.jpg']
+Q: Is there a chair in the image?
+A: Yes, there is a chair visible in
+GT: Yes
+TP	FP	TN	FN	
+35	7	31	4
+acc: 85.71, precision: 83.33, recall: 89.74, f1: 86.42, yes_ratio: 54.55
+==================================================
+  3%|▎         | 77/3000 [01:48<1:06:27,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000239444.jpg']
+Q: Is there a horse in the image?
+A: No, there is no horse in the
+GT: No
+TP	FP	TN	FN	
+35	7	32	4
+acc: 85.9, precision: 83.33, recall: 89.74, f1: 86.42, yes_ratio: 53.85
+==================================================
+  3%|▎         | 78/3000 [01:49<1:06:17,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000569839.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+36	7	32	4
+acc: 86.08, precision: 83.72, recall: 90.0, f1: 86.75, yes_ratio: 54.43
+==================================================
+  3%|▎         | 79/3000 [01:51<1:06:01,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000569839.jpg']
+Q: Is there a zebra in the image?
+A: No, there is no zebra
+GT: No
+TP	FP	TN	FN	
+36	7	33	4
+acc: 86.25, precision: 83.72, recall: 90.0, f1: 86.75, yes_ratio: 53.75
+==================================================
+  3%|▎         | 80/3000 [01:52<1:06:40,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000569839.jpg']
+Q: Is there a sandwich in the image?
+A: Yes, there is a sandwich in
+GT: Yes
+TP	FP	TN	FN	
+37	7	33	4
+acc: 86.42, precision: 84.09, recall: 90.24, f1: 87.06, yes_ratio: 54.32
+==================================================
+  3%|▎         | 81/3000 [01:54<1:08:25,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000569839.jpg']
+Q: Is there a tie in the image?
+A: No, there is no tie in the
+GT: No
+TP	FP	TN	FN	
+37	7	34	4
+acc: 86.59, precision: 84.09, recall: 90.24, f1: 87.06, yes_ratio: 53.66
+==================================================
+  3%|▎         | 82/3000 [01:55<1:07:43,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000569839.jpg']
+Q: Is there a hot dog in the image?
+A: Yes, there is a hot dog in
+GT: Yes
+TP	FP	TN	FN	
+38	7	34	4
+acc: 86.75, precision: 84.44, recall: 90.48, f1: 87.36, yes_ratio: 54.22
+==================================================
+  3%|▎         | 83/3000 [01:56<1:07:18,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000569839.jpg']
+Q: Is there a car in the image?
+A: No, there is no car in the
+GT: No
+TP	FP	TN	FN	
+38	7	35	4
+acc: 86.9, precision: 84.44, recall: 90.48, f1: 87.36, yes_ratio: 53.57
+==================================================
+  3%|▎         | 84/3000 [01:58<1:06:51,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000219622.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+39	7	35	4
+acc: 87.06, precision: 84.78, recall: 90.7, f1: 87.64, yes_ratio: 54.12
+==================================================
+  3%|▎         | 85/3000 [01:59<1:06:26,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000219622.jpg']
+Q: Is there a carrot in the image?
+A: No, there is no carrot in
+GT: No
+TP	FP	TN	FN	
+39	7	36	4
+acc: 87.21, precision: 84.78, recall: 90.7, f1: 87.64, yes_ratio: 53.49
+==================================================
+  3%|▎         | 86/3000 [02:00<1:06:22,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000219622.jpg']
+Q: Is there a car in the image?
+A: Yes, there is a car in the
+GT: Yes
+TP	FP	TN	FN	
+40	7	36	4
+acc: 87.36, precision: 85.11, recall: 90.91, f1: 87.91, yes_ratio: 54.02
+==================================================
+  3%|▎         | 87/3000 [02:02<1:06:13,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000219622.jpg']
+Q: Is there a potted plant in the image?
+A: Yes, there is a potted plant
+GT: No
+TP	FP	TN	FN	
+40	8	36	4
+acc: 86.36, precision: 83.33, recall: 90.91, f1: 86.96, yes_ratio: 54.55
+==================================================
+  3%|▎         | 88/3000 [02:03<1:05:57,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000219622.jpg']
+Q: Is there a frisbee in the image?
+A: Yes, there is a frisbe
+GT: Yes
+TP	FP	TN	FN	
+41	8	36	4
+acc: 86.52, precision: 83.67, recall: 91.11, f1: 87.23, yes_ratio: 55.06
+==================================================
+  3%|▎         | 89/3000 [02:05<1:06:57,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000219622.jpg']
+Q: Is there a chair in the image?
+A: No, there is no chair in the
+GT: No
+TP	FP	TN	FN	
+41	8	37	4
+acc: 86.67, precision: 83.67, recall: 91.11, f1: 87.23, yes_ratio: 54.44
+==================================================
+  3%|▎         | 90/3000 [02:06<1:07:58,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000300368.jpg']
+Q: Is there a knife in the image?
+A: Yes, there is a knife in
+GT: Yes
+TP	FP	TN	FN	
+42	8	37	4
+acc: 86.81, precision: 84.0, recall: 91.3, f1: 87.5, yes_ratio: 54.95
+==================================================
+  3%|▎         | 91/3000 [02:07<1:07:26,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000300368.jpg']
+Q: Is there a teddy bear in the image?
+A: Yes, there is a teddy bear
+GT: No
+TP	FP	TN	FN	
+42	9	37	4
+acc: 85.87, precision: 82.35, recall: 91.3, f1: 86.6, yes_ratio: 55.43
+==================================================
+  3%|▎         | 92/3000 [02:09<1:06:58,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000300368.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person, a
+GT: Yes
+TP	FP	TN	FN	
+43	9	37	4
+acc: 86.02, precision: 82.69, recall: 91.49, f1: 86.87, yes_ratio: 55.91
+==================================================
+  3%|▎         | 93/3000 [02:10<1:06:30,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000300368.jpg']
+Q: Is there a hot dog in the image?
+A: No, there is no hot dog in
+GT: No
+TP	FP	TN	FN	
+43	9	38	4
+acc: 86.17, precision: 82.69, recall: 91.49, f1: 86.87, yes_ratio: 55.32
+==================================================
+  3%|▎         | 94/3000 [02:12<1:06:09,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000300368.jpg']
+Q: Is there a cake in the image?
+A: Yes, there is a cake in
+GT: Yes
+TP	FP	TN	FN	
+44	9	38	4
+acc: 86.32, precision: 83.02, recall: 91.67, f1: 87.13, yes_ratio: 55.79
+==================================================
+  3%|▎         | 95/3000 [02:13<1:06:02,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000300368.jpg']
+Q: Is there a tie in the image?
+A: Yes, there is a tie in the
+GT: No
+TP	FP	TN	FN	
+44	10	38	4
+acc: 85.42, precision: 81.48, recall: 91.67, f1: 86.27, yes_ratio: 56.25
+==================================================
+  3%|▎         | 96/3000 [02:14<1:05:53,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000482476.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a woman in the
+GT: Yes
+TP	FP	TN	FN	
+45	10	38	4
+acc: 85.57, precision: 81.82, recall: 91.84, f1: 86.54, yes_ratio: 56.7
+==================================================
+  3%|▎         | 97/3000 [02:16<1:05:50,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000482476.jpg']
+Q: Is there a keyboard in the image?
+A: No, there is no keyboard in the
+GT: No
+TP	FP	TN	FN	
+45	10	39	4
+acc: 85.71, precision: 81.82, recall: 91.84, f1: 86.54, yes_ratio: 56.12
+==================================================
+  3%|▎         | 98/3000 [02:17<1:06:09,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000482476.jpg']
+Q: Is there a remote in the image?
+A: No, there is no remote in the
+GT: Yes
+TP	FP	TN	FN	
+45	10	39	5
+acc: 84.85, precision: 81.82, recall: 90.0, f1: 85.71, yes_ratio: 55.56
+==================================================
+  3%|▎         | 99/3000 [02:18<1:06:59,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000482476.jpg']
+Q: Is there a frisbee in the image?
+A: No, there is no frisbe
+GT: No
+TP	FP	TN	FN	
+45	10	40	5
+acc: 85.0, precision: 81.82, recall: 90.0, f1: 85.71, yes_ratio: 55.0
+==================================================
+  3%|▎         | 100/3000 [02:20<1:06:53,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000482476.jpg']
+Q: Is there a handbag in the image?
+A: Yes, there is a handbag in
+GT: Yes
+TP	FP	TN	FN	
+46	10	40	5
+acc: 85.15, precision: 82.14, recall: 90.2, f1: 85.98, yes_ratio: 55.45
+==================================================
+  3%|▎         | 101/3000 [02:21<1:06:41,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000482476.jpg']
+Q: Is there an elephant in the image?
+A: No, there is no elephant
+GT: No
+TP	FP	TN	FN	
+46	10	41	5
+acc: 85.29, precision: 82.14, recall: 90.2, f1: 85.98, yes_ratio: 54.9
+==================================================
+  3%|▎         | 102/3000 [02:22<1:06:18,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000131115.jpg']
+Q: Is there a baseball glove in the image?
+A: Yes, there is a baseball glove
+GT: Yes
+TP	FP	TN	FN	
+47	10	41	5
+acc: 85.44, precision: 82.46, recall: 90.38, f1: 86.24, yes_ratio: 55.34
+==================================================
+  3%|▎         | 103/3000 [02:24<1:06:01,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000131115.jpg']
+Q: Is there a suitcase in the image?
+A: No, there is no suitcase in
+GT: No
+TP	FP	TN	FN	
+47	10	42	5
+acc: 85.58, precision: 82.46, recall: 90.38, f1: 86.24, yes_ratio: 54.81
+==================================================
+  3%|▎         | 104/3000 [02:25<1:05:50,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000131115.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+48	10	42	5
+acc: 85.71, precision: 82.76, recall: 90.57, f1: 86.49, yes_ratio: 55.24
+==================================================
+  4%|▎         | 105/3000 [02:27<1:05:43,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000131115.jpg']
+Q: Is there a sheep in the image?
+A: No, there is no sheep in the
+GT: No
+TP	FP	TN	FN	
+48	10	43	5
+acc: 85.85, precision: 82.76, recall: 90.57, f1: 86.49, yes_ratio: 54.72
+==================================================
+  4%|▎         | 106/3000 [02:28<1:05:34,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000131115.jpg']
+Q: Is there a baseball bat in the image?
+A: Yes, there is a baseball bat in
+GT: Yes
+TP	FP	TN	FN	
+49	10	43	5
+acc: 85.98, precision: 83.05, recall: 90.74, f1: 86.73, yes_ratio: 55.14
+==================================================
+  4%|▎         | 107/3000 [02:29<1:05:21,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000131115.jpg']
+Q: Is there a dining table in the image?
+A: No, there is no dining table
+GT: No
+TP	FP	TN	FN	
+49	10	44	5
+acc: 86.11, precision: 83.05, recall: 90.74, f1: 86.73, yes_ratio: 54.63
+==================================================
+  4%|▎         | 108/3000 [02:31<1:06:33,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000157084.jpg']
+Q: Is there a sink in the image?
+A: Yes, there is a sink in the
+GT: Yes
+TP	FP	TN	FN	
+50	10	44	5
+acc: 86.24, precision: 83.33, recall: 90.91, f1: 86.96, yes_ratio: 55.05
+==================================================
+  4%|▎         | 109/3000 [02:32<1:07:16,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000157084.jpg']
+Q: Is there a cow in the image?
+A: No, there is no cow in the
+GT: No
+TP	FP	TN	FN	
+50	10	45	5
+acc: 86.36, precision: 83.33, recall: 90.91, f1: 86.96, yes_ratio: 54.55
+==================================================
+  4%|▎         | 110/3000 [02:33<1:06:29,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000157084.jpg']
+Q: Is there a bench in the image?
+A: Yes, there is a bench in
+GT: Yes
+TP	FP	TN	FN	
+51	10	45	5
+acc: 86.49, precision: 83.61, recall: 91.07, f1: 87.18, yes_ratio: 54.95
+==================================================
+  4%|▎         | 111/3000 [02:35<1:06:08,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000157084.jpg']
+Q: Is there a scissors in the image?
+A: Yes, there is a pair of sc
+GT: No
+TP	FP	TN	FN	
+51	11	45	5
+acc: 85.71, precision: 82.26, recall: 91.07, f1: 86.44, yes_ratio: 55.36
+==================================================
+  4%|▎         | 112/3000 [02:36<1:05:34,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000157084.jpg']
+Q: Is there a toilet in the image?
+A: Yes, there is a toilet
+GT: Yes
+TP	FP	TN	FN	
+52	11	45	5
+acc: 85.84, precision: 82.54, recall: 91.23, f1: 86.67, yes_ratio: 55.75
+==================================================
+  4%|▍         | 113/3000 [02:38<1:05:22,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000157084.jpg']
+Q: Is there a bear in the image?
+A: No, there is no bear in the
+GT: No
+TP	FP	TN	FN	
+52	11	46	5
+acc: 85.96, precision: 82.54, recall: 91.23, f1: 86.67, yes_ratio: 55.26
+==================================================
+  4%|▍         | 114/3000 [02:39<1:05:09,  1.35s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000381895.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person, a
+GT: Yes
+TP	FP	TN	FN	
+53	11	46	5
+acc: 86.09, precision: 82.81, recall: 91.38, f1: 86.89, yes_ratio: 55.65
+==================================================
+  4%|▍         | 115/3000 [02:40<1:05:11,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000381895.jpg']
+Q: Is there a carrot in the image?
+A: No, there is no carrot in
+GT: No
+TP	FP	TN	FN	
+53	11	47	5
+acc: 86.21, precision: 82.81, recall: 91.38, f1: 86.89, yes_ratio: 55.17
+==================================================
+  4%|▍         | 116/3000 [02:42<1:05:08,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000381895.jpg']
+Q: Is there a teddy bear in the image?
+A: Yes, there is a teddy bear
+GT: Yes
+TP	FP	TN	FN	
+54	11	47	5
+acc: 86.32, precision: 83.08, recall: 91.53, f1: 87.1, yes_ratio: 55.56
+==================================================
+  4%|▍         | 117/3000 [02:43<1:06:04,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000381895.jpg']
+Q: Is there a bird in the image?
+A: No, there is no bird in the
+GT: No
+TP	FP	TN	FN	
+54	11	48	5
+acc: 86.44, precision: 83.08, recall: 91.53, f1: 87.1, yes_ratio: 55.08
+==================================================
+  4%|▍         | 118/3000 [02:44<1:07:14,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000381895.jpg']
+Q: Is there a bear in the image?
+A: Yes, there is a stuffed bear
+GT: Yes
+TP	FP	TN	FN	
+55	11	48	5
+acc: 86.55, precision: 83.33, recall: 91.67, f1: 87.3, yes_ratio: 55.46
+==================================================
+  4%|▍         | 119/3000 [02:46<1:06:35,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000381895.jpg']
+Q: Is there a mouse in the image?
+A: No, there is no mouse in the
+GT: No
+TP	FP	TN	FN	
+55	11	49	5
+acc: 86.67, precision: 83.33, recall: 91.67, f1: 87.3, yes_ratio: 55.0
+==================================================
+  4%|▍         | 120/3000 [02:47<1:05:58,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000336872.jpg']
+Q: Is there a bowl in the image?
+A: Yes, there is a bowl in
+GT: Yes
+TP	FP	TN	FN	
+56	11	49	5
+acc: 86.78, precision: 83.58, recall: 91.8, f1: 87.5, yes_ratio: 55.37
+==================================================
+  4%|▍         | 121/3000 [02:49<1:05:31,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000336872.jpg']
+Q: Is there a skis in the image?
+A: No, there are no skis in
+GT: No
+TP	FP	TN	FN	
+56	11	50	5
+acc: 86.89, precision: 83.58, recall: 91.8, f1: 87.5, yes_ratio: 54.92
+==================================================
+  4%|▍         | 122/3000 [02:50<1:05:19,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000336872.jpg']
+Q: Is there a spoon in the image?
+A: No, there is no spoon in
+GT: Yes
+TP	FP	TN	FN	
+56	11	50	6
+acc: 86.18, precision: 83.58, recall: 90.32, f1: 86.82, yes_ratio: 54.47
+==================================================
+  4%|▍         | 123/3000 [02:51<1:05:11,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000336872.jpg']
+Q: Is there a dog in the image?
+A: No, there is no dog in the
+GT: No
+TP	FP	TN	FN	
+56	11	51	6
+acc: 86.29, precision: 83.58, recall: 90.32, f1: 86.82, yes_ratio: 54.03
+==================================================
+  4%|▍         | 124/3000 [02:53<1:04:50,  1.35s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000336872.jpg']
+Q: Is there a sandwich in the image?
+A: Yes, there is a sandwich in
+GT: Yes
+TP	FP	TN	FN	
+57	11	51	6
+acc: 86.4, precision: 83.82, recall: 90.48, f1: 87.02, yes_ratio: 54.4
+==================================================
+  4%|▍         | 125/3000 [02:54<1:05:08,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000336872.jpg']
+Q: Is there a car in the image?
+A: No, there is no car in the
+GT: No
+TP	FP	TN	FN	
+57	11	52	6
+acc: 86.51, precision: 83.82, recall: 90.48, f1: 87.02, yes_ratio: 53.97
+==================================================
+  4%|▍         | 126/3000 [02:55<1:06:26,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000075591.jpg']
+Q: Is there a bed in the image?
+A: Yes, there is a bed in the
+GT: Yes
+TP	FP	TN	FN	
+58	11	52	6
+acc: 86.61, precision: 84.06, recall: 90.62, f1: 87.22, yes_ratio: 54.33
+==================================================
+  4%|▍         | 127/3000 [02:57<1:07:35,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000075591.jpg']
+Q: Is there a scissors in the image?
+A: Yes, there is a pair of sc
+GT: No
+TP	FP	TN	FN	
+58	12	52	6
+acc: 85.94, precision: 82.86, recall: 90.62, f1: 86.57, yes_ratio: 54.69
+==================================================
+  4%|▍         | 128/3000 [02:58<1:06:59,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000075591.jpg']
+Q: Is there a cat in the image?
+A: Yes, there is a cat in the
+GT: Yes
+TP	FP	TN	FN	
+59	12	52	6
+acc: 86.05, precision: 83.1, recall: 90.77, f1: 86.76, yes_ratio: 55.04
+==================================================
+  4%|▍         | 129/3000 [03:00<1:06:28,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000075591.jpg']
+Q: Is there a clock in the image?
+A: No, there is no clock in the
+GT: No
+TP	FP	TN	FN	
+59	12	53	6
+acc: 86.15, precision: 83.1, recall: 90.77, f1: 86.76, yes_ratio: 54.62
+==================================================
+  4%|▍         | 130/3000 [03:01<1:05:57,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000075591.jpg']
+Q: Is there a book in the image?
+A: Yes, there is a book in the
+GT: Yes
+TP	FP	TN	FN	
+60	12	53	6
+acc: 86.26, precision: 83.33, recall: 90.91, f1: 86.96, yes_ratio: 54.96
+==================================================
+  4%|▍         | 131/3000 [03:02<1:05:50,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000075591.jpg']
+Q: Is there an elephant in the image?
+A: No, there is no elephant
+GT: No
+TP	FP	TN	FN	
+60	12	54	6
+acc: 86.36, precision: 83.33, recall: 90.91, f1: 86.96, yes_ratio: 54.55
+==================================================
+  4%|▍         | 132/3000 [03:04<1:05:10,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000516916.jpg']
+Q: Is there a tv in the image?
+A: Yes, there is a TV in the
+GT: Yes
+TP	FP	TN	FN	
+61	12	54	6
+acc: 86.47, precision: 83.56, recall: 91.04, f1: 87.14, yes_ratio: 54.89
+==================================================
+  4%|▍         | 133/3000 [03:05<1:05:08,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000516916.jpg']
+Q: Is there a bed in the image?
+A: No, there is no bed in the
+GT: No
+TP	FP	TN	FN	
+61	12	55	6
+acc: 86.57, precision: 83.56, recall: 91.04, f1: 87.14, yes_ratio: 54.48
+==================================================
+  4%|▍         | 134/3000 [03:06<1:04:51,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000516916.jpg']
+Q: Is there a mouse in the image?
+A: Yes, there is a mouse in the
+GT: Yes
+TP	FP	TN	FN	
+62	12	55	6
+acc: 86.67, precision: 83.78, recall: 91.18, f1: 87.32, yes_ratio: 54.81
+==================================================
+  4%|▍         | 135/3000 [03:08<1:06:18,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000516916.jpg']
+Q: Is there a bench in the image?
+A: No, there is no bench in
+GT: No
+TP	FP	TN	FN	
+62	12	56	6
+acc: 86.76, precision: 83.78, recall: 91.18, f1: 87.32, yes_ratio: 54.41
+==================================================
+  5%|▍         | 136/3000 [03:09<1:08:14,  1.43s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000516916.jpg']
+Q: Is there a laptop in the image?
+A: Yes, there is a laptop in the
+GT: Yes
+TP	FP	TN	FN	
+63	12	56	6
+acc: 86.86, precision: 84.0, recall: 91.3, f1: 87.5, yes_ratio: 54.74
+==================================================
+  5%|▍         | 137/3000 [03:11<1:07:15,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000516916.jpg']
+Q: Is there a skateboard in the image?
+A: No, there is no skateboard
+GT: No
+TP	FP	TN	FN	
+63	12	57	6
+acc: 86.96, precision: 84.0, recall: 91.3, f1: 87.5, yes_ratio: 54.35
+==================================================
+  5%|▍         | 138/3000 [03:12<1:06:18,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000542145.jpg']
+Q: Is there a sink in the image?
+A: Yes, there is a sink in the
+GT: Yes
+TP	FP	TN	FN	
+64	12	57	6
+acc: 87.05, precision: 84.21, recall: 91.43, f1: 87.67, yes_ratio: 54.68
+==================================================
+  5%|▍         | 139/3000 [03:13<1:05:39,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000542145.jpg']
+Q: Is there a giraffe in the image?
+A: No, there is no giraffe
+GT: No
+TP	FP	TN	FN	
+64	12	58	6
+acc: 87.14, precision: 84.21, recall: 91.43, f1: 87.67, yes_ratio: 54.29
+==================================================
+  5%|▍         | 140/3000 [03:15<1:05:27,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000542145.jpg']
+Q: Is there a toothbrush in the image?
+A: Yes, there is a toothbr
+GT: Yes
+TP	FP	TN	FN	
+65	12	58	6
+acc: 87.23, precision: 84.42, recall: 91.55, f1: 87.84, yes_ratio: 54.61
+==================================================
+  5%|▍         | 141/3000 [03:16<1:05:06,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000542145.jpg']
+Q: Is there a person in the image?
+A: No, there is no person in the
+GT: No
+TP	FP	TN	FN	
+65	12	59	6
+acc: 87.32, precision: 84.42, recall: 91.55, f1: 87.84, yes_ratio: 54.23
+==================================================
+  5%|▍         | 142/3000 [03:17<1:04:44,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000542145.jpg']
+Q: Is there a bottle in the image?
+A: Yes, there is a bottle in
+GT: Yes
+TP	FP	TN	FN	
+66	12	59	6
+acc: 87.41, precision: 84.62, recall: 91.67, f1: 88.0, yes_ratio: 54.55
+==================================================
+  5%|▍         | 143/3000 [03:19<1:04:48,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000542145.jpg']
+Q: Is there an umbrella in the image?
+A: No, there is no umbrella
+GT: No
+TP	FP	TN	FN	
+66	12	60	6
+acc: 87.5, precision: 84.62, recall: 91.67, f1: 88.0, yes_ratio: 54.17
+==================================================
+  5%|▍         | 144/3000 [03:20<1:06:18,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000218224.jpg']
+Q: Is there a truck in the image?
+A: No, there is no truck in
+GT: Yes
+TP	FP	TN	FN	
+66	12	60	7
+acc: 86.9, precision: 84.62, recall: 90.41, f1: 87.42, yes_ratio: 53.79
+==================================================
+  5%|▍         | 145/3000 [03:22<1:07:48,  1.43s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000218224.jpg']
+Q: Is there an elephant in the image?
+A: No, there is no elephant
+GT: No
+TP	FP	TN	FN	
+66	12	61	7
+acc: 86.99, precision: 84.62, recall: 90.41, f1: 87.42, yes_ratio: 53.42
+==================================================
+  5%|▍         | 146/3000 [03:23<1:06:41,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000218224.jpg']
+Q: Is there an airplane in the image?
+A: Yes, there is a large WestJ
+GT: Yes
+TP	FP	TN	FN	
+67	12	61	7
+acc: 87.07, precision: 84.81, recall: 90.54, f1: 87.58, yes_ratio: 53.74
+==================================================
+  5%|▍         | 147/3000 [03:24<1:06:10,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000218224.jpg']
+Q: Is there a potted plant in the image?
+A: No, there is no potted plant
+GT: No
+TP	FP	TN	FN	
+67	12	62	7
+acc: 87.16, precision: 84.81, recall: 90.54, f1: 87.58, yes_ratio: 53.38
+==================================================
+  5%|▍         | 148/3000 [03:26<1:05:44,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000218224.jpg']
+Q: Is there a car in the image?
+A: No, there is no car in the
+GT: Yes
+TP	FP	TN	FN	
+67	12	62	8
+acc: 86.58, precision: 84.81, recall: 89.33, f1: 87.01, yes_ratio: 53.02
+==================================================
+  5%|▍         | 149/3000 [03:27<1:05:16,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000218224.jpg']
+Q: Is there a microwave in the image?
+A: No, there is no microwave
+GT: No
+TP	FP	TN	FN	
+67	12	63	8
+acc: 86.67, precision: 84.81, recall: 89.33, f1: 87.01, yes_ratio: 52.67
+==================================================
+  5%|▌         | 150/3000 [03:29<1:04:51,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000297078.jpg']
+Q: Is there a backpack in the image?
+A: Yes, there is a backpack in
+GT: Yes
+TP	FP	TN	FN	
+68	12	63	8
+acc: 86.75, precision: 85.0, recall: 89.47, f1: 87.18, yes_ratio: 52.98
+==================================================
+  5%|▌         | 151/3000 [03:30<1:04:52,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000297078.jpg']
+Q: Is there a bear in the image?
+A: No, there is no bear in the
+GT: No
+TP	FP	TN	FN	
+68	12	64	8
+acc: 86.84, precision: 85.0, recall: 89.47, f1: 87.18, yes_ratio: 52.63
+==================================================
+  5%|▌         | 152/3000 [03:31<1:04:35,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000297078.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+69	12	64	8
+acc: 86.93, precision: 85.19, recall: 89.61, f1: 87.34, yes_ratio: 52.94
+==================================================
+  5%|▌         | 153/3000 [03:33<1:06:12,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000297078.jpg']
+Q: Is there a cup in the image?
+A: No, there is no cup in the
+GT: No
+TP	FP	TN	FN	
+69	12	65	8
+acc: 87.01, precision: 85.19, recall: 89.61, f1: 87.34, yes_ratio: 52.6
+==================================================
+  5%|▌         | 154/3000 [03:34<1:07:45,  1.43s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000297078.jpg']
+Q: Is there a skis in the image?
+A: Yes, there is a person with sk
+GT: Yes
+TP	FP	TN	FN	
+70	12	65	8
+acc: 87.1, precision: 85.37, recall: 89.74, f1: 87.5, yes_ratio: 52.9
+==================================================
+  5%|▌         | 155/3000 [03:36<1:06:53,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000297078.jpg']
+Q: Is there a sink in the image?
+A: No, there is no sink in the
+GT: No
+TP	FP	TN	FN	
+70	12	66	8
+acc: 87.18, precision: 85.37, recall: 89.74, f1: 87.5, yes_ratio: 52.56
+==================================================
+  5%|▌         | 156/3000 [03:37<1:06:08,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000033270.jpg']
+Q: Is there a tv in the image?
+A: Yes, there is a tv in the
+GT: Yes
+TP	FP	TN	FN	
+71	12	66	8
+acc: 87.26, precision: 85.54, recall: 89.87, f1: 87.65, yes_ratio: 52.87
+==================================================
+  5%|▌         | 157/3000 [03:38<1:05:28,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000033270.jpg']
+Q: Is there a cat in the image?
+A: No, there is no cat in the
+GT: No
+TP	FP	TN	FN	
+71	12	67	8
+acc: 87.34, precision: 85.54, recall: 89.87, f1: 87.65, yes_ratio: 52.53
+==================================================
+  5%|▌         | 158/3000 [03:40<1:05:18,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000033270.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+72	12	67	8
+acc: 87.42, precision: 85.71, recall: 90.0, f1: 87.8, yes_ratio: 52.83
+==================================================
+  5%|▌         | 159/3000 [03:41<1:04:51,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000033270.jpg']
+Q: Is there a donut in the image?
+A: No, there is no donut in
+GT: No
+TP	FP	TN	FN	
+72	12	68	8
+acc: 87.5, precision: 85.71, recall: 90.0, f1: 87.8, yes_ratio: 52.5
+==================================================
+  5%|▌         | 160/3000 [03:42<1:04:21,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000033270.jpg']
+Q: Is there a couch in the image?
+A: Yes, there is a couch in
+GT: Yes
+TP	FP	TN	FN	
+73	12	68	8
+acc: 87.58, precision: 85.88, recall: 90.12, f1: 87.95, yes_ratio: 52.8
+==================================================
+  5%|▌         | 161/3000 [03:44<1:04:24,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000033270.jpg']
+Q: Is there a teddy bear in the image?
+A: Yes, there is a teddy bear
+GT: No
+TP	FP	TN	FN	
+73	13	68	8
+acc: 87.04, precision: 84.88, recall: 90.12, f1: 87.43, yes_ratio: 53.09
+==================================================
+  5%|▌         | 162/3000 [03:45<1:05:49,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000140583.jpg']
+Q: Is there a truck in the image?
+A: Yes, there is a truck in
+GT: Yes
+TP	FP	TN	FN	
+74	13	68	8
+acc: 87.12, precision: 85.06, recall: 90.24, f1: 87.57, yes_ratio: 53.37
+==================================================
+  5%|▌         | 163/3000 [03:47<1:07:10,  1.42s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000140583.jpg']
+Q: Is there a carrot in the image?
+A: No, there is no carrot in
+GT: No
+TP	FP	TN	FN	
+74	13	69	8
+acc: 87.2, precision: 85.06, recall: 90.24, f1: 87.57, yes_ratio: 53.05
+==================================================
+  5%|▌         | 164/3000 [03:48<1:06:32,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000140583.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+75	13	69	8
+acc: 87.27, precision: 85.23, recall: 90.36, f1: 87.72, yes_ratio: 53.33
+==================================================
+  6%|▌         | 165/3000 [03:49<1:05:33,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000140583.jpg']
+Q: Is there a tv in the image?
+A: No, there is no TV in the
+GT: No
+TP	FP	TN	FN	
+75	13	70	8
+acc: 87.35, precision: 85.23, recall: 90.36, f1: 87.72, yes_ratio: 53.01
+==================================================
+  6%|▌         | 166/3000 [03:51<1:05:24,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000140583.jpg']
+Q: Is there a cow in the image?
+A: Yes, there is a cow in the
+GT: Yes
+TP	FP	TN	FN	
+76	13	70	8
+acc: 87.43, precision: 85.39, recall: 90.48, f1: 87.86, yes_ratio: 53.29
+==================================================
+  6%|▌         | 167/3000 [03:52<1:05:07,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000140583.jpg']
+Q: Is there a potted plant in the image?
+A: No, there is no potted plant
+GT: No
+TP	FP	TN	FN	
+76	13	71	8
+acc: 87.5, precision: 85.39, recall: 90.48, f1: 87.86, yes_ratio: 52.98
+==================================================
+  6%|▌         | 168/3000 [03:54<1:04:49,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000421455.jpg']
+Q: Is there a dog in the image?
+A: Yes, there is a dog in the
+GT: Yes
+TP	FP	TN	FN	
+77	13	71	8
+acc: 87.57, precision: 85.56, recall: 90.59, f1: 88.0, yes_ratio: 53.25
+==================================================
+  6%|▌         | 169/3000 [03:55<1:04:36,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000421455.jpg']
+Q: Is there an elephant in the image?
+A: No, there is no elephant
+GT: No
+TP	FP	TN	FN	
+77	13	72	8
+acc: 87.65, precision: 85.56, recall: 90.59, f1: 88.0, yes_ratio: 52.94
+==================================================
+  6%|▌         | 170/3000 [03:56<1:04:32,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000421455.jpg']
+Q: Is there a truck in the image?
+A: Yes, there is a truck in
+GT: Yes
+TP	FP	TN	FN	
+78	13	72	8
+acc: 87.72, precision: 85.71, recall: 90.7, f1: 88.14, yes_ratio: 53.22
+==================================================
+  6%|▌         | 171/3000 [03:58<1:06:18,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000421455.jpg']
+Q: Is there a stop sign in the image?
+A: Yes, there is a stop sign in
+GT: No
+TP	FP	TN	FN	
+78	14	72	8
+acc: 87.21, precision: 84.78, recall: 90.7, f1: 87.64, yes_ratio: 53.49
+==================================================
+  6%|▌         | 172/3000 [03:59<1:07:35,  1.43s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000421455.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+79	14	72	8
+acc: 87.28, precision: 84.95, recall: 90.8, f1: 87.78, yes_ratio: 53.76
+==================================================
+  6%|▌         | 173/3000 [04:01<1:06:24,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000421455.jpg']
+Q: Is there a skis in the image?
+A: No, there are no skis in
+GT: No
+TP	FP	TN	FN	
+79	14	73	8
+acc: 87.36, precision: 84.95, recall: 90.8, f1: 87.78, yes_ratio: 53.45
+==================================================
+  6%|▌         | 174/3000 [04:02<1:05:30,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000288639.jpg']
+Q: Is there a sink in the image?
+A: Yes, there is a sink in the
+GT: Yes
+TP	FP	TN	FN	
+80	14	73	8
+acc: 87.43, precision: 85.11, recall: 90.91, f1: 87.91, yes_ratio: 53.71
+==================================================
+  6%|▌         | 175/3000 [04:03<1:04:41,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000288639.jpg']
+Q: Is there a sheep in the image?
+A: No, there is no sheep in the
+GT: No
+TP	FP	TN	FN	
+80	14	74	8
+acc: 87.5, precision: 85.11, recall: 90.91, f1: 87.91, yes_ratio: 53.41
+==================================================
+  6%|▌         | 176/3000 [04:05<1:04:28,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000288639.jpg']
+Q: Is there a toothbrush in the image?
+A: Yes, there is a toothbr
+GT: Yes
+TP	FP	TN	FN	
+81	14	74	8
+acc: 87.57, precision: 85.26, recall: 91.01, f1: 88.04, yes_ratio: 53.67
+==================================================
+  6%|▌         | 177/3000 [04:06<1:04:15,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000288639.jpg']
+Q: Is there a backpack in the image?
+A: No, there is no backpack in
+GT: No
+TP	FP	TN	FN	
+81	14	75	8
+acc: 87.64, precision: 85.26, recall: 91.01, f1: 88.04, yes_ratio: 53.37
+==================================================
+  6%|▌         | 178/3000 [04:07<1:04:09,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000288639.jpg']
+Q: Is there a bottle in the image?
+A: Yes, there is a bottle in
+GT: Yes
+TP	FP	TN	FN	
+82	14	75	8
+acc: 87.71, precision: 85.42, recall: 91.11, f1: 88.17, yes_ratio: 53.63
+==================================================
+  6%|▌         | 179/3000 [04:09<1:04:19,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000288639.jpg']
+Q: Is there a horse in the image?
+A: No, there is no horse in the
+GT: No
+TP	FP	TN	FN	
+82	14	76	8
+acc: 87.78, precision: 85.42, recall: 91.11, f1: 88.17, yes_ratio: 53.33
+==================================================
+  6%|▌         | 180/3000 [04:10<1:06:25,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000291936.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+83	14	76	8
+acc: 87.85, precision: 85.57, recall: 91.21, f1: 88.3, yes_ratio: 53.59
+==================================================
+  6%|▌         | 181/3000 [04:12<1:07:37,  1.44s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000291936.jpg']
+Q: Is there a toilet in the image?
+A: No, there is no toilet
+GT: No
+TP	FP	TN	FN	
+83	14	77	8
+acc: 87.91, precision: 85.57, recall: 91.21, f1: 88.3, yes_ratio: 53.3
+==================================================
+  6%|▌         | 182/3000 [04:13<1:06:24,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000291936.jpg']
+Q: Is there a bicycle in the image?
+A: Yes, there is a bicycle
+GT: Yes
+TP	FP	TN	FN	
+84	14	77	8
+acc: 87.98, precision: 85.71, recall: 91.3, f1: 88.42, yes_ratio: 53.55
+==================================================
+  6%|▌         | 183/3000 [04:14<1:05:24,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000291936.jpg']
+Q: Is there a spoon in the image?
+A: No, there is no spoon in
+GT: No
+TP	FP	TN	FN	
+84	14	78	8
+acc: 88.04, precision: 85.71, recall: 91.3, f1: 88.42, yes_ratio: 53.26
+==================================================
+  6%|▌         | 184/3000 [04:16<1:04:45,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000291936.jpg']
+Q: Is there an umbrella in the image?
+A: Yes, there is an umbrella
+GT: Yes
+TP	FP	TN	FN	
+85	14	78	8
+acc: 88.11, precision: 85.86, recall: 91.4, f1: 88.54, yes_ratio: 53.51
+==================================================
+  6%|▌         | 185/3000 [04:17<1:04:36,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000291936.jpg']
+Q: Is there a dog in the image?
+A: No, there is no dog in the
+GT: No
+TP	FP	TN	FN	
+85	14	79	8
+acc: 88.17, precision: 85.86, recall: 91.4, f1: 88.54, yes_ratio: 53.23
+==================================================
+  6%|▌         | 186/3000 [04:19<1:04:23,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000063953.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+86	14	79	8
+acc: 88.24, precision: 86.0, recall: 91.49, f1: 88.66, yes_ratio: 53.48
+==================================================
+  6%|▌         | 187/3000 [04:20<1:04:06,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000063953.jpg']
+Q: Is there a skis in the image?
+A: No, there are no skis in
+GT: No
+TP	FP	TN	FN	
+86	14	80	8
+acc: 88.3, precision: 86.0, recall: 91.49, f1: 88.66, yes_ratio: 53.19
+==================================================
+  6%|▋         | 188/3000 [04:21<1:04:16,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000063953.jpg']
+Q: Is there a bicycle in the image?
+A: No, there is no bicycle
+GT: Yes
+TP	FP	TN	FN	
+86	14	80	9
+acc: 87.83, precision: 86.0, recall: 90.53, f1: 88.21, yes_ratio: 52.91
+==================================================
+  6%|▋         | 189/3000 [04:23<1:05:43,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000063953.jpg']
+Q: Is there a horse in the image?
+A: No, there is no horse in the
+GT: No
+TP	FP	TN	FN	
+86	14	81	9
+acc: 87.89, precision: 86.0, recall: 90.53, f1: 88.21, yes_ratio: 52.63
+==================================================
+  6%|▋         | 190/3000 [04:24<1:06:55,  1.43s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000063953.jpg']
+Q: Is there a skateboard in the image?
+A: Yes, there is a skateboard
+GT: Yes
+TP	FP	TN	FN	
+87	14	81	9
+acc: 87.96, precision: 86.14, recall: 90.62, f1: 88.32, yes_ratio: 52.88
+==================================================
+  6%|▋         | 191/3000 [04:26<1:06:07,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000063953.jpg']
+Q: Is there a zebra in the image?
+A: No, there is no zebra
+GT: No
+TP	FP	TN	FN	
+87	14	82	9
+acc: 88.02, precision: 86.14, recall: 90.62, f1: 88.32, yes_ratio: 52.6
+==================================================
+  6%|▋         | 192/3000 [04:27<1:05:05,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000526321.jpg']
+Q: Is there a laptop in the image?
+A: Yes, there is a laptop in the
+GT: Yes
+TP	FP	TN	FN	
+88	14	82	9
+acc: 88.08, precision: 86.27, recall: 90.72, f1: 88.44, yes_ratio: 52.85
+==================================================
+  6%|▋         | 193/3000 [04:28<1:04:28,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000526321.jpg']
+Q: Is there a truck in the image?
+A: No, there is no truck in
+GT: No
+TP	FP	TN	FN	
+88	14	83	9
+acc: 88.14, precision: 86.27, recall: 90.72, f1: 88.44, yes_ratio: 52.58
+==================================================
+  6%|▋         | 194/3000 [04:30<1:04:32,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000526321.jpg']
+Q: Is there a remote in the image?
+A: Yes, there is a remote in the
+GT: Yes
+TP	FP	TN	FN	
+89	14	83	9
+acc: 88.21, precision: 86.41, recall: 90.82, f1: 88.56, yes_ratio: 52.82
+==================================================
+  6%|▋         | 195/3000 [04:31<1:04:12,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000526321.jpg']
+Q: Is there a hot dog in the image?
+A: No, there is no hot dog in
+GT: No
+TP	FP	TN	FN	
+89	14	84	9
+acc: 88.27, precision: 86.41, recall: 90.82, f1: 88.56, yes_ratio: 52.55
+==================================================
+  7%|▋         | 196/3000 [04:32<1:03:49,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000526321.jpg']
+Q: Is there a dining table in the image?
+A: Yes, there is a wooden desk
+GT: Yes
+TP	FP	TN	FN	
+90	14	84	9
+acc: 88.32, precision: 86.54, recall: 90.91, f1: 88.67, yes_ratio: 52.79
+==================================================
+  7%|▋         | 197/3000 [04:34<1:03:29,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000526321.jpg']
+Q: Is there a bowl in the image?
+A: No, there is no bowl in
+GT: No
+TP	FP	TN	FN	
+90	14	85	9
+acc: 88.38, precision: 86.54, recall: 90.91, f1: 88.67, yes_ratio: 52.53
+==================================================
+  7%|▋         | 198/3000 [04:35<1:05:11,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000042190.jpg']
+Q: Is there a snowboard in the image?
+A: Yes, there is a snowboard in
+GT: Yes
+TP	FP	TN	FN	
+91	14	85	9
+acc: 88.44, precision: 86.67, recall: 91.0, f1: 88.78, yes_ratio: 52.76
+==================================================
+  7%|▋         | 199/3000 [04:37<1:06:19,  1.42s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000042190.jpg']
+Q: Is there a stop sign in the image?
+A: No, there is no stop sign in
+GT: No
+TP	FP	TN	FN	
+91	14	86	9
+acc: 88.5, precision: 86.67, recall: 91.0, f1: 88.78, yes_ratio: 52.5
+==================================================
+  7%|▋         | 200/3000 [04:38<1:05:51,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000042190.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+92	14	86	9
+acc: 88.56, precision: 86.79, recall: 91.09, f1: 88.89, yes_ratio: 52.74
+==================================================
+  7%|▋         | 201/3000 [04:39<1:04:55,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000042190.jpg']
+Q: Is there a couch in the image?
+A: No, there is no couch in
+GT: No
+TP	FP	TN	FN	
+92	14	87	9
+acc: 88.61, precision: 86.79, recall: 91.09, f1: 88.89, yes_ratio: 52.48
+==================================================
+  7%|▋         | 202/3000 [04:41<1:04:13,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000042190.jpg']
+Q: Is there a surfboard in the image?
+A: Yes, there is a surfboard
+GT: Yes
+TP	FP	TN	FN	
+93	14	87	9
+acc: 88.67, precision: 86.92, recall: 91.18, f1: 89.0, yes_ratio: 52.71
+==================================================
+  7%|▋         | 203/3000 [04:42<1:03:53,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000042190.jpg']
+Q: Is there a wine glass in the image?
+A: No, there is no wine glass in
+GT: No
+TP	FP	TN	FN	
+93	14	88	9
+acc: 88.73, precision: 86.92, recall: 91.18, f1: 89.0, yes_ratio: 52.45
+==================================================
+  7%|▋         | 204/3000 [04:43<1:03:39,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000553165.jpg']
+Q: Is there a bird in the image?
+A: Yes, there is a bird in the
+GT: Yes
+TP	FP	TN	FN	
+94	14	88	9
+acc: 88.78, precision: 87.04, recall: 91.26, f1: 89.1, yes_ratio: 52.68
+==================================================
+  7%|▋         | 205/3000 [04:45<1:03:34,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000553165.jpg']
+Q: Is there a cow in the image?
+A: No, there is no cow in the
+GT: No
+TP	FP	TN	FN	
+94	14	89	9
+acc: 88.83, precision: 87.04, recall: 91.26, f1: 89.1, yes_ratio: 52.43
+==================================================
+  7%|▋         | 206/3000 [04:46<1:03:14,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000553165.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+95	14	89	9
+acc: 88.89, precision: 87.16, recall: 91.35, f1: 89.2, yes_ratio: 52.66
+==================================================
+  7%|▋         | 207/3000 [04:48<1:04:39,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000553165.jpg']
+Q: Is there a bus in the image?
+A: No, there is no bus in the
+GT: No
+TP	FP	TN	FN	
+95	14	90	9
+acc: 88.94, precision: 87.16, recall: 91.35, f1: 89.2, yes_ratio: 52.4
+==================================================
+  7%|▋         | 208/3000 [04:49<1:05:25,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000553165.jpg']
+Q: Is there a boat in the image?
+A: No, there is no boat in the
+GT: Yes
+TP	FP	TN	FN	
+95	14	90	10
+acc: 88.52, precision: 87.16, recall: 90.48, f1: 88.79, yes_ratio: 52.15
+==================================================
+  7%|▋         | 209/3000 [04:50<1:04:51,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000553165.jpg']
+Q: Is there a wine glass in the image?
+A: No, there is no wine glass in
+GT: No
+TP	FP	TN	FN	
+95	14	91	10
+acc: 88.57, precision: 87.16, recall: 90.48, f1: 88.79, yes_ratio: 51.9
+==================================================
+  7%|▋         | 210/3000 [04:52<1:04:11,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000170517.jpg']
+Q: Is there a dog in the image?
+A: Yes, there is a dog in the
+GT: Yes
+TP	FP	TN	FN	
+96	14	91	10
+acc: 88.63, precision: 87.27, recall: 90.57, f1: 88.89, yes_ratio: 52.13
+==================================================
+  7%|▋         | 211/3000 [04:53<1:03:41,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000170517.jpg']
+Q: Is there a carrot in the image?
+A: No, there is no carrot in
+GT: No
+TP	FP	TN	FN	
+96	14	92	10
+acc: 88.68, precision: 87.27, recall: 90.57, f1: 88.89, yes_ratio: 51.89
+==================================================
+  7%|▋         | 212/3000 [04:55<1:03:45,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000170517.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+97	14	92	10
+acc: 88.73, precision: 87.39, recall: 90.65, f1: 88.99, yes_ratio: 52.11
+==================================================
+  7%|▋         | 213/3000 [04:56<1:03:18,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000170517.jpg']
+Q: Is there a bird in the image?
+A: No, there is no bird in the
+GT: No
+TP	FP	TN	FN	
+97	14	93	10
+acc: 88.79, precision: 87.39, recall: 90.65, f1: 88.99, yes_ratio: 51.87
+==================================================
+  7%|▋         | 214/3000 [04:57<1:02:47,  1.35s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000170517.jpg']
+Q: Is there a car in the image?
+A: No, there is no car in the
+GT: Yes
+TP	FP	TN	FN	
+97	14	93	11
+acc: 88.37, precision: 87.39, recall: 89.81, f1: 88.58, yes_ratio: 51.63
+==================================================
+  7%|▋         | 215/3000 [04:59<1:02:35,  1.35s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000170517.jpg']
+Q: Is there a spoon in the image?
+A: No, there is no spoon in
+GT: No
+TP	FP	TN	FN	
+97	14	94	11
+acc: 88.43, precision: 87.39, recall: 89.81, f1: 88.58, yes_ratio: 51.39
+==================================================
+  7%|▋         | 216/3000 [05:00<1:04:30,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000498759.jpg']
+Q: Is there a person in the image?
+A: No, there is no person in the
+GT: Yes
+TP	FP	TN	FN	
+97	14	94	12
+acc: 88.02, precision: 87.39, recall: 88.99, f1: 88.18, yes_ratio: 51.15
+==================================================
+  7%|▋         | 217/3000 [05:01<1:05:08,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000498759.jpg']
+Q: Is there a truck in the image?
+A: Yes, there is a truck in
+GT: No
+TP	FP	TN	FN	
+97	15	94	12
+acc: 87.61, precision: 86.61, recall: 88.99, f1: 87.78, yes_ratio: 51.38
+==================================================
+  7%|▋         | 218/3000 [05:03<1:04:34,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000498759.jpg']
+Q: Is there a skateboard in the image?
+A: Yes, there is a skateboard
+GT: Yes
+TP	FP	TN	FN	
+98	15	94	12
+acc: 87.67, precision: 86.73, recall: 89.09, f1: 87.89, yes_ratio: 51.6
+==================================================
+  7%|▋         | 219/3000 [05:04<1:04:09,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000498759.jpg']
+Q: Is there a cell phone in the image?
+A: Yes, there is a cell phone in
+GT: No
+TP	FP	TN	FN	
+98	16	94	12
+acc: 87.27, precision: 85.96, recall: 89.09, f1: 87.5, yes_ratio: 51.82
+==================================================
+  7%|▋         | 220/3000 [05:06<1:03:39,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000498759.jpg']
+Q: Is there a car in the image?
+A: Yes, there is a car in the
+GT: Yes
+TP	FP	TN	FN	
+99	16	94	12
+acc: 87.33, precision: 86.09, recall: 89.19, f1: 87.61, yes_ratio: 52.04
+==================================================
+  7%|▋         | 221/3000 [05:07<1:03:18,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000498759.jpg']
+Q: Is there a donut in the image?
+A: No, there is no donut in
+GT: No
+TP	FP	TN	FN	
+99	16	95	12
+acc: 87.39, precision: 86.09, recall: 89.19, f1: 87.61, yes_ratio: 51.8
+==================================================
+  7%|▋         | 222/3000 [05:08<1:03:11,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000360600.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+100	16	95	12
+acc: 87.44, precision: 86.21, recall: 89.29, f1: 87.72, yes_ratio: 52.02
+==================================================
+  7%|▋         | 223/3000 [05:10<1:03:01,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000360600.jpg']
+Q: Is there a mouse in the image?
+A: No, there is no mouse in the
+GT: No
+TP	FP	TN	FN	
+100	16	96	12
+acc: 87.5, precision: 86.21, recall: 89.29, f1: 87.72, yes_ratio: 51.79
+==================================================
+  7%|▋         | 224/3000 [05:11<1:02:47,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000360600.jpg']
+Q: Is there a fork in the image?
+A: Yes, there is a fork in the
+GT: Yes
+TP	FP	TN	FN	
+101	16	96	12
+acc: 87.56, precision: 86.32, recall: 89.38, f1: 87.83, yes_ratio: 52.0
+==================================================
+  8%|▊         | 225/3000 [05:12<1:04:12,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000360600.jpg']
+Q: Is there a bed in the image?
+A: No, there is no bed in the
+GT: No
+TP	FP	TN	FN	
+101	16	97	12
+acc: 87.61, precision: 86.32, recall: 89.38, f1: 87.83, yes_ratio: 51.77
+==================================================
+  8%|▊         | 226/3000 [05:14<1:05:07,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000360600.jpg']
+Q: Is there a knife in the image?
+A: Yes, there is a knife in
+GT: Yes
+TP	FP	TN	FN	
+102	16	97	12
+acc: 87.67, precision: 86.44, recall: 89.47, f1: 87.93, yes_ratio: 51.98
+==================================================
+  8%|▊         | 227/3000 [05:15<1:04:22,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000360600.jpg']
+Q: Is there a baseball glove in the image?
+A: No, there is no baseball glove
+GT: No
+TP	FP	TN	FN	
+102	16	98	12
+acc: 87.72, precision: 86.44, recall: 89.47, f1: 87.93, yes_ratio: 51.75
+==================================================
+  8%|▊         | 228/3000 [05:17<1:03:42,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000031773.jpg']
+Q: Is there a tv in the image?
+A: Yes, there is a television in the
+GT: Yes
+TP	FP	TN	FN	
+103	16	98	12
+acc: 87.77, precision: 86.55, recall: 89.57, f1: 88.03, yes_ratio: 51.97
+==================================================
+  8%|▊         | 229/3000 [05:18<1:03:29,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000031773.jpg']
+Q: Is there a surfboard in the image?
+A: No, there is no surfboard
+GT: No
+TP	FP	TN	FN	
+103	16	99	12
+acc: 87.83, precision: 86.55, recall: 89.57, f1: 88.03, yes_ratio: 51.74
+==================================================
+  8%|▊         | 230/3000 [05:19<1:02:58,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000031773.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+104	16	99	12
+acc: 87.88, precision: 86.67, recall: 89.66, f1: 88.14, yes_ratio: 51.95
+==================================================
+  8%|▊         | 231/3000 [05:21<1:02:48,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000031773.jpg']
+Q: Is there a zebra in the image?
+A: No, there is no zebra
+GT: No
+TP	FP	TN	FN	
+104	16	100	12
+acc: 87.93, precision: 86.67, recall: 89.66, f1: 88.14, yes_ratio: 51.72
+==================================================
+  8%|▊         | 232/3000 [05:22<1:02:33,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000031773.jpg']
+Q: Is there a mouse in the image?
+A: Yes, there is a mouse in the
+GT: Yes
+TP	FP	TN	FN	
+105	16	100	12
+acc: 87.98, precision: 86.78, recall: 89.74, f1: 88.24, yes_ratio: 51.93
+==================================================
+  8%|▊         | 233/3000 [05:23<1:02:28,  1.35s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000031773.jpg']
+Q: Is there a vase in the image?
+A: Yes, there is a vase in
+GT: No
+TP	FP	TN	FN	
+105	17	100	12
+acc: 87.61, precision: 86.07, recall: 89.74, f1: 87.87, yes_ratio: 52.14
+==================================================
+  8%|▊         | 234/3000 [05:25<1:03:44,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000500257.jpg']
+Q: Is there a tv in the image?
+A: Yes, there is a TV in the
+GT: Yes
+TP	FP	TN	FN	
+106	17	100	12
+acc: 87.66, precision: 86.18, recall: 89.83, f1: 87.97, yes_ratio: 52.34
+==================================================
+  8%|▊         | 235/3000 [05:26<1:04:48,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000500257.jpg']
+Q: Is there a stop sign in the image?
+A: No, there is no stop sign in
+GT: No
+TP	FP	TN	FN	
+106	17	101	12
+acc: 87.71, precision: 86.18, recall: 89.83, f1: 87.97, yes_ratio: 52.12
+==================================================
+  8%|▊         | 236/3000 [05:28<1:04:24,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000500257.jpg']
+Q: Is there a backpack in the image?
+A: Yes, there is a backpack in
+GT: Yes
+TP	FP	TN	FN	
+107	17	101	12
+acc: 87.76, precision: 86.29, recall: 89.92, f1: 88.07, yes_ratio: 52.32
+==================================================
+  8%|▊         | 237/3000 [05:29<1:03:56,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000500257.jpg']
+Q: Is there a dog in the image?
+A: No, there is no dog in the
+GT: No
+TP	FP	TN	FN	
+107	17	102	12
+acc: 87.82, precision: 86.29, recall: 89.92, f1: 88.07, yes_ratio: 52.1
+==================================================
+  8%|▊         | 238/3000 [05:30<1:03:25,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000500257.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+108	17	102	12
+acc: 87.87, precision: 86.4, recall: 90.0, f1: 88.16, yes_ratio: 52.3
+==================================================
+  8%|▊         | 239/3000 [05:32<1:02:57,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000500257.jpg']
+Q: Is there an apple in the image?
+A: No, there is no apple in the
+GT: No
+TP	FP	TN	FN	
+108	17	103	12
+acc: 87.92, precision: 86.4, recall: 90.0, f1: 88.16, yes_ratio: 52.08
+==================================================
+  8%|▊         | 240/3000 [05:33<1:02:30,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000574057.jpg']
+Q: Is there a car in the image?
+A: No, there is no car in the
+GT: Yes
+TP	FP	TN	FN	
+108	17	103	13
+acc: 87.55, precision: 86.4, recall: 89.26, f1: 87.8, yes_ratio: 51.87
+==================================================
+  8%|▊         | 241/3000 [05:34<1:02:09,  1.35s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000574057.jpg']
+Q: Is there a tennis racket in the image?
+A: Yes, there is a tennis racket
+GT: No
+TP	FP	TN	FN	
+108	18	103	13
+acc: 87.19, precision: 85.71, recall: 89.26, f1: 87.45, yes_ratio: 52.07
+==================================================
+  8%|▊         | 242/3000 [05:36<1:01:51,  1.35s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000574057.jpg']
+Q: Is there a train in the image?
+A: Yes, there is a train in the
+GT: Yes
+TP	FP	TN	FN	
+109	18	103	13
+acc: 87.24, precision: 85.83, recall: 89.34, f1: 87.55, yes_ratio: 52.26
+==================================================
+  8%|▊         | 243/3000 [05:37<1:02:21,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000574057.jpg']
+Q: Is there a backpack in the image?
+A: Yes, there is a backpack in
+GT: No
+TP	FP	TN	FN	
+109	19	103	13
+acc: 86.89, precision: 85.16, recall: 89.34, f1: 87.2, yes_ratio: 52.46
+==================================================
+  8%|▊         | 244/3000 [05:39<1:04:04,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000574057.jpg']
+Q: Is there a bed in the image?
+A: Yes, there is a bed in the
+GT: Yes
+TP	FP	TN	FN	
+110	19	103	13
+acc: 86.94, precision: 85.27, recall: 89.43, f1: 87.3, yes_ratio: 52.65
+==================================================
+  8%|▊         | 245/3000 [05:40<1:03:53,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000574057.jpg']
+Q: Is there a sports ball in the image?
+A: Yes, there is a sports ball in
+GT: No
+TP	FP	TN	FN	
+110	20	103	13
+acc: 86.59, precision: 84.62, recall: 89.43, f1: 86.96, yes_ratio: 52.85
+==================================================
+  8%|▊         | 246/3000 [05:41<1:03:27,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000456178.jpg']
+Q: Is there a traffic light in the image?
+A: Yes, there is a traffic light in
+GT: Yes
+TP	FP	TN	FN	
+111	20	103	13
+acc: 86.64, precision: 84.73, recall: 89.52, f1: 87.06, yes_ratio: 53.04
+==================================================
+  8%|▊         | 247/3000 [05:43<1:03:15,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000456178.jpg']
+Q: Is there a sandwich in the image?
+A: No, there is no sandwich in
+GT: No
+TP	FP	TN	FN	
+111	20	104	13
+acc: 86.69, precision: 84.73, recall: 89.52, f1: 87.06, yes_ratio: 52.82
+==================================================
+  8%|▊         | 248/3000 [05:44<1:02:50,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000456178.jpg']
+Q: Is there a truck in the image?
+A: Yes, there is a truck in
+GT: Yes
+TP	FP	TN	FN	
+112	20	104	13
+acc: 86.75, precision: 84.85, recall: 89.6, f1: 87.16, yes_ratio: 53.01
+==================================================
+  8%|▊         | 249/3000 [05:45<1:02:33,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000456178.jpg']
+Q: Is there a couch in the image?
+A: No, there is no couch in
+GT: No
+TP	FP	TN	FN	
+112	20	105	13
+acc: 86.8, precision: 84.85, recall: 89.6, f1: 87.16, yes_ratio: 52.8
+==================================================
+  8%|▊         | 250/3000 [05:47<1:02:25,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000456178.jpg']
+Q: Is there a clock in the image?
+A: Yes, there is a clock in the
+GT: Yes
+TP	FP	TN	FN	
+113	20	105	13
+acc: 86.85, precision: 84.96, recall: 89.68, f1: 87.26, yes_ratio: 52.99
+==================================================
+  8%|▊         | 251/3000 [05:48<1:02:16,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000456178.jpg']
+Q: Is there a bear in the image?
+A: No, there is no bear in the
+GT: No
+TP	FP	TN	FN	
+113	20	106	13
+acc: 86.9, precision: 84.96, recall: 89.68, f1: 87.26, yes_ratio: 52.78
+==================================================
+  8%|▊         | 252/3000 [05:49<1:02:19,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000565941.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+114	20	106	13
+acc: 86.96, precision: 85.07, recall: 89.76, f1: 87.36, yes_ratio: 52.96
+==================================================
+  8%|▊         | 253/3000 [05:51<1:03:30,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000565941.jpg']
+Q: Is there a cat in the image?
+A: No, there is no cat in the
+GT: No
+TP	FP	TN	FN	
+114	20	107	13
+acc: 87.01, precision: 85.07, recall: 89.76, f1: 87.36, yes_ratio: 52.76
+==================================================
+  8%|▊         | 254/3000 [05:52<1:03:17,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000565941.jpg']
+Q: Is there a bottle in the image?
+A: Yes, there is a bottle in
+GT: Yes
+TP	FP	TN	FN	
+115	20	107	13
+acc: 87.06, precision: 85.19, recall: 89.84, f1: 87.45, yes_ratio: 52.94
+==================================================
+  8%|▊         | 255/3000 [05:54<1:02:48,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000565941.jpg']
+Q: Is there a wine glass in the image?
+A: Yes, there is a wine glass in
+GT: No
+TP	FP	TN	FN	
+115	21	107	13
+acc: 86.72, precision: 84.56, recall: 89.84, f1: 87.12, yes_ratio: 53.12
+==================================================
+  9%|▊         | 256/3000 [05:55<1:02:27,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000565941.jpg']
+Q: Is there a dining table in the image?
+A: Yes, there is a dining table
+GT: Yes
+TP	FP	TN	FN	
+116	21	107	13
+acc: 86.77, precision: 84.67, recall: 89.92, f1: 87.22, yes_ratio: 53.31
+==================================================
+  9%|▊         | 257/3000 [05:56<1:02:32,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000565941.jpg']
+Q: Is there a snowboard in the image?
+A: No, there is no snowboard in
+GT: No
+TP	FP	TN	FN	
+116	21	108	13
+acc: 86.82, precision: 84.67, recall: 89.92, f1: 87.22, yes_ratio: 53.1
+==================================================
+  9%|▊         | 258/3000 [05:58<1:02:16,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000485564.jpg']
+Q: Is there a car in the image?
+A: No, there is no car in the
+GT: Yes
+TP	FP	TN	FN	
+116	21	108	14
+acc: 86.49, precision: 84.67, recall: 89.23, f1: 86.89, yes_ratio: 52.9
+==================================================
+  9%|▊         | 259/3000 [05:59<1:02:15,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000485564.jpg']
+Q: Is there a truck in the image?
+A: No, there is no truck in
+GT: No
+TP	FP	TN	FN	
+116	21	109	14
+acc: 86.54, precision: 84.67, recall: 89.23, f1: 86.89, yes_ratio: 52.69
+==================================================
+  9%|▊         | 260/3000 [06:00<1:02:14,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000485564.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+117	21	109	14
+acc: 86.59, precision: 84.78, recall: 89.31, f1: 86.99, yes_ratio: 52.87
+==================================================
+  9%|▊         | 261/3000 [06:02<1:02:30,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000485564.jpg']
+Q: Is there a microwave in the image?
+A: No, there is no microwave
+GT: No
+TP	FP	TN	FN	
+117	21	110	14
+acc: 86.64, precision: 84.78, recall: 89.31, f1: 86.99, yes_ratio: 52.67
+==================================================
+  9%|▊         | 262/3000 [06:03<1:03:09,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000485564.jpg']
+Q: Is there a sports ball in the image?
+A: Yes, there is a sports ball in
+GT: Yes
+TP	FP	TN	FN	
+118	21	110	14
+acc: 86.69, precision: 84.89, recall: 89.39, f1: 87.08, yes_ratio: 52.85
+==================================================
+  9%|▉         | 263/3000 [06:05<1:03:23,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000485564.jpg']
+Q: Is there a giraffe in the image?
+A: No, there is no giraffe
+GT: No
+TP	FP	TN	FN	
+118	21	111	14
+acc: 86.74, precision: 84.89, recall: 89.39, f1: 87.08, yes_ratio: 52.65
+==================================================
+  9%|▉         | 264/3000 [06:06<1:02:49,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000454642.jpg']
+Q: Is there a truck in the image?
+A: Yes, there is a truck in
+GT: Yes
+TP	FP	TN	FN	
+119	21	111	14
+acc: 86.79, precision: 85.0, recall: 89.47, f1: 87.18, yes_ratio: 52.83
+==================================================
+  9%|▉         | 265/3000 [06:07<1:02:35,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000454642.jpg']
+Q: Is there a banana in the image?
+A: No, there is no banana in
+GT: No
+TP	FP	TN	FN	
+119	21	112	14
+acc: 86.84, precision: 85.0, recall: 89.47, f1: 87.18, yes_ratio: 52.63
+==================================================
+  9%|▉         | 266/3000 [06:09<1:02:17,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000454642.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+120	21	112	14
+acc: 86.89, precision: 85.11, recall: 89.55, f1: 87.27, yes_ratio: 52.81
+==================================================
+  9%|▉         | 267/3000 [06:10<1:02:00,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000454642.jpg']
+Q: Is there an airplane in the image?
+A: No, there is no airplane in
+GT: No
+TP	FP	TN	FN	
+120	21	113	14
+acc: 86.94, precision: 85.11, recall: 89.55, f1: 87.27, yes_ratio: 52.61
+==================================================
+  9%|▉         | 268/3000 [06:11<1:01:52,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000454642.jpg']
+Q: Is there a motorcycle in the image?
+A: Yes, there is a motorcycle in
+GT: Yes
+TP	FP	TN	FN	
+121	21	113	14
+acc: 86.99, precision: 85.21, recall: 89.63, f1: 87.36, yes_ratio: 52.79
+==================================================
+  9%|▉         | 269/3000 [06:13<1:01:56,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000454642.jpg']
+Q: Is there a vase in the image?
+A: No, there is no vase in
+GT: No
+TP	FP	TN	FN	
+121	21	114	14
+acc: 87.04, precision: 85.21, recall: 89.63, f1: 87.36, yes_ratio: 52.59
+==================================================
+  9%|▉         | 270/3000 [06:14<1:01:59,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000205729.jpg']
+Q: Is there a backpack in the image?
+A: Yes, there is a backpack in
+GT: Yes
+TP	FP	TN	FN	
+122	21	114	14
+acc: 87.08, precision: 85.31, recall: 89.71, f1: 87.46, yes_ratio: 52.77
+==================================================
+  9%|▉         | 271/3000 [06:16<1:03:03,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000205729.jpg']
+Q: Is there a chair in the image?
+A: No, there is no chair in the
+GT: No
+TP	FP	TN	FN	
+122	21	115	14
+acc: 87.13, precision: 85.31, recall: 89.71, f1: 87.46, yes_ratio: 52.57
+==================================================
+  9%|▉         | 272/3000 [06:17<1:03:32,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000205729.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+123	21	115	14
+acc: 87.18, precision: 85.42, recall: 89.78, f1: 87.54, yes_ratio: 52.75
+==================================================
+  9%|▉         | 273/3000 [06:18<1:02:53,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000205729.jpg']
+Q: Is there a snowboard in the image?
+A: No, there is no snowboard in
+GT: No
+TP	FP	TN	FN	
+123	21	116	14
+acc: 87.23, precision: 85.42, recall: 89.78, f1: 87.54, yes_ratio: 52.55
+==================================================
+  9%|▉         | 274/3000 [06:20<1:02:24,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000205729.jpg']
+Q: Is there a skis in the image?
+A: Yes, there are skis in the
+GT: Yes
+TP	FP	TN	FN	
+124	21	116	14
+acc: 87.27, precision: 85.52, recall: 89.86, f1: 87.63, yes_ratio: 52.73
+==================================================
+  9%|▉         | 275/3000 [06:21<1:02:16,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000205729.jpg']
+Q: Is there a bottle in the image?
+A: No, there is no bottle in
+GT: No
+TP	FP	TN	FN	
+124	21	117	14
+acc: 87.32, precision: 85.52, recall: 89.86, f1: 87.63, yes_ratio: 52.54
+==================================================
+  9%|▉         | 276/3000 [06:22<1:02:02,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000424792.jpg']
+Q: Is there a couch in the image?
+A: Yes, there is a couch in
+GT: Yes
+TP	FP	TN	FN	
+125	21	117	14
+acc: 87.36, precision: 85.62, recall: 89.93, f1: 87.72, yes_ratio: 52.71
+==================================================
+  9%|▉         | 277/3000 [06:24<1:01:48,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000424792.jpg']
+Q: Is there a boat in the image?
+A: No, there is no boat in the
+GT: No
+TP	FP	TN	FN	
+125	21	118	14
+acc: 87.41, precision: 85.62, recall: 89.93, f1: 87.72, yes_ratio: 52.52
+==================================================
+  9%|▉         | 278/3000 [06:25<1:01:44,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000424792.jpg']
+Q: Is there a chair in the image?
+A: Yes, there is a chair in the
+GT: Yes
+TP	FP	TN	FN	
+126	21	118	14
+acc: 87.46, precision: 85.71, recall: 90.0, f1: 87.8, yes_ratio: 52.69
+==================================================
+  9%|▉         | 279/3000 [06:26<1:01:42,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000424792.jpg']
+Q: Is there a sports ball in the image?
+A: No, there is no sports ball in
+GT: No
+TP	FP	TN	FN	
+126	21	119	14
+acc: 87.5, precision: 85.71, recall: 90.0, f1: 87.8, yes_ratio: 52.5
+==================================================
+  9%|▉         | 280/3000 [06:28<1:02:37,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000424792.jpg']
+Q: Is there a vase in the image?
+A: Yes, there is a vase in
+GT: Yes
+TP	FP	TN	FN	
+127	21	119	14
+acc: 87.54, precision: 85.81, recall: 90.07, f1: 87.89, yes_ratio: 52.67
+==================================================
+  9%|▉         | 281/3000 [06:29<1:03:26,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000424792.jpg']
+Q: Is there a handbag in the image?
+A: No, there is no handbag in
+GT: No
+TP	FP	TN	FN	
+127	21	120	14
+acc: 87.59, precision: 85.81, recall: 90.07, f1: 87.89, yes_ratio: 52.48
+==================================================
+  9%|▉         | 282/3000 [06:31<1:02:43,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000329717.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a young baby in
+GT: Yes
+TP	FP	TN	FN	
+128	21	120	14
+acc: 87.63, precision: 85.91, recall: 90.14, f1: 87.97, yes_ratio: 52.65
+==================================================
+  9%|▉         | 283/3000 [06:32<1:02:17,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000329717.jpg']
+Q: Is there a tennis racket in the image?
+A: No, there is no tennis racket
+GT: No
+TP	FP	TN	FN	
+128	21	121	14
+acc: 87.68, precision: 85.91, recall: 90.14, f1: 87.97, yes_ratio: 52.46
+==================================================
+  9%|▉         | 284/3000 [06:33<1:02:04,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000329717.jpg']
+Q: Is there a suitcase in the image?
+A: No, there is no suitcase in
+GT: Yes
+TP	FP	TN	FN	
+128	21	121	15
+acc: 87.37, precision: 85.91, recall: 89.51, f1: 87.67, yes_ratio: 52.28
+==================================================
+ 10%|▉         | 285/3000 [06:35<1:01:54,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000329717.jpg']
+Q: Is there a bird in the image?
+A: No, there is no bird in the
+GT: No
+TP	FP	TN	FN	
+128	21	122	15
+acc: 87.41, precision: 85.91, recall: 89.51, f1: 87.67, yes_ratio: 52.1
+==================================================
+ 10%|▉         | 286/3000 [06:36<1:01:36,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000329717.jpg']
+Q: Is there a handbag in the image?
+A: No, there is no handbag in
+GT: Yes
+TP	FP	TN	FN	
+128	21	122	16
+acc: 87.11, precision: 85.91, recall: 88.89, f1: 87.37, yes_ratio: 51.92
+==================================================
+ 10%|▉         | 287/3000 [06:37<1:01:45,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000329717.jpg']
+Q: Is there a toaster in the image?
+A: No, there is no toaster in
+GT: No
+TP	FP	TN	FN	
+128	21	123	16
+acc: 87.15, precision: 85.91, recall: 88.89, f1: 87.37, yes_ratio: 51.74
+==================================================
+ 10%|▉         | 288/3000 [06:39<1:01:50,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000012333.jpg']
+Q: Is there a chair in the image?
+A: Yes, there is a chair in the
+GT: Yes
+TP	FP	TN	FN	
+129	21	123	16
+acc: 87.2, precision: 86.0, recall: 88.97, f1: 87.46, yes_ratio: 51.9
+==================================================
+ 10%|▉         | 289/3000 [06:40<1:02:59,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000012333.jpg']
+Q: Is there a refrigerator in the image?
+A: No, there is no refriger
+GT: No
+TP	FP	TN	FN	
+129	21	124	16
+acc: 87.24, precision: 86.0, recall: 88.97, f1: 87.46, yes_ratio: 51.72
+==================================================
+ 10%|▉         | 290/3000 [06:42<1:04:00,  1.42s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000012333.jpg']
+Q: Is there a person in the image?
+A: Yes, there is a person in the
+GT: Yes
+TP	FP	TN	FN	
+130	21	124	16
+acc: 87.29, precision: 86.09, recall: 89.04, f1: 87.54, yes_ratio: 51.89
+==================================================
+ 10%|▉         | 291/3000 [06:43<1:03:25,  1.40s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000012333.jpg']
+Q: Is there a skis in the image?
+A: No, there are no skis in
+GT: No
+TP	FP	TN	FN	
+130	21	125	16
+acc: 87.33, precision: 86.09, recall: 89.04, f1: 87.54, yes_ratio: 51.71
+==================================================
+ 10%|▉         | 292/3000 [06:45<1:02:53,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000012333.jpg']
+Q: Is there a horse in the image?
+A: Yes, there is a white horse in
+GT: Yes
+TP	FP	TN	FN	
+131	21	125	16
+acc: 87.37, precision: 86.18, recall: 89.12, f1: 87.63, yes_ratio: 51.88
+==================================================
+ 10%|▉         | 293/3000 [06:46<1:02:25,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000012333.jpg']
+Q: Is there a cup in the image?
+A: Yes, there is a cup in the
+GT: No
+TP	FP	TN	FN	
+131	22	125	16
+acc: 87.07, precision: 85.62, recall: 89.12, f1: 87.33, yes_ratio: 52.04
+==================================================
+ 10%|▉         | 294/3000 [06:47<1:02:18,  1.38s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000480122.jpg']
+Q: Is there a banana in the image?
+A: Yes, there is a banana in
+GT: Yes
+TP	FP	TN	FN	
+132	22	125	16
+acc: 87.12, precision: 85.71, recall: 89.19, f1: 87.42, yes_ratio: 52.2
+==================================================
+ 10%|▉         | 295/3000 [06:49<1:01:53,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000480122.jpg']
+Q: Is there a baseball glove in the image?
+A: No, there is no baseball glove
+GT: No
+TP	FP	TN	FN	
+132	22	126	16
+acc: 87.16, precision: 85.71, recall: 89.19, f1: 87.42, yes_ratio: 52.03
+==================================================
+ 10%|▉         | 296/3000 [06:50<1:01:28,  1.36s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000480122.jpg']
+Q: Is there a spoon in the image?
+A: Yes, there is a spoon in
+GT: Yes
+TP	FP	TN	FN	
+133	22	126	16
+acc: 87.21, precision: 85.81, recall: 89.26, f1: 87.5, yes_ratio: 52.19
+==================================================
+ 10%|▉         | 297/3000 [06:51<1:01:29,  1.37s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000480122.jpg']
+Q: Is there a fire hydrant in the image?
+A: No, there is no fire hydrant
+GT: No
+TP	FP	TN	FN	
+133	22	127	16
+acc: 87.25, precision: 85.81, recall: 89.26, f1: 87.5, yes_ratio: 52.01
+==================================================
+ 10%|▉         | 298/3000 [06:53<1:02:24,  1.39s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000480122.jpg']
+Q: Is there a bowl in the image?
+A: Yes, there is a bowl in
+GT: Yes
+TP	FP	TN	FN	
+134	22	127	16
+acc: 87.29, precision: 85.9, recall: 89.33, f1: 87.58, yes_ratio: 52.17
+==================================================
+ 10%|▉         | 299/3000 [06:54<1:03:33,  1.41s/it]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+[VQA for ritual]
+V: ['/content/data/coco/val2014/COCO_val2014_000000480122.jpg']
+Q: Is there a remote in the image?
+A: Yes, there is a remote control in
+GT: No
+TP	FP	TN	FN	
+134	23	127	16
+acc: 87.0, precision: 85.35, recall: 89.33, f1: 87.3, yes_ratio: 52.33
+==================================================
+ 10%|█         | 300/3000 [06:56<1:02:42,  1.39s/it] 10%|█         | 300/3000 [06:56<1:02:24,  1.39s/it]
+[2026-07-13 07:57:43] {'model_path': '/content/models/llava-v1.5-7b', 'model_base': 'llava', 'conv_mode': 'llava_v1', 'temperature': 1.0, 'top_p': 1.0, 'top_k': None, 'data_path': '/content/data/coco/val2014', 'pope_path': '/content/data/pope/coco_pope_adversarial.json', 'log_path': '/content/logs', 'seed': 42, 'batch_size': 1, 'num_workers': 1, 'use_ritual': False, 'use_vcd': False, 'noise_step': 500, 'use_m3id': False, 'use_only': True, 'enhance_layer_index': 0, 'mask_alpha': 0.2, 'ritual_alpha_pos': 3, 'ritual_alpha_neg': 1, 'ritual_beta': 0.1, 'js_gamma': 0.6, 'max_new_tokens': 8, 'type': 'adversarial', 'dataset_name': 'coco', 'max_questions': 300, 'debug_tvd': False, 'proposal': 2, 'score_threshold': 0.0, 'score_temperature': 1.0}
+TP	FP	TN	FN	
+134	23	127	16
+[2026-07-13 07:57:43] acc: 87.0, precision: 85.35, recall: 89.33, f1: 87.3, yes_ratio: 52.33
+[rank0]:[W713 07:57:43.188919026 ProcessGroupNCCL.cpp:1575] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())

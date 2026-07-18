@@ -1,0 +1,4 @@
+[2026-07-13 09:50:13] Experiment directory created at /content/logs/pope/llava-v1.5-7b/ONLY_coco_random_3_1_0.1_0.6_layer_0_proposal3
+[2026-07-13 09:50:13] Initializing Model
+[2026-07-13 09:50:13] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+[2026-07-13 09:51:33] Start eval...

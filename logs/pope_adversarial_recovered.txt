@@ -1,0 +1,79 @@
+[08:51:54] [run/4] >>> Setup: adversarial  (Questions: 3000, max_new_tokens=2, batch_size=1, mask_alpha=0.2, proposal=3 , SHORT=300)
+[08:51:54] [run/4] pope_path=/content/data/pope/coco_pope_adversarial.json
+[08:51:54] [run/4] log=/content/logs/results_2026-07-13_08h48m28s/proposal3_result_adversarial.txt
+[08:51:54] [run/4] Loading model and starting evaluation...
+Starting rank=0, seed=42, world_size=1, device=0
+[2026-07-13 08:52:07] Experiment directory created at /content/logs/pope/llava-v1.5-7b/ONLY_coco_adversarial_3_1_0.1_0.6_layer_0_proposal3
+[2026-07-13 08:52:07] Initializing Model
+[2026-07-13 08:52:08] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+
+[08:52:34] keepalive -- still running inside colab.sh run
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]
+Loading checkpoint shards:  50%|█████     | 1/2 [00:43<00:43, 43.66s/it][08:52:54] [run/4] (adversarial) still running... 60s elapsed
+
+Loading checkpoint shards: 100%|██████████| 2/2 [00:59<00:00, 27.07s/it]
+Loading checkpoint shards: 100%|██████████| 2/2 [00:59<00:00, 29.56s/it]
+[2026-07-13 08:53:16] Start eval...
+
+  0%|          | 0/3000 [00:00<?, ?it/s]use_ritual =  False
+use_vcd =  False
+use_m3id =  False
+use_only =  True
+
+  0%|          | 0/3000 [00:02<?, ?it/s]
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/content/ONLY/eval_bench/pope_eval_llava.py", line 394, in <module>
+[rank0]:     main()
+[rank0]:   File "/content/ONLY/eval_bench/pope_eval_llava.py", line 297, in main
+[rank0]:     output_ids, overlapping_index_len = model.generate(
+[rank0]:                                         ^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+[rank0]:     return func(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/transformers/generation/utils.py", line 1588, in generate
+[rank0]:     return self.sample(
+[rank0]:            ^^^^^^^^^^^^
+[rank0]:   File "/content/ONLY/only_utils/only_sample.py", line 122, in sample
+[rank0]:     outputs, logits_cd = self(
+[rank0]:                          ^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+[rank0]:     return forward_call(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/content/ONLY/experiments/llava/model/language_model/llava_llama.py", line 115, in forward
+[rank0]:     outputs, hidden_states_cd, cumulative_mask, score_accum = self.model(
+[rank0]:                                                               ^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+[rank0]:     return forward_call(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/transformers/models/llama/modeling_llama.py", line 1078, in forward
+[rank0]:     layer_outputs, hidden_states_cd, residual_cd, cumulative_mask, score_accum = decoder_layer(
+[rank0]:                                                                                  ^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+[rank0]:     return forward_call(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/transformers/models/llama/modeling_llama.py", line 733, in forward
+[rank0]:     hidden_states, self_attn_weights, present_key_value, hidden_states_cd, cumulative_mask, score_accum = self.self_attn(
+[rank0]:                                                                                                           ^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+[rank0]:     return forward_call(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/transformers/models/llama/modeling_llama.py", line 570, in forward
+[rank0]:     attn_weights_cd[:, suppressed_heads, :, :] = 0
+[rank0]:                        ^^^^^^^^^^^^^^^^
+[rank0]: UnboundLocalError: cannot access local variable 'suppressed_heads' where it is not associated with a value
+[rank0]:[W713 08:53:19.817988201 ProcessGroupNCCL.cpp:1575] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+[08:53:24] [run/4] adversarial: Python exit code 1, elapsed 90s
+[08:53:24] [run/4] ⚠️  adversarial failed — continuing to next setup
+[08:53:24] ===

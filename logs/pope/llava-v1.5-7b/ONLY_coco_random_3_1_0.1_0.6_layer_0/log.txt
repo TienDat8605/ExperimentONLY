@@ -1,0 +1,9 @@
+[2026-07-11 02:07:06] Experiment directory created at /content/logs/pope/llava-v1.5-7b/ONLY_coco_random_3_1_0.1_0.6_layer_0
+[2026-07-11 02:07:06] Initializing Model
+[2026-07-11 02:07:07] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+[2026-07-11 02:14:12] Experiment directory created at /content/logs/pope/llava-v1.5-7b/ONLY_coco_random_3_1_0.1_0.6_layer_0
+[2026-07-11 02:14:12] Initializing Model
+[2026-07-11 02:14:12] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+[2026-07-11 02:15:38] Start eval...
+[2026-07-11 02:24:05] {'model_path': '/content/models/llava-v1.5-7b', 'model_base': 'llava', 'conv_mode': 'llava_v1', 'temperature': 1.0, 'top_p': 1.0, 'top_k': None, 'data_path': '/content/data/coco/val2014', 'pope_path': '/content/data/pope/coco_pope_random.json', 'log_path': '/content/logs', 'seed': 42, 'batch_size': 1, 'num_workers': 1, 'use_ritual': False, 'use_vcd': False, 'noise_step': 500, 'use_m3id': False, 'use_only': True, 'enhance_layer_index': 0, 'mask_alpha': -1.0, 'ritual_alpha_pos': 3, 'ritual_alpha_neg': 1, 'ritual_beta': 0.1, 'js_gamma': 0.6, 'max_new_tokens': 2, 'type': 'random', 'dataset_name': 'coco', 'max_questions': 600, 'debug_tvd': True}
+[2026-07-11 02:24:05] acc: 79.0, precision: 72.19, recall: 94.33, f1: 81.79, yes_ratio: 65.33
