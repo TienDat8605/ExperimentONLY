@@ -108,6 +108,80 @@ for tp, pp in [('random','data/test-00000-of-00003.parquet'), ('popular','data/t
         done
     fi
 
+    # CHAIR annotations (coco_objects.json + GT captions)
+    dbg "[prep/4] Checking CHAIR annotations..."
+    CHAIR_DIR="${ROOT}/data/chair"
+    if [ ! -f "${CHAIR_DIR}/coco_objects.json" ] || [ ! -f "${CHAIR_DIR}/captions_val2014.json" ]; then
+        dbg "[prep/4] Preparing CHAIR annotations..."
+        mkdir -p "$CHAIR_DIR"
+
+        # Generate coco_objects.json from WordNet (reliable — no external URL dependency)
+        if [ ! -f "${CHAIR_DIR}/coco_objects.json" ]; then
+            dbg "[prep/4] Generating coco_objects.json..."
+            conda run -n "$ENV" pip install -q nltk 2>&1 | tail -1
+            conda run -n "$ENV" python "${ROOT}/ONLY/eval_bench/generate_coco_objects.py" \
+                "${CHAIR_DIR}/coco_objects.json"
+        fi
+
+        # Download captions_val2014.json from COCO official source
+        if [ ! -f "${CHAIR_DIR}/captions_val2014.json" ]; then
+            dbg "[prep/4] Downloading COCO captions (~241 MB zip)..."
+            wget -c -q http://images.cocodataset.org/annotations/annotations_trainval2014.zip \
+                -O /tmp/annotations_trainval2014.zip 2>/dev/null
+            dbg "[prep/4] Extracting captions_val2014.json..."
+            unzip -q /tmp/annotations_trainval2014.zip -d /tmp/coco_anns/
+            cp /tmp/coco_anns/annotations/captions_val2014.json "${CHAIR_DIR}/captions_val2014.json"
+            rm -f /tmp/annotations_trainval2014.zip
+            rm -rf /tmp/coco_anns/
+            dbg "[prep/4] CHAIR captions_val2014.json extracted"
+        fi
+    else
+        dbg "[prep/4] CHAIR annotations exist"
+    fi
+
+    # MME-Hallucination dataset
+    dbg "[prep/5] Checking MME-Hallucination..."
+    MME_DIR="${ROOT}/data/mme_hallucination"
+    if [ ! -f "${MME_DIR}/mme_hallucination.jsonl" ]; then
+        dbg "[prep/5] Downloading MME-Hallucination dataset..."
+        mkdir -p "${MME_DIR}/images"
+        conda run -n "$ENV" python -c "
+import json, os
+from datasets import load_dataset
+
+ds = load_dataset('lmms-lab/MME-Hallucination', split='test')
+print(f'  MME-Hallucination: {len(ds)} samples')
+
+img_dir = '${MME_DIR}/images'
+os.makedirs(img_dir, exist_ok=True)
+
+records = []
+for i, item in enumerate(ds):
+    # Save image to disk
+    img_path = os.path.join(img_dir, f'mme_hallucination_{i}.png')
+    item['image'].save(img_path)
+
+    rec = {
+        'question_id': i,
+        'image': f'images/mme_hallucination_{i}.png',
+        'text': item['question'],
+        'answer': item.get('answer', ''),
+        'label': item.get('answer', ''),
+        'category': item.get('category', 'Unknown')
+    }
+    records.append(rec)
+
+with open('${MME_DIR}/mme_hallucination.jsonl', 'w') as f:
+    for rec in records:
+        f.write(json.dumps(rec) + '\n')
+
+print(f'  MME-Hallucination: {len(records)} records ({len(os.listdir(img_dir))} images)')
+"
+        dbg "[prep/5] MME-Hallucination done"
+    else
+        dbg "[prep/5] MME-Hallucination exists ($(wc -l < "${MME_DIR}/mme_hallucination.jsonl") records)"
+    fi
+
     if [ -f "$TARBALL" ]; then
         dbg "[prep/tar] Tarball already exists, skipping"
         ls -lh "$TARBALL"
@@ -122,7 +196,9 @@ for tp, pp in [('random','data/test-00000-of-00003.parquet'), ('popular','data/t
         --exclude='*.pyc' \
         ONLY/ \
         colab.sh \
-        data/pope/
+        data/pope/ \
+        data/chair/ \
+        data/mme_hallucination/
     TAR_ELAPSED=$(($(date +%s) - TAR_START))
 
     dbg "[prep/tar] Tarball created in ${TAR_ELAPSED}s"
@@ -381,6 +457,65 @@ for tp, pp in [('random','data/test-00000-of-00003.parquet'), ('popular','data/t
         dbg "[run/3]  ✅ POPE done ($(wc -l < "${POPE_DIR}/coco_pope_adversarial.json") adversarial records)"
     fi
 
+    # CHAIR annotations
+    CHAIR_DIR="${ROOT}/data/chair"
+    if [ -f "${CHAIR_DIR}/coco_objects.json" ] && [ -f "${CHAIR_DIR}/captions_val2014.json" ]; then
+        dbg "[run/3]  ✅ CHAIR annotations exist"
+    else
+        dbg "[run/3] Preparing CHAIR annotations..."
+        mkdir -p "$CHAIR_DIR"
+        # Generate coco_objects.json from WordNet
+        if [ ! -f "${CHAIR_DIR}/coco_objects.json" ]; then
+            dbg "[run/3] Generating coco_objects.json..."
+            pip install -q nltk 2>&1 | tail -1
+            python "${ROOT}/ONLY/eval_bench/generate_coco_objects.py" \
+                "${CHAIR_DIR}/coco_objects.json"
+        fi
+        # Download captions from COCO official source
+        if [ ! -f "${CHAIR_DIR}/captions_val2014.json" ]; then
+            dbg "[run/3] Downloading COCO captions (~241 MB zip)..."
+            wget -c -q http://images.cocodataset.org/annotations/annotations_trainval2014.zip \
+                -O /tmp/annotations_trainval2014.zip 2>/dev/null
+            unzip -q /tmp/annotations_trainval2014.zip -d /tmp/coco_anns/
+            cp /tmp/coco_anns/annotations/captions_val2014.json "${CHAIR_DIR}/captions_val2014.json"
+            rm -f /tmp/annotations_trainval2014.zip
+            rm -rf /tmp/coco_anns/
+            dbg "[run/3]  ✅ CHAIR captions extracted"
+        fi
+    fi
+
+    # MME-Hallucination dataset
+    MME_DIR="${ROOT}/data/mme_hallucination"
+    if [ -f "${MME_DIR}/mme_hallucination.jsonl" ]; then
+        dbg "[run/3]  ✅ MME-Hallucination exists ($(wc -l < "${MME_DIR}/mme_hallucination.jsonl") records)"
+    else
+        dbg "[run/3] Downloading MME-Hallucination..."
+        mkdir -p "${MME_DIR}/images"
+        pip install -q datasets 2>&1 | tail -1
+        python -c "
+import json, os
+from datasets import load_dataset
+ds = load_dataset('lmms-lab/MME-Hallucination', split='test')
+img_dir = '${MME_DIR}/images'
+os.makedirs(img_dir, exist_ok=True)
+records = []
+for i, item in enumerate(ds):
+    item['image'].save(os.path.join(img_dir, f'mme_hallucination_{i}.png'))
+    records.append({'question_id': i, 'image': f'images/mme_hallucination_{i}.png',
+                    'text': item['question'], 'answer': item.get('answer', ''),
+                    'label': item.get('answer', ''), 'category': item.get('category', 'Unknown')})
+with open('${MME_DIR}/mme_hallucination.jsonl', 'w') as f:
+    for rec in records:
+        f.write(json.dumps(rec) + '\n')
+print(f'  MME-Hallucination: {len(records)} records ({len(os.listdir(img_dir))} images)')
+" 2>"$DL_ERR" || dbg "[run/3]  ⚠️  MME-Hallucination download failed"
+        dbg "[run/3]  ✅ MME-Hallucination done"
+    fi
+
+    # BENCHMARKS: which benchmarks to run (default: pope chair mme_hallucination)
+    BENCHMARKS="${BENCHMARKS:-pope chair mme_hallucination}"
+    dbg "[run/3]  ✅ Benchmark selection: $BENCHMARKS"
+
     dbg "=== [run/4] Run POPE evaluation ==="
     # Run all three POPE setups (random, popular, adversarial). Each uses its own
     # JSON file + --type (the type only names the per-run log subdirectory inside
@@ -425,6 +560,8 @@ for tp, pp in [('random','data/test-00000-of-00003.parquet'), ('popular','data/t
     OVERALL_START=$(date +%s)
     OVERALL_EXIT=0
 
+    # ---- POPE (yes/no object existence) ----
+    if [[ " $BENCHMARKS " == *" pope "* ]]; then
     for SETUP in $POPE_SETUPS; do
         dbg "[run/4] ==========================================="
         POPE_FILE="${POPE_DIR}/coco_pope_${SETUP}.json"
@@ -435,7 +572,7 @@ for tp, pp in [('random','data/test-00000-of-00003.parquet'), ('popular','data/t
         # POPE files are JSONL (one dict per line), so count lines — NOT json.load,
         # which raises on multi-line JSONL and would print "?".
         POPE_COUNT=$(wc -l < "$POPE_FILE" 2>/dev/null | tr -d ' ')
-        dbg "[run/4] >>> Setup: ${SETUP}  (Questions: ${POPE_COUNT}, max_new_tokens=${POPE_TOKENS}, batch_size=1, mask_alpha=${POPE_ALPHA}, proposal=${POPE_PROPOSAL}, js_gamma=${POPE_JS_GAMMA}${POPE_SHORT:+ , SHORT=300})"
+        dbg "[run/4] >>> POPE ${SETUP}  (Questions: ${POPE_COUNT}, max_new_tokens=${POPE_TOKENS}, batch_size=1, mask_alpha=${POPE_ALPHA}, proposal=${POPE_PROPOSAL}, js_gamma=${POPE_JS_GAMMA}${POPE_SHORT:+ , SHORT=300})"
         dbg "[run/4] pope_path=${POPE_FILE}"
         dbg "[run/4] log=${RUN_DIR}/proposal${POPE_PROPOSAL}_result_${SETUP}.txt"
         dbg "[run/4] Loading model and starting evaluation..."
@@ -446,7 +583,7 @@ for tp, pp in [('random','data/test-00000-of-00003.parquet'), ('popular','data/t
             while true; do
                 sleep 60
                 elapsed=$(($(date +%s) - EVAL_START))
-                dbg "[run/4] (${SETUP}) still running... ${elapsed}s elapsed"
+                dbg "[run/4] (POPE/${SETUP}) still running... ${elapsed}s elapsed"
             done
         ) &
         HEARTBEAT_PID=$!
@@ -482,37 +619,168 @@ for tp, pp in [('random','data/test-00000-of-00003.parquet'), ('popular','data/t
 
         kill "$HEARTBEAT_PID" 2>/dev/null || true
         EVAL_ELAPSED=$(($(date +%s) - EVAL_START))
-        dbg "[run/4] ${SETUP}: Python exit code ${EVAL_EXIT}, elapsed ${EVAL_ELAPSED}s"
+        dbg "[run/4] POPE/${SETUP}: Python exit code ${EVAL_EXIT}, elapsed ${EVAL_ELAPSED}s"
         if [ "$EVAL_EXIT" -ne 0 ]; then
             OVERALL_EXIT=$EVAL_EXIT
-            dbg "[run/4] ⚠️  ${SETUP} failed — continuing to next setup"
+            dbg "[run/4] ⚠️  POPE/${SETUP} failed — continuing to next setup"
         fi
     done
+    else
+        dbg "[run/4] 🚫 POPE: skipped (not in BENCHMARKS='${BENCHMARKS}')"
+    fi
+
+    # ---- CHAIR (caption hallucination) ----
+    if [[ " $BENCHMARKS " == *" chair "* ]]; then
+        CHAIR_DIR="${ROOT}/data/chair"
+        if [ ! -f "${CHAIR_DIR}/coco_objects.json" ] || [ ! -f "${CHAIR_DIR}/captions_val2014.json" ]; then
+            dbg "[run/5] ⚠️  CHAIR data missing — skipping"
+        else
+            dbg "[run/5] =========== Run CHAIR evaluation ==========="
+            CHAIR_START=$(date +%s)
+            (
+                while true; do
+                    sleep 60
+                    elapsed=$(($(date +%s) - CHAIR_START))
+                    dbg "[run/5] (CHAIR) still running... ${elapsed}s elapsed"
+                done
+            ) &
+            CHAIR_HB=$!
+
+            set +e
+            pip install -q nltk 2>&1 | tail -1
+            python -u "${ROOT}/ONLY/eval_bench/chair_eval_llava.py" \
+                --model_path "${MODEL_DIR}" \
+                --data_path "${COCO_DIR}" \
+                --chair_objects_path "${CHAIR_DIR}/coco_objects.json" \
+                --chair_captions_path "${CHAIR_DIR}/captions_val2014.json" \
+                --log_path "${ROOT}/logs/chair" \
+                --use_only "True" \
+                --proposal "${POPE_PROPOSAL}" \
+                --mask_alpha "${POPE_ALPHA}" \
+                --max_new_tokens "100" \
+                --temperature "1.0" \
+                --max_images "$( if [ "$POPE_MAXQ" -gt 0 ] 2>/dev/null; then echo "$POPE_MAXQ"; else echo "0"; fi )" \
+                --batch_size "1" \
+                --num_workers "1" \
+                --seed "42" \
+                2>&1 | tee "${RUN_DIR}/chair_result.txt"
+            CHAIR_EXIT=${PIPESTATUS[0]}
+            set -e
+
+            kill "$CHAIR_HB" 2>/dev/null || true
+            CHAIR_ELAPSED=$(($(date +%s) - CHAIR_START))
+            dbg "[run/5] CHAIR: Python exit code ${CHAIR_EXIT}, elapsed ${CHAIR_ELAPSED}s"
+            if [ "$CHAIR_EXIT" -ne 0 ]; then
+                OVERALL_EXIT=$CHAIR_EXIT
+                dbg "[run/5] ⚠️  CHAIR failed"
+            fi
+        fi
+    else
+        dbg "[run/5] 🚫 CHAIR: skipped (not in BENCHMARKS='${BENCHMARKS}')"
+    fi
+
+    # ---- MME-Hallucination (yes/no QA per category) ----
+    if [[ " $BENCHMARKS " == *" mme_hallucination "* ]]; then
+        MME_DIR="${ROOT}/data/mme_hallucination"
+        if [ ! -f "${MME_DIR}/mme_hallucination.jsonl" ]; then
+            dbg "[run/6] ⚠️  MME-Hallucination data missing — skipping"
+        else
+            dbg "[run/6] =========== Run MME-Hallucination evaluation ==========="
+            MME_START=$(date +%s)
+            (
+                while true; do
+                    sleep 60
+                    elapsed=$(($(date +%s) - MME_START))
+                    dbg "[run/6] (MME-Hallucination) still running... ${elapsed}s elapsed"
+                done
+            ) &
+            MME_HB=$!
+
+            set +e
+            python -u "${ROOT}/ONLY/eval_bench/mme_hallucination_eval_llava.py" \
+                --model_path "${MODEL_DIR}" \
+                --model_base "llava" \
+                --mme_path "${MME_DIR}/mme_hallucination.jsonl" \
+                --data_path "${MME_DIR}" \
+                --log_path "${ROOT}/logs/mme_hallucination" \
+                --use_only "True" \
+                --dataset_name "mme_hallucination" \
+                --enhance_layer_index "0" \
+                --mask_alpha "${POPE_ALPHA}" \
+                --proposal "${POPE_PROPOSAL}" \
+                --score_threshold "${POPE_SCORE_THRESHOLD}" \
+                --score_temperature "${POPE_SCORE_TEMPERATURE}" \
+                --lambda_decay "${POPE_LAMBDA_DECAY}" \
+                --js_gamma "${POPE_JS_GAMMA}" \
+                --max_new_tokens "8" \
+                --temperature "1.0" \
+                --max_questions "$( if [ "$POPE_MAXQ" -gt 0 ] 2>/dev/null; then echo "$POPE_MAXQ"; else echo "0"; fi )" \
+                --batch_size "1" \
+                --num_workers "1" \
+                --seed "42" \
+                2>&1 | tee "${RUN_DIR}/mme_hallucination_result.txt"
+            MME_EXIT=${PIPESTATUS[0]}
+            set -e
+
+            kill "$MME_HB" 2>/dev/null || true
+            MME_ELAPSED=$(($(date +%s) - MME_START))
+            dbg "[run/6] MME-Hallucination: Python exit code ${MME_EXIT}, elapsed ${MME_ELAPSED}s"
+            if [ "$MME_EXIT" -ne 0 ]; then
+                OVERALL_EXIT=$MME_EXIT
+                dbg "[run/6] ⚠️  MME-Hallucination failed"
+            fi
+        fi
+    else
+        dbg "[run/6] 🚫 MME-Hallucination: skipped (not in BENCHMARKS='${BENCHMARKS}')"
+    fi
 
     # Logs packaging — always runs, even on eval failure. Tars the whole logs/
     # dir so ALL per-type result files + the structured logs/pope/<model>/
     # ONLY_coco_<type>_... subdirs are captured.
-    dbg "=== [run/5] Packaging logs ==="
+    dbg "=== [run/7] Packaging logs ==="
     cd "${ROOT}/logs"
     tar czf "/content/results.tar.gz" . 2>/dev/null || true
     cd "${ROOT}"
-    dbg "[run/5] Created /content/results.tar.gz ($(stat -c%s /content/results.tar.gz 2>/dev/null || echo 0) bytes)"
+    dbg "[run/7] Created /content/results.tar.gz ($(stat -c%s /content/results.tar.gz 2>/dev/null || echo 0) bytes)"
 
     OVERALL_ELAPSED=$(($(date +%s) - OVERALL_START))
-    dbg "=== [run/done] All POPE setups finished in ${OVERALL_ELAPSED}s (overall exit ${OVERALL_EXIT}) ==="
+    dbg "=== [run/done] All benchmarks finished in ${OVERALL_ELAPSED}s (overall exit ${OVERALL_EXIT}) ==="
     echo ""
-    echo "Results (per setup) — ${RUN_DIR}:"
-    for SETUP in $POPE_SETUPS; do
-        rf="${RUN_DIR}/proposal${POPE_PROPOSAL}_result_${SETUP}.txt"
+    echo "Results — ${RUN_DIR}:"
+    # POPE results
+    if [[ " $BENCHMARKS " == *" pope "* ]]; then
+        for SETUP in $POPE_SETUPS; do
+            rf="${RUN_DIR}/proposal${POPE_PROPOSAL}_result_${SETUP}.txt"
+            if [ -f "$rf" ]; then
+                echo "  POPE/${SETUP}: ${rf}"
+                # Final accuracy = the LAST 'acc:' line (the per-question prints show a
+                # running acc; the final summary line has the overall number).
+                grep "acc:" "$rf" 2>/dev/null | tail -1 | sed 's/^/        /' || true
+            else
+                echo "  POPE/${SETUP}: (no output file)"
+            fi
+        done
+    fi
+    # CHAIR results
+    if [[ " $BENCHMARKS " == *" chair "* ]]; then
+        rf="${RUN_DIR}/chair_result.txt"
         if [ -f "$rf" ]; then
-            echo "  ${SETUP}: ${rf}"
-            # Final accuracy = the LAST 'acc:' line (the per-question prints show a
-            # running acc; the final summary line has the overall number).
-            grep "acc:" "$rf" 2>/dev/null | tail -1 | sed 's/^/        /' || true
+            echo "  CHAIR: ${rf}"
+            grep -E "CHAIR_I|CHAIR_S" "$rf" | sed 's/^/        /' || true
         else
-            echo "  ${SETUP}: (no output file)"
+            echo "  CHAIR: (no output file)"
         fi
-    done
+    fi
+    # MME-Hallucination results
+    if [[ " $BENCHMARKS " == *" mme_hallucination "* ]]; then
+        rf="${RUN_DIR}/mme_hallucination_result.txt"
+        if [ -f "$rf" ]; then
+            echo "  MME-Hallucination: ${rf}"
+            grep -E "Accuracy|F1" "$rf" 2>/dev/null | tail -4 | sed 's/^/        /' || true
+        else
+            echo "  MME-Hallucination: (no output file)"
+        fi
+    fi
     echo "---"
     set -e
 

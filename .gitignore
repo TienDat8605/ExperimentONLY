@@ -9,8 +9,7 @@ models/
 data/coco/
 data/pope/
 
-# Logs
-logs/
+# Logs (experiment outputs now tracked)
 *.log
 
 # Colab bundle (generated)

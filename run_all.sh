@@ -17,6 +17,9 @@
 #   bash run_all.sh --stop     # stop the stable session after this run
 #   bash run_all.sh --fresh    # delete any existing session, create a fresh VM
 #   bash run_all.sh --setups random popular   # run/verify only these POPE setups
+
+#   bash run_all.sh --benchmarks pope chair mme_hallucination   # run specific benchmarks
+#   bash run_all.sh --benchmarks pope   # run only POPE
 #
 # Requires: colab CLI authenticated, free T4 quota available.
 set -e
@@ -43,6 +46,7 @@ POPE_SCORE_THRESHOLD=0.0
 POPE_SCORE_TEMPERATURE=1.0
 POPE_LAMBDA_DECAY=0.3
 POPE_JS_GAMMA=0.6
+BENCHMARKS="pope chair mme_hallucination"
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -67,6 +71,15 @@ while [ $# -gt 0 ]; do
             ;;
         --setups=*)
             POPE_SETUPS="${1#--setups=}"; shift ;;
+        --benchmarks)
+            BENCHMARKS=""; shift
+            while [ $# -gt 0 ] && [[ "$1" != --* ]]; do
+                BENCHMARKS="${BENCHMARKS} $1"; shift
+            done
+            BENCHMARKS="${BENCHMARKS# }"
+            ;;
+        --benchmarks=*)
+            BENCHMARKS="${1#--benchmarks=}"; shift ;;
         *) echo "Unknown arg: $1" >&2; shift ;;
     esac
 done
@@ -77,6 +90,7 @@ dbg() {
     echo "[$(date '+%H:%M:%S')] $*"
 }
 dbg "POPE_SETUPS = [${POPE_SETUPS}]"
+dbg "BENCHMARKS = [${BENCHMARKS}]"
 
 # True if the stable session currently exists + is usable.
 create_session() {
@@ -250,6 +264,7 @@ POPE_SCORE_THRESHOLD_OUTER = "__POPE_SCORE_THRESHOLD_PLACEHOLDER__"
 POPE_SCORE_TEMPERATURE_OUTER = "__POPE_SCORE_TEMPERATURE_PLACEHOLDER__"
 POPE_LAMBDA_DECAY_OUTER = "__POPE_LAMBDA_DECAY_PLACEHOLDER__"
 POPE_JS_GAMMA_OUTER = "__POPE_JS_GAMMA_PLACEHOLDER__"
+BENCHMARKS_OUTER = "__BENCHMARKS_PLACEHOLDER__"
 
 os.chdir("/content")
 
@@ -290,11 +305,13 @@ run_env["POPE_SCORE_THRESHOLD"] = str(POPE_SCORE_THRESHOLD_OUTER)
 run_env["POPE_SCORE_TEMPERATURE"] = str(POPE_SCORE_TEMPERATURE_OUTER)
 run_env["POPE_LAMBDA_DECAY"] = str(POPE_LAMBDA_DECAY_OUTER)
 run_env["POPE_JS_GAMMA"] = str(POPE_JS_GAMMA_OUTER)
+	run_env["BENCHMARKS"] = BENCHMARKS_OUTER
 dbg(f"Forwarding POPE_SETUPS={run_env['POPE_SETUPS']!r} into colab.sh run")
 dbg(f"Forwarding POPE_SHORT={run_env['POPE_SHORT']!r} into colab.sh run")
 dbg(f"Forwarding POPE_TOKENS={run_env['POPE_TOKENS']!r} into colab.sh run")
 dbg(f"Forwarding POPE_ALPHA={run_env['POPE_ALPHA']!r} into colab.sh run")
 dbg(f"Forwarding POPE_DEBUG_TVD={run_env['POPE_DEBUG_TVD']!r} into colab.sh run")
+	dbg(f"Forwarding BENCHMARKS={run_env[\"BENCHMARKS\"]!r} into colab.sh run")
 proc = subprocess.Popen(
     ["bash", "colab.sh", "run"],
     stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -324,6 +341,7 @@ PYEOF
     sed -i "s/__POPE_SCORE_TEMPERATURE_PLACEHOLDER__/$POPE_SCORE_TEMPERATURE/" /tmp/colab_run.py
     sed -i "s/__POPE_LAMBDA_DECAY_PLACEHOLDER__/$POPE_LAMBDA_DECAY/" /tmp/colab_run.py
     sed -i "s/__POPE_JS_GAMMA_PLACEHOLDER__/$POPE_JS_GAMMA/" /tmp/colab_run.py
+    sed -i "s/__BENCHMARKS_PLACEHOLDER__/$BENCHMARKS/" /tmp/colab_run.py
 }
 
 # Download and VERIFY logs from a session. This is hardened against the
