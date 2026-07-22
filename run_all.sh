@@ -41,11 +41,17 @@ POPE_TOKENS=8
 POPE_ALPHA=0.2
 POPE_DEBUG_TVD=0
 POPE_MAXQ=0
-POPE_PROPOSAL=1
+POPE_PROPOSAL=4
 POPE_SCORE_THRESHOLD=0.0
 POPE_SCORE_TEMPERATURE=1.0
 POPE_LAMBDA_DECAY=0.3
-POPE_JS_GAMMA=0.6
+POPE_JS_GAMMA=0.2
+ONLY_EXPERT_LAYERS="0,8,16,24"
+ONLY_CONSENSUS_MIN=0.75
+ONLY_CONSENSUS_STRENGTH=1.0
+ONLY_ENTROPY_TEMPERATURE=1.0
+MME_JS_GAMMA=0.2
+MME_SEEDS="42 43 44"
 BENCHMARKS="pope chair mme_hallucination"
 
 while [ $# -gt 0 ]; do
@@ -62,6 +68,19 @@ while [ $# -gt 0 ]; do
         --score_temperature=*) POPE_SCORE_TEMPERATURE="${1#--score_temperature=}"; shift ;;
         --lambda_decay=*) POPE_LAMBDA_DECAY="${1#--lambda_decay=}"; shift ;;
         --js_gamma=*) POPE_JS_GAMMA="${1#--js_gamma=}"; shift ;;
+        --expert_layers=*) ONLY_EXPERT_LAYERS="${1#--expert_layers=}"; shift ;;
+        --consensus_min=*) ONLY_CONSENSUS_MIN="${1#--consensus_min=}"; shift ;;
+        --consensus_strength=*) ONLY_CONSENSUS_STRENGTH="${1#--consensus_strength=}"; shift ;;
+        --entropy_temperature=*) ONLY_ENTROPY_TEMPERATURE="${1#--entropy_temperature=}"; shift ;;
+        --mme_js_gamma=*) MME_JS_GAMMA="${1#--mme_js_gamma=}"; shift ;;
+        --mme_seeds=*) MME_SEEDS="${1#--mme_seeds=}"; MME_SEEDS="${MME_SEEDS//,/ }"; shift ;;
+        --mme_seeds)
+            MME_SEEDS=""; shift
+            while [ $# -gt 0 ] && [[ "$1" != --* ]]; do
+                MME_SEEDS="${MME_SEEDS} $1"; shift
+            done
+            MME_SEEDS="${MME_SEEDS# }"
+            ;;
         --setups)
             POPE_SETUPS=""; shift
             while [ $# -gt 0 ] && [[ "$1" != --* ]]; do
@@ -74,12 +93,13 @@ while [ $# -gt 0 ]; do
         --benchmarks)
             BENCHMARKS=""; shift
             while [ $# -gt 0 ] && [[ "$1" != --* ]]; do
-                BENCHMARKS="${BENCHMARKS} $1"; shift
+                BENCHMARKS="${BENCHMARKS} ${1,,}"; shift   # lowercase
             done
             BENCHMARKS="${BENCHMARKS# }"
             ;;
         --benchmarks=*)
-            BENCHMARKS="${1#--benchmarks=}"; shift ;;
+            val="${1#--benchmarks=}"
+            BENCHMARKS="${val,,}"; shift ;;                # lowercase
         *) echo "Unknown arg: $1" >&2; shift ;;
     esac
 done
@@ -264,6 +284,12 @@ POPE_SCORE_THRESHOLD_OUTER = "__POPE_SCORE_THRESHOLD_PLACEHOLDER__"
 POPE_SCORE_TEMPERATURE_OUTER = "__POPE_SCORE_TEMPERATURE_PLACEHOLDER__"
 POPE_LAMBDA_DECAY_OUTER = "__POPE_LAMBDA_DECAY_PLACEHOLDER__"
 POPE_JS_GAMMA_OUTER = "__POPE_JS_GAMMA_PLACEHOLDER__"
+ONLY_EXPERT_LAYERS_OUTER = "__ONLY_EXPERT_LAYERS_PLACEHOLDER__"
+ONLY_CONSENSUS_MIN_OUTER = "__ONLY_CONSENSUS_MIN_PLACEHOLDER__"
+ONLY_CONSENSUS_STRENGTH_OUTER = "__ONLY_CONSENSUS_STRENGTH_PLACEHOLDER__"
+ONLY_ENTROPY_TEMPERATURE_OUTER = "__ONLY_ENTROPY_TEMPERATURE_PLACEHOLDER__"
+MME_JS_GAMMA_OUTER = "__MME_JS_GAMMA_PLACEHOLDER__"
+MME_SEEDS_OUTER = "__MME_SEEDS_PLACEHOLDER__"
 BENCHMARKS_OUTER = "__BENCHMARKS_PLACEHOLDER__"
 
 os.chdir("/content")
@@ -305,13 +331,21 @@ run_env["POPE_SCORE_THRESHOLD"] = str(POPE_SCORE_THRESHOLD_OUTER)
 run_env["POPE_SCORE_TEMPERATURE"] = str(POPE_SCORE_TEMPERATURE_OUTER)
 run_env["POPE_LAMBDA_DECAY"] = str(POPE_LAMBDA_DECAY_OUTER)
 run_env["POPE_JS_GAMMA"] = str(POPE_JS_GAMMA_OUTER)
-	run_env["BENCHMARKS"] = BENCHMARKS_OUTER
+run_env["ONLY_EXPERT_LAYERS"] = ONLY_EXPERT_LAYERS_OUTER
+run_env["ONLY_CONSENSUS_MIN"] = str(ONLY_CONSENSUS_MIN_OUTER)
+run_env["ONLY_CONSENSUS_STRENGTH"] = str(ONLY_CONSENSUS_STRENGTH_OUTER)
+run_env["ONLY_ENTROPY_TEMPERATURE"] = str(ONLY_ENTROPY_TEMPERATURE_OUTER)
+run_env["MME_JS_GAMMA"] = str(MME_JS_GAMMA_OUTER)
+run_env["MME_SEEDS"] = MME_SEEDS_OUTER
+run_env["BENCHMARKS"] = BENCHMARKS_OUTER
 dbg(f"Forwarding POPE_SETUPS={run_env['POPE_SETUPS']!r} into colab.sh run")
 dbg(f"Forwarding POPE_SHORT={run_env['POPE_SHORT']!r} into colab.sh run")
 dbg(f"Forwarding POPE_TOKENS={run_env['POPE_TOKENS']!r} into colab.sh run")
 dbg(f"Forwarding POPE_ALPHA={run_env['POPE_ALPHA']!r} into colab.sh run")
 dbg(f"Forwarding POPE_DEBUG_TVD={run_env['POPE_DEBUG_TVD']!r} into colab.sh run")
-	dbg(f"Forwarding BENCHMARKS={run_env[\"BENCHMARKS\"]!r} into colab.sh run")
+dbg(f"Forwarding MME_JS_GAMMA={run_env['MME_JS_GAMMA']!r} into colab.sh run")
+dbg(f"Forwarding MME_SEEDS={run_env['MME_SEEDS']!r} into colab.sh run")
+dbg(f"Forwarding BENCHMARKS={run_env['BENCHMARKS']!r} into colab.sh run")
 proc = subprocess.Popen(
     ["bash", "colab.sh", "run"],
     stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -341,6 +375,13 @@ PYEOF
     sed -i "s/__POPE_SCORE_TEMPERATURE_PLACEHOLDER__/$POPE_SCORE_TEMPERATURE/" /tmp/colab_run.py
     sed -i "s/__POPE_LAMBDA_DECAY_PLACEHOLDER__/$POPE_LAMBDA_DECAY/" /tmp/colab_run.py
     sed -i "s/__POPE_JS_GAMMA_PLACEHOLDER__/$POPE_JS_GAMMA/" /tmp/colab_run.py
+    sed -i "s/__ONLY_EXPERT_LAYERS_PLACEHOLDER__/$ONLY_EXPERT_LAYERS/" /tmp/colab_run.py
+    sed -i "s/__ONLY_CONSENSUS_MIN_PLACEHOLDER__/$ONLY_CONSENSUS_MIN/" /tmp/colab_run.py
+    sed -i "s/__ONLY_CONSENSUS_STRENGTH_PLACEHOLDER__/$ONLY_CONSENSUS_STRENGTH/" /tmp/colab_run.py
+    sed -i "s/__ONLY_ENTROPY_TEMPERATURE_PLACEHOLDER__/$ONLY_ENTROPY_TEMPERATURE/" /tmp/colab_run.py
+    sed -i "s/__MME_JS_GAMMA_PLACEHOLDER__/$MME_JS_GAMMA/" /tmp/colab_run.py
+    esc_mme_seeds=$(printf '%s' "$MME_SEEDS" | sed 's/\\/\\\\/g; s/"/\\"/g')
+    sed -i "s/__MME_SEEDS_PLACEHOLDER__/$esc_mme_seeds/" /tmp/colab_run.py
     sed -i "s/__BENCHMARKS_PLACEHOLDER__/$BENCHMARKS/" /tmp/colab_run.py
 }
 
@@ -369,24 +410,44 @@ PYEOF
 download_logs() {
     local session="$1"
     local setups="${POPE_SETUPS:-random popular adversarial}"
+    local benchmarks="${BENCHMARKS:-pope chair mme_hallucination}"
     mkdir -p "${ROOT}/logs"
     local TB="${ROOT}/logs/results.tar.gz"
 
-    # ---- helper: did a setup COMPLETE? ------------------------------------
-    # The eval prints a per-question RUNNING 'acc:' line ~3000 times (one per
-    # question), so a bare 'acc:' match would pass even on a TRUNCATED run.
-    # The real completion marker is the timestamped FINAL summary that
-    # logger.info emits once at the very end:  [YYYY-MM-DD HH:MM:SS] acc: ...
-    # Require that line — it proves the run finished, not just started.
+    # ---- helpers: did a benchmark complete? ------------------------------------
+    # POPE: the eval prints a per-question RUNNING 'acc:' line ~3000 times, so
+    # a bare 'acc:' match would pass even on a TRUNCATED run. Require the
+    # timestamped FINAL summary logger.info emits once at the very end.
     has_acc() { [ -f "$1" ] && grep -qE '^\[[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:]+\] acc:' "$1" 2>/dev/null; }
+    # CHAIR: look for CHAIR_I line at the end of the run
+    has_chair() { [ -f "$1" ] && grep -qE 'CHAIR_I:' "$1" 2>/dev/null; }
+    # MME-Hallucination: require the official accuracy+ based score marker.
+    has_mme()   { [ -f "$1" ] && grep -qE 'Average Official MME Score:' "$1" 2>/dev/null; }
 
-    # ---- helper: count how many requested setups are verified present ----
-    verify_all() {
+    # ---- helpers: count how many requested benchmarks verify present ----
+    verify_pope() {
         local found=0
         for s in $setups; do
             has_acc "${ROOT}/logs/proposal${POPE_PROPOSAL}_result_${s}.txt" && found=$((found+1))
         done
         echo "$found"
+    }
+    verify_other() {
+        local found=0
+        if [[ " $benchmarks " == *" chair "* ]]; then
+            has_chair "${ROOT}/logs/chair_result.txt" && found=$((found+1))
+        fi
+        if [[ " $benchmarks " == *" mme_hallucination "* ]]; then
+            has_mme "${ROOT}/logs/mme_hallucination_result.txt" && found=$((found+1))
+        fi
+        echo "$found"
+    }
+    expected_pope()  { echo "$(echo $setups | wc -w)"; }
+    expected_other() {
+        local n=0
+        [[ " $benchmarks " == *" chair "* ]] && n=$((n+1))
+        [[ " $benchmarks " == *" mme_hallucination "* ]] && n=$((n+1))
+        echo "$n"
     }
 
     # NOTE on the `colab` CLI: on this installation `colab download`/`colab ls`
@@ -418,14 +479,20 @@ download_logs() {
                     # so look in both flat and nested locations.
                     cp -f "$tmpx"/proposal${POPE_PROPOSAL}_result_*.txt "${ROOT}/logs/" 2>/dev/null || true
                     cp -f "$tmpx"/results_*/proposal${POPE_PROPOSAL}_result_*.txt "${ROOT}/logs/" 2>/dev/null || true
+                    cp -f "$tmpx"/results_*/chair_result.txt "${ROOT}/logs/" 2>/dev/null || true
+                    cp -f "$tmpx"/results_*/mme_hallucination_result.txt "${ROOT}/logs/" 2>/dev/null || true
                     cp -rf "$tmpx"/pope "${ROOT}/logs/" 2>/dev/null || true
                     cp -rf "$tmpx"/results_* "${ROOT}/logs/" 2>/dev/null || true
                     rm -rf "$tmpx"
-                    if [ "$(verify_all)" -eq "$(echo $setups | wc -w)" ]; then
-                        dbg "  [tarball] ✅ verified all setups present"
+                    local pope_ok=$(verify_pope)
+                    local other_ok=$(verify_other)
+                    local pope_exp=$(expected_pope)
+                    local other_exp=$(expected_other)
+                    if [ "$pope_ok" -eq "$pope_exp" ] && [ "$other_ok" -eq "$other_exp" ]; then
+                        dbg "  [tarball] ✅ verified all benchmarks (POPE ${pope_ok}/${pope_exp}, CHAIR+MME ${other_ok}/${other_exp})"
                         return 0
                     else
-                        dbg "  [tarball] ⚠️  extracted tarball missing some setups' acc lines — trying per-file"
+                        dbg "  [tarball] ⚠️  partial: POPE ${pope_ok}/${pope_exp}, CHAIR+MME ${other_ok}/${other_exp} — trying per-file"
                         break   # tarball not sufficient → fall to layer 2
                     fi
                 else
@@ -444,43 +511,69 @@ download_logs() {
     # ---- layer 2: per-file download + verify -----------------------------
     # (Quiet: if tarball layer surfaced nothing, per-file will also miss on a
     # runtime-blind CLI. Suppress per-attempt noise; print only the outcome.)
-    local got=0
+    # POPE per-file
+    local pope_got=0
     for s in $setups; do
         local rf="${ROOT}/logs/proposal${POPE_PROPOSAL}_result_${s}.txt"
-        [ -f "$rf" ] && has_acc "$rf" && { got=$((got+1)); continue; }
+        [ -f "$rf" ] && has_acc "$rf" && { pope_got=$((pope_got+1)); continue; }
         rm -f "$rf"
         for attempt in 1 2 3; do
             if colab download -s "$session" "/content/logs/proposal${POPE_PROPOSAL}_result_${s}.txt" "$rf" >/dev/null 2>&1 && has_acc "$rf"; then
                 download_unavailable=0
-                got=$((got+1)); break
+                pope_got=$((pope_got+1)); break
             fi
             sleep 2
         done
     done
-    if [ "$got" -eq "$(echo $setups | wc -w)" ]; then
-        dbg "  [per-file] ✅ downloaded + verified all $got setup(s)"
+    # CHAIR per-file
+    local other_got=0
+    local rf_chair="${ROOT}/logs/chair_result.txt"
+    if [[ " $benchmarks " == *" chair "* ]] && { [ ! -f "$rf_chair" ] || ! has_chair "$rf_chair"; }; then
+        rm -f "$rf_chair"
+        for attempt in 1 2 3; do
+            if colab download -s "$session" "/content/logs/chair_result.txt" "$rf_chair" >/dev/null 2>&1 && has_chair "$rf_chair"; then
+                download_unavailable=0
+                other_got=$((other_got+1)); break
+            fi
+            sleep 2
+        done
+    elif [[ " $benchmarks " == *" chair "* ]]; then
+        other_got=$((other_got+1))
+    fi
+    # MME per-file
+    local rf_mme="${ROOT}/logs/mme_hallucination_result.txt"
+    if [[ " $benchmarks " == *" mme_hallucination "* ]] && { [ ! -f "$rf_mme" ] || ! has_mme "$rf_mme"; }; then
+        rm -f "$rf_mme"
+        for attempt in 1 2 3; do
+            if colab download -s "$session" "/content/logs/mme_hallucination_result.txt" "$rf_mme" >/dev/null 2>&1 && has_mme "$rf_mme"; then
+                download_unavailable=0
+                other_got=$((other_got+1)); break
+            fi
+            sleep 2
+        done
+    elif [[ " $benchmarks " == *" mme_hallucination "* ]]; then
+        other_got=$((other_got+1))
+    fi
+
+    local pope_exp=$(expected_pope)
+    local other_exp=$(expected_other)
+    if [ "$pope_got" -eq "$pope_exp" ] && [ "$other_got" -eq "$other_exp" ]; then
+        dbg "  [per-file] ✅ all POPE (${pope_got}) and CHAIR+MME (${other_got}) verified"
         return 0
-    elif [ "$got" -gt 0 ]; then
-        dbg "  [per-file] partial: $got/$(echo $setups | wc -w) setup(s) verified — history recovery for the rest"
     else
-        if [ "$download_unavailable" -eq 1 ]; then
-            dbg "  ⚠️  colab file download unavailable on this CLI (runtime files not exposed) — using history recovery"
-        else
-            dbg "  [per-file] no setups verified — using history recovery for all"
-        fi
+        dbg "  [per-file] partial: POPE ${pope_got}/${pope_exp}, CHAIR+MME ${other_got}/${other_exp}"
     fi
 
     # ---- layer 3: local CLI-history recovery (the last-time safety net) -
+    # NOTE: recover_pope_log.py is POPE-only; CHAIR/MME stdout is visible in
+    # the terminal output above and can be re-run if needed.
     dbg "  [history] recovering from ~/.config/colab-cli/history/ via recover_pope_log.py"
     if [ -f "${ROOT}/recover_pope_log.py" ]; then
         if python3 "${ROOT}/recover_pope_log.py" 2>&1 | sed 's/^/    /'; then
-            # Copy recovered <setup>_recovered.txt -> proposal${POPE_PROPOSAL}_result_<setup>.txt
-            # so downstream tooling finds one canonical file per setup.
             local recov=0
             for s in $setups; do
                 local rc="${ROOT}/logs/pope_${s}_recovered.txt"
                 if [ -f "$rc" ] && has_acc "${rc}"; then
-                    # Only overwrite if the live download is missing the acc line.
                     if ! has_acc "${ROOT}/logs/proposal${POPE_PROPOSAL}_result_${s}.txt"; then
                         cp -f "$rc" "${ROOT}/logs/proposal${POPE_PROPOSAL}_result_${s}.txt"
                     fi
@@ -488,8 +581,7 @@ download_logs() {
                 fi
             done
             if [ "$recov" -gt 0 ]; then
-                dbg "  [history] ✅ recovered $recov setup(s) from local CLI history"
-                return 0
+                dbg "  [history] ✅ recovered $recov POPE setup(s) from local CLI history"
             fi
         fi
     else

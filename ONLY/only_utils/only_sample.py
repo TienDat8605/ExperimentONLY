@@ -19,8 +19,7 @@ from transformers.generation.stopping_criteria import (
 import transformers
 from transformers.generation.utils import SampleOutput
 import torch.nn.functional as F
-
-
+from only_utils.proposal4_utils import consensus_logits
 
 def sample(
     self,
@@ -193,11 +192,37 @@ def sample(
                 t += 1
             elif use_only:
                 assert logits_cd is not None
-                next_token_logits_cd = logits_cd[:, -1, :]
+                proposal = model_kwargs.get("proposal", 1)
+                if proposal == 4:
+                    next_token_logits_cd = logits_cd[:, :, -1, :]
+                    diffs, consensus_debug = consensus_logits(
+                        next_token_logits,
+                        next_token_logits_cd,
+                        gamma=float(js_gamma),
+                        alpha_pos=float(ritual_alpha_pos),
+                        alpha_neg=float(ritual_alpha_neg),
+                        consensus_min=float(model_kwargs.get("consensus_min", 0.75)),
+                        consensus_strength=float(model_kwargs.get("consensus_strength", 1.0)),
+                    )
+                    tvd = consensus_debug["distances"][:, 0].mean()
+                    if model_kwargs.get("debug_tvd", False):
+                        print(
+                            f"[LLC-DECODE t={len(total_overlapping_index_len)}] "
+                            f"layer0_tvd={tvd.item():.4f} "
+                            f"median_tvd={consensus_debug['distances'].median().item():.4f} "
+                            f"gate={consensus_debug['step_gate'].mean().item():.3f} "
+                            f"active_vocab={consensus_debug['activation_ratio'].mean().item():.3f}"
+                        )
+                    total_overlapping_index_len.append(
+                        (tvd.item(), bool(consensus_debug["layer0_is_contrastive"].any().item()))
+                    )
+                else:
+                    next_token_logits_cd = logits_cd[:, -1, :]
                 # print(torch.topk(next_token_logits, k=6, dim=-1))
                 # print(torch.topk(next_token_logits_cd, k=6, dim=-1))
 
-                tvd = torch.sum(torch.abs(nn.functional.softmax(next_token_logits, dim=-1) - nn.functional.softmax(next_token_logits_cd, dim=-1)))
+                if proposal != 4:
+                    tvd = torch.sum(torch.abs(nn.functional.softmax(next_token_logits, dim=-1) - nn.functional.softmax(next_token_logits_cd, dim=-1)))
                 
                 # js = 0.5 * nn.functional.kl_div(nn.functional.log_softmax(next_token_logits, dim=-1), M, reduction='batchmean') + 0.5 * nn.functional.kl_div(nn.functional.log_softmax(next_token_logits_cd, dim=-1), M, reduction='batchmean')
                 # print('js_gamma', js_gamma)
@@ -213,7 +238,9 @@ def sample(
 
 
                 debug_tvd_active = model_kwargs.get("debug_tvd", False)
-                if tvd < js_gamma:
+                if proposal == 4:
+                    pass
+                elif tvd < js_gamma:
                     # print('++++++++++')
                     diffs = next_token_logits + ritual_alpha_pos * next_token_logits_cd
                 else:
@@ -224,7 +251,9 @@ def sample(
                     # import ipdb; ipdb.set_trace()
                     diffs = (1 + ritual_alpha_neg) * next_token_logits - ritual_alpha_neg * next_token_logits_cd
 
-                if debug_tvd_active:
+                if proposal == 4:
+                    pass
+                elif debug_tvd_active:
                     regime = "comp" if tvd.item() < js_gamma else "contr"
                     print(f"[TVDT t={len(total_overlapping_index_len)}] tvd={tvd.item():.4f} regime={regime}")
                     total_overlapping_index_len.append((tvd.item(), regime == "contr"))

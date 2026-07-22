@@ -24,6 +24,7 @@ from utils import dist_util
 from utils.logger import create_logger
 
 import re
+from collections import Counter
 from PIL import Image
 from torchvision.transforms import v2
 
@@ -58,6 +59,8 @@ def parse_args():
     parser.add_argument("--data_path", type=str, default="data/mme_hallucination")
     parser.add_argument("--mme_path", type=str, default="data/mme_hallucination/mme_hallucination.jsonl")
     parser.add_argument("--log_path", type=str, default="logs/mme_hallucination")
+    parser.add_argument("--summary_path", type=str, default=None,
+                        help="Optional stable JSON path for multi-seed aggregation.")
 
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--batch_size", type=int, default=1)
@@ -74,7 +77,7 @@ def parse_args():
     parser.add_argument("--ritual_alpha_pos", type=float, default=3)
     parser.add_argument("--ritual_alpha_neg", type=float, default=1)
     parser.add_argument("--ritual_beta", type=float, default=0.1)
-    parser.add_argument("--js_gamma", type=float, default=0.6)
+    parser.add_argument("--js_gamma", type=float, default=0.2)
 
     parser.add_argument("--max_new_tokens", type=int, default=8)
     parser.add_argument("--dataset_name", type=str, default="mme_hallucination")
@@ -88,23 +91,25 @@ def parse_args():
     parser.add_argument("--score_threshold", type=float, default=0.0)
     parser.add_argument("--score_temperature", type=float, default=1.0)
     parser.add_argument("--lambda_decay", type=float, default=0.3)
+    parser.add_argument("--expert_layers", type=str, default="0,8,16,24")
+    parser.add_argument("--consensus_min", type=float, default=0.75)
+    parser.add_argument("--consensus_strength", type=float, default=1.0)
+    parser.add_argument("--entropy_temperature", type=float, default=1.0)
 
     args = parser.parse_args()
     return args
 
 
 def recorder(out, pred_list):
-    NEG_WORDS = ["No", "not", "no", "NO"]
-    for line in out.split('\n'):
-        line = line.replace('.', '')
-        line = line.replace(',', '')
-        words = line.split(' ')
-
-        if any(word in NEG_WORDS for word in words) or any(word.endswith("n't") for word in words):
-            pred_list.append(0)
-        else:
-            pred_list.append(1)
-        break
+    """Match the official ONLY/MME evaluator's first-four-character parser."""
+    prefix = out.strip().lower()[:4]
+    if "yes" in prefix:
+        pred_list.append(1)
+    elif "no" in prefix:
+        pred_list.append(0)
+    else:
+        # Official MME treats answers that do not begin with yes/no as wrong.
+        pred_list.append(-1)
     return pred_list
 
 
@@ -148,6 +153,35 @@ class MMEHallucinationDataset(Dataset):
 
         assert len(self.image_list) == len(self.query_list) == len(self.label_list) == len(self.category_list)
 
+        # The paper's MME-Hallucination table contains exactly these four
+        # 60-question subsets (30 images, two questions per image).  Reject a
+        # silently broadened dataset such as one that also includes `scene`.
+        if max_questions <= 0:
+            expected = {"existence": 60, "count": 60, "position": 60, "color": 60}
+            actual = dict(Counter(self.category_list))
+            if actual != expected:
+                raise ValueError(
+                    "MME-Hallucination requires exactly 240 questions: "
+                    f"{expected}; found {actual}"
+                )
+            expected_order = [
+                category
+                for category in ("color", "position", "count", "existence")
+                for _ in range(60)
+            ]
+            if self.category_list != expected_order:
+                raise ValueError(
+                    "MME-Hallucination records must follow the official RITUAL "
+                    "order: color, position, count, existence"
+                )
+            for i in range(0, len(self.image_list), 2):
+                if (self.category_list[i] != self.category_list[i + 1]
+                        or self.image_list[i] != self.image_list[i + 1]):
+                    raise ValueError(
+                        "MME-Hallucination questions must be adjacent image pairs; "
+                        f"records {i} and {i + 1} are not a pair"
+                    )
+
         # Gather unique categories
         self.categories = sorted(set(self.category_list))
         print(f"[MME-Hallucination] {len(self.image_list)} questions, "
@@ -161,7 +195,7 @@ class MMEHallucinationDataset(Dataset):
 
         if self.model == 'llava':
             raw_image = Image.open(image_path).convert('RGB')
-            image = self.trans.preprocess(raw_image, return_tensor='pt')['pixel_values'][0]
+            image = self.trans.preprocess(raw_image, return_tensors='pt')['pixel_values'][0]
         elif self.model == 'qwen-vl':
             raw_image = Image.open(image_path).convert("RGB")
             image = self.trans(raw_image)
@@ -170,7 +204,7 @@ class MMEHallucinationDataset(Dataset):
             image = self.trans['eval'](raw_image)
         else:
             raw_image = Image.open(image_path).convert('RGB')
-            image = self.trans.preprocess(raw_image, return_tensor='pt')['pixel_values'][0]
+            image = self.trans.preprocess(raw_image, return_tensors='pt')['pixel_values'][0]
 
         return {
             "image": image,
@@ -182,23 +216,25 @@ class MMEHallucinationDataset(Dataset):
 
 
 def compute_metrics_by_category(results_by_category, logger):
-    """Compute accuracy, precision, recall, F1 per category.
+    """Compute official MME score plus diagnostic binary metrics.
 
     results_by_category: dict {category: [(pred, gt_label), ...]}
     """
     metrics = {}
-    overall_tp = overall_tn = overall_fp = overall_fn = 0
+    overall_tp = overall_tn = overall_fp = overall_fn = overall_other = 0
 
     logger.info("=" * 60)
     logger.info("MME-Hallucination Per-Category Results")
     logger.info("=" * 60)
-    header = f"{'Category':<25} {'Acc':>8} {'Prec':>8} {'Rec':>8} {'F1':>8} {'Count':>8}"
+    header = (f"{'Category':<16} {'Acc':>8} {'Acc+':>8} {'MME':>8} "
+              f"{'Prec':>8} {'Rec':>8} {'F1':>8} {'Count':>8}")
     logger.info(header)
     logger.info("-" * len(header))
 
     for category in sorted(results_by_category.keys()):
         results = results_by_category[category]
         tp = tn = fp = fn = 0
+        other = 0
         for pred, gt in results:
             if pred == 1 and gt == 1:
                 tp += 1
@@ -208,39 +244,72 @@ def compute_metrics_by_category(results_by_category, logger):
                 tn += 1
             elif pred == 0 and gt == 1:
                 fn += 1
+            else:
+                other += 1
 
         overall_tp += tp
         overall_tn += tn
         overall_fp += fp
         overall_fn += fn
+        overall_other += other
 
-        total = tp + tn + fp + fn
+        total = len(results)
         acc = (tp + tn) / max(total, 1)
+        if total % 2:
+            raise ValueError(f"Category {category} has an odd number of questions: {total}")
+        pair_correct = sum(
+            results[i][0] == results[i][1]
+            and results[i + 1][0] == results[i + 1][1]
+            for i in range(0, total, 2)
+        )
+        pair_count = total // 2
+        acc_plus = pair_correct / max(pair_count, 1)
+        mme_score = (acc + acc_plus) * 100
         prec = tp / max(tp + fp, 1)
         rec = tp / max(tp + fn, 1)
         f1 = 2 * prec * rec / max(prec + rec, 1e-8)
 
         metrics[category] = {
             "accuracy": round(acc * 100, 2),
+            "accuracy_plus": round(acc_plus * 100, 2),
+            "mme_score": round(mme_score, 2),
             "precision": round(prec * 100, 2),
             "recall": round(rec * 100, 2),
             "f1": round(f1 * 100, 2),
             "count": total,
+            "pair_correct": pair_correct,
+            "pair_count": pair_count,
+            "other": other,
             "tp": tp, "tn": tn, "fp": fp, "fn": fn,
         }
 
-        logger.info(f"{category:<25} {acc*100:>7.2f}% {prec*100:>7.2f}% {rec*100:>7.2f}% {f1*100:>7.2f}% {total:>8}")
+        logger.info(
+            f"{category:<16} {acc*100:>7.2f}% {acc_plus*100:>7.2f}% "
+            f"{mme_score:>8.2f} {prec*100:>7.2f}% {rec*100:>7.2f}% "
+            f"{f1*100:>7.2f}% {total:>8}"
+        )
 
     # Overall
-    total_all = overall_tp + overall_tn + overall_fp + overall_fn
+    total_all = overall_tp + overall_tn + overall_fp + overall_fn + overall_other
     overall_acc = (overall_tp + overall_tn) / max(total_all, 1)
     overall_prec = overall_tp / max(overall_tp + overall_fp, 1)
     overall_rec = overall_tp / max(overall_tp + overall_fn, 1)
     overall_f1 = 2 * overall_prec * overall_rec / max(overall_prec + overall_rec, 1e-8)
 
+    official_categories = ("existence", "count", "position", "color")
+    # Sum unrounded component scores. Summing the two-decimal display values
+    # can be off by 0.01 (e.g. 603.34 instead of the correct 603.33).
+    total_mme_score = sum(
+        100 * (
+            (metrics[c]["tp"] + metrics[c]["tn"]) / metrics[c]["count"]
+            + metrics[c]["pair_correct"] / metrics[c]["pair_count"]
+        )
+        for c in official_categories
+    )
+
     logger.info("-" * len(header))
-    logger.info(f"{'OVERALL':<25} {overall_acc*100:>7.2f}% {overall_prec*100:>7.2f}% "
-                f"{overall_rec*100:>7.2f}% {overall_f1*100:>7.2f}% {total_all:>8}")
+    logger.info(f"{'OVERALL ACC':<16} {overall_acc*100:>7.2f}%")
+    logger.info(f"Official MME Score: {total_mme_score:.2f} / 800.00")
 
     metrics["overall"] = {
         "accuracy": round(overall_acc * 100, 2),
@@ -248,6 +317,8 @@ def compute_metrics_by_category(results_by_category, logger):
         "recall": round(overall_rec * 100, 2),
         "f1": round(overall_f1 * 100, 2),
         "count": total_all,
+        "mme_score": round(total_mme_score, 2),
+        "other": overall_other,
         "tp": overall_tp, "tn": overall_tn, "fp": overall_fp, "fn": overall_fn,
     }
 
@@ -281,6 +352,7 @@ def main():
             f"_{args.ritual_alpha_pos}_{args.ritual_alpha_neg}"
             f"_{args.ritual_beta}_{args.js_gamma}"
             f"_layer_{args.enhance_layer_index}_proposal{args.proposal}"
+            f"_seed{args.seed}"
         )
         os.makedirs(experiment_dir, exist_ok=True)
         logger = create_logger(experiment_dir)
@@ -355,7 +427,7 @@ def main():
             pos_aug = random.choice(list(aug_dict.keys()))
             if pos_aug is not None:
                 raw_image_pos = aug_dict[pos_aug](raw_image)
-                image_pos = image_processor.preprocess(raw_image_pos, return_tensor='pt')['pixel_values'][0]
+                image_pos = image_processor.preprocess(raw_image_pos, return_tensors='pt')['pixel_values'][0]
                 image_pos = torch.tensor(image_pos)
             pos_aug_counter[pos_aug] += 1
         elif args.use_vcd:
@@ -419,6 +491,10 @@ def main():
                     score_threshold=args.score_threshold,
                     score_temperature=args.score_temperature,
                     lambda_decay=args.lambda_decay,
+                    expert_layers=args.expert_layers,
+                    consensus_min=args.consensus_min,
+                    consensus_strength=args.consensus_strength,
+                    entropy_temperature=args.entropy_temperature,
                 )
 
         if args.debug_tvd:
@@ -463,6 +539,7 @@ def main():
     logger.info(f"Overall Precision: {metrics['overall']['precision']:.2f}%")
     logger.info(f"Overall Recall: {metrics['overall']['recall']:.2f}%")
     logger.info(f"Overall F1: {metrics['overall']['f1']:.2f}%")
+    logger.info(f"Official MME Score: {metrics['overall']['mme_score']:.2f} / 800.00")
     logger.info(vars(args))
 
     # Save results to JSON
@@ -475,6 +552,17 @@ def main():
         }, f, indent=2)
     logger.info(f"Results saved to {results_path}")
 
+    if args.summary_path:
+        summary_dir = os.path.dirname(os.path.abspath(args.summary_path))
+        os.makedirs(summary_dir, exist_ok=True)
+        with open(args.summary_path, 'w') as f:
+            json.dump({
+                "seed": args.seed,
+                "metrics": metrics,
+                "total_questions": len(pred_list),
+            }, f, indent=2)
+        logger.info(f"Stable summary saved to {args.summary_path}")
+
     # Also print for stdout
     print("\n" + "=" * 60)
     print("MME-Hallucination Summary")
@@ -482,10 +570,12 @@ def main():
     print(f"Total questions: {len(pred_list)}")
     print(f"Overall Accuracy: {metrics['overall']['accuracy']:.2f}%")
     print(f"Overall F1: {metrics['overall']['f1']:.2f}%")
+    print(f"Official MME Score: {metrics['overall']['mme_score']:.2f} / 800.00")
     for cat, m in sorted(metrics.items()):
         if cat == "overall":
             continue
-        print(f"  {cat}: Acc={m['accuracy']:.2f}% F1={m['f1']:.2f}% (n={m['count']})")
+        print(f"  {cat}: Acc={m['accuracy']:.2f}% Acc+={m['accuracy_plus']:.2f}% "
+              f"MME={m['mme_score']:.2f} (n={m['count']})")
     print("=" * 60)
 
 

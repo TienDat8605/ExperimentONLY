@@ -16,9 +16,10 @@ At the **enhance layer** (default: layer 0), attention heads with low text-entro
 | Proposal | Description |
 |----------|-------------|
 | 0 | **Original ONLY** — binary mask computed once at layer 0 only |
-| 1 | **EMA mask accumulation** (default) — fresh binary mask per layer, blended via EMA (`alpha=0.2`) |
+| 1 | **EMA mask accumulation** — fresh binary mask per layer, blended via EMA (`alpha=0.2`) |
 | 2 | **Score accumulation** — track continuous score per head (ratio - threshold), sigmoid-activated |
 | 3 | **Residual delta tracking** — binary mask per layer, accumulate `delta = masked - normal` attn output with scaling (`lambda_decay=0.3`) |
+| 4 | **Layer-Local Consensus ONLY** (default) — independent soft-mask experts at layers 0/8/16/24, combined in vocabulary space with layer-0 ONLY fallback |
 
 ## Project Structure
 
@@ -78,10 +79,13 @@ bash run_all.sh
 
 ```bash
 # Run with specific proposal
-bash run_all.sh --proposal=1              # EMA mask (default)
+bash run_all.sh --proposal=4              # Layer-local consensus (default)
+bash run_all.sh --proposal=1              # EMA mask ablation
 bash run_all.sh --proposal=0              # Original ONLY (layer 0 only)
 bash run_all.sh --proposal=2              # Score accumulation
 bash run_all.sh --proposal=3              # Residual delta tracking
+bash run_all.sh --proposal=4 --expert_layers=0,8,16,24 \
+  --consensus_min=0.75 --consensus_strength=1.0
 
 # Evaluation flags
 bash run_all.sh --short                   # 300 questions per setup (quick test)
@@ -102,7 +106,7 @@ bash run_all.sh --alpha=-0.2            # adaptive alpha for proposal 1 (<0 = pe
 ### Local Eval (without Colab)
 
 ```bash
-export POPE_PROPOSAL=1
+export POPE_PROPOSAL=4
 export POPE_ALPHA=0.2
 bash colab.sh run
 ```
@@ -116,6 +120,9 @@ Evaluates on three POPE (Polling-based Object Probing Evaluation) setups:
 - **adversarial** — adversarially selected negative objects (hardest)
 
 Outputs accuracy, precision, recall, F1 per setup to `logs/results_<timestamp>/`.
+POPE uses the paper's LLaVA-1.5 threshold `gamma=0.2`. CHAIR uses 500
+seeded-random images, `gamma=0.25`, and the scorer/cache released by the ONLY
+authors; the captions-only score printed during generation is diagnostic only.
 
 ## Patch System
 
@@ -124,4 +131,4 @@ The ONLY attention logic patches `transformers.models.llama.modeling_llama.py` a
 ## Reference
 
 > ONLY: One-Layer Intervention Sufficiently Mitigates Hallucinations
-> Paper: [https://arxiv.org/abs/...](https://arxiv.org/abs/...)
+> Paper: [https://arxiv.org/abs/2507.00898](https://arxiv.org/abs/2507.00898)

@@ -74,6 +74,8 @@ def parse_args():
     parser.add_argument("--chair_objects_path", type=str, default="data/chair/coco_objects.json")
     parser.add_argument("--chair_captions_path", type=str, default="data/chair/captions_val2014.json")
     parser.add_argument("--log_path", type=str, default="logs/chair")
+    parser.add_argument("--captions_output", type=str, default=None,
+                        help="Optional JSONL path consumed by the official CHAIR scorer.")
 
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--batch_size", type=int, default=1)
@@ -83,7 +85,7 @@ def parse_args():
     parser.add_argument("--enhance_layer_index", type=int, default=0)
     parser.add_argument("--mask_alpha", type=float, default=0.2)
 
-    parser.add_argument("--max_new_tokens", type=int, default=100)
+    parser.add_argument("--max_new_tokens", type=int, default=64)
     parser.add_argument("--max_images", type=int, default=0,
                         help="If >0, stop after this many images (for quick iteration).")
     parser.add_argument("--proposal", type=int, default=1)
@@ -91,6 +93,14 @@ def parse_args():
     parser.add_argument("--score_temperature", type=float, default=1.0)
     parser.add_argument("--lambda_decay", type=float, default=0.3)
     parser.add_argument("--debug_tvd", type=str2bool, default=False)
+    parser.add_argument("--ritual_alpha_pos", type=float, default=3.0)
+    parser.add_argument("--ritual_alpha_neg", type=float, default=1.0)
+    parser.add_argument("--ritual_beta", type=float, default=0.1)
+    parser.add_argument("--js_gamma", type=float, default=0.25)
+    parser.add_argument("--expert_layers", type=str, default="0,8,16,24")
+    parser.add_argument("--consensus_min", type=float, default=0.75)
+    parser.add_argument("--consensus_strength", type=float, default=1.0)
+    parser.add_argument("--entropy_temperature", type=float, default=1.0)
 
     args = parser.parse_args()
     return args
@@ -138,7 +148,7 @@ class COCOCaptionDataset(Dataset):
         image_path = os.path.join(self.data_path, file_name)
 
         raw_image = Image.open(image_path).convert('RGB')
-        image = self.trans.preprocess(raw_image, return_tensor='pt')['pixel_values'][0]
+        image = self.trans.preprocess(raw_image, return_tensors='pt')['pixel_values'][0]
 
         return {
             "image": image,
@@ -203,7 +213,7 @@ def compute_chair(generated_captions, coco_objects, gt_captions_per_img, logger)
     Returns:
         (CHAIR_I, CHAIR_S, details)
     """
-    logger.info("Computing CHAIR metrics...")
+    logger.info("Computing captions-only diagnostic (official CHAIR runs separately)...")
 
     # Build GT object set per image from reference captions
     logger.info("Building ground-truth object sets from reference captions...")
@@ -336,6 +346,7 @@ def main():
         img_id_to_file[img_info['id']] = img_info['file_name']
 
     all_ids = sorted(gt_captions_per_img.keys())
+    random.Random(args.seed).shuffle(all_ids)
     if args.max_images > 0:
         all_ids = all_ids[:args.max_images]
 
@@ -357,7 +368,7 @@ def main():
 
         # Load and preprocess image
         raw_image = Image.open(image_path).convert('RGB')
-        image = image_processor.preprocess(raw_image, return_tensor='pt')['pixel_values'][0]
+        image = image_processor.preprocess(raw_image, return_tensors='pt')['pixel_values'][0]
 
         # Build prompt: "<image>\nDescribe this image in detail."
         conv_out = Conversation(
@@ -407,6 +418,14 @@ def main():
                     score_threshold=args.score_threshold,
                     score_temperature=args.score_temperature,
                     lambda_decay=args.lambda_decay,
+                    ritual_alpha_pos=args.ritual_alpha_pos,
+                    ritual_alpha_neg=args.ritual_alpha_neg,
+                    ritual_beta=args.ritual_beta,
+                    js_gamma=args.js_gamma,
+                    expert_layers=args.expert_layers,
+                    consensus_min=args.consensus_min,
+                    consensus_strength=args.consensus_strength,
+                    entropy_temperature=args.entropy_temperature,
                 )
 
         input_token_len = input_ids.shape[1]
@@ -427,6 +446,14 @@ def main():
 
     logger.info(f"Generated {len(generated_captions)} captions total")
 
+    if args.captions_output:
+        output_dir = os.path.dirname(os.path.abspath(args.captions_output))
+        os.makedirs(output_dir, exist_ok=True)
+        with open(args.captions_output, "w") as f:
+            for image_id, caption in generated_captions.items():
+                f.write(json.dumps({"image_id": image_id, "caption": caption}) + "\n")
+        logger.info(f"Official-CHAIR caption input saved to {args.captions_output}")
+
     # ==============================================
     #            Compute CHAIR Scores
     # ==============================================
@@ -435,7 +462,7 @@ def main():
     )
 
     logger.info("=" * 60)
-    logger.info("CHAIR Evaluation Results")
+    logger.info("Captions-only diagnostic (NOT official CHAIR)")
     logger.info("=" * 60)
     logger.info(f"CHAIR_I (Instance-level hallucination rate): {chair_i:.4f} ({chair_i*100:.2f}%)")
     logger.info(f"CHAIR_S (Sentence-level hallucination rate): {chair_s:.4f} ({chair_s*100:.2f}%)")
@@ -447,7 +474,7 @@ def main():
 
     # Also print for stdout
     print("\n" + "=" * 60)
-    print("CHAIR Evaluation Results")
+    print("Captions-only diagnostic (NOT official CHAIR)")
     print("=" * 60)
     print(f"CHAIR_I: {chair_i:.4f} ({chair_i*100:.2f}%)")
     print(f"CHAIR_S: {chair_s:.4f} ({chair_s*100:.2f}%)")

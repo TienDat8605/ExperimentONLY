@@ -27,6 +27,20 @@ from transformers.models.llama.modeling_llama import LlamaModel
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
 from ..llava_arch import LlavaMetaModel, LlavaMetaForCausalLM
+from ...constants import IMAGE_TOKEN_INDEX
+
+
+def _parse_expert_layers(value):
+    if isinstance(value, str):
+        value = [part.strip() for part in value.split(",") if part.strip()]
+    if isinstance(value, int):
+        value = [value]
+    layers = tuple(int(layer) for layer in value)
+    if not layers:
+        raise ValueError("expert_layers must contain at least one layer")
+    if len(set(layers)) != len(layers) or any(layer < 0 for layer in layers):
+        raise ValueError(f"Invalid expert_layers: {layers}")
+    return layers
 
 
 class LlavaConfig(LlamaConfig):
@@ -81,6 +95,12 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
         score_threshold: Optional[float] = 0.0,
         score_temperature: Optional[float] = 1.0,
         lambda_decay: Optional[float] = 0.3,
+        expert_layers=(0, 8, 16, 24),
+        entropy_temperature: Optional[float] = 1.0,
+        consensus_min: Optional[float] = 0.75,
+        consensus_strength: Optional[float] = 1.0,
+        image_token_start: Optional[int] = None,
+        image_token_end: Optional[int] = None,
         ritual_alpha_pos: Optional[torch.FloatTensor] = None,
         ritual_alpha_neg: Optional[torch.FloatTensor] = None,
         ritual_beta: Optional[torch.FloatTensor] = None,
@@ -129,10 +149,18 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
                 score_threshold=score_threshold,
                 score_temperature=score_temperature,
                 lambda_decay=lambda_decay,
+                expert_layers=_parse_expert_layers(expert_layers),
+                entropy_temperature=entropy_temperature,
+                image_token_start=image_token_start,
+                image_token_end=image_token_end,
             )
-            hidden_states_cd = hidden_states_cd + 0.5 * outputs[0]
-            # hidden_states_cd = hidden_states_cd + outputs[0]
-            logits_cd = self.lm_head(hidden_states_cd)
+            if proposal == 4:
+                # [experts, batch, sequence, hidden] -> [batch, experts, sequence, vocab]
+                expert_hidden = hidden_states_cd + 0.5 * outputs[0].unsqueeze(0)
+                logits_cd = self.lm_head(expert_hidden).permute(1, 0, 2, 3).contiguous()
+            else:
+                hidden_states_cd = hidden_states_cd + 0.5 * outputs[0]
+                logits_cd = self.lm_head(hidden_states_cd)
 
         hidden_states = outputs[0]
         logits = self.lm_head(hidden_states)
@@ -170,6 +198,22 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
         inputs_embeds=None,
         **kwargs
     ):
+        # The image placeholder is still present in GenerationMixin's growing
+        # input_ids even after KV caching reduces the model input to one token.
+        # Resolve the visual span here instead of relying on prompt-specific
+        # constants such as 35:611.
+        image_positions = (input_ids == IMAGE_TOKEN_INDEX).nonzero(as_tuple=False)
+        image_token_start = kwargs.get("image_token_start")
+        image_token_end = kwargs.get("image_token_end")
+        if image_positions.numel() > 0:
+            starts = image_positions[:, 1].unique()
+            if starts.numel() != 1:
+                raise ValueError("proposal 4 currently requires a uniform image-token position per batch")
+            image_token_start = int(starts.item())
+            vision_tower = self.get_vision_tower()
+            num_patches = int(getattr(vision_tower, "num_patches", 576))
+            image_token_end = image_token_start + num_patches
+
         if past_key_values:
             input_ids = input_ids[:, -1:]
 
@@ -193,6 +237,10 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
                 "score_threshold": kwargs.get("score_threshold", 0.0),
                 "score_temperature": kwargs.get("score_temperature", 1.0),
                 "lambda_decay": kwargs.get("lambda_decay", 0.3),
+                "expert_layers": kwargs.get("expert_layers", (0, 8, 16, 24)),
+                "entropy_temperature": kwargs.get("entropy_temperature", 1.0),
+                "image_token_start": image_token_start,
+                "image_token_end": image_token_end,
             }
         )
         return model_inputs

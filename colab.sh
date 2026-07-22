@@ -22,6 +22,32 @@ dbg() {
     echo "[$(date '+%H:%M:%S')] $*"
 }
 
+# Return success only for the exact four-subset MME-Hallucination protocol
+# used by RITUAL and ONLY: 30 images/60 questions per subset, stored as
+# adjacent pairs that reference the same image.
+mme_hallucination_valid() {
+    local jsonl="$1"
+    [ -f "$jsonl" ] || return 1
+    python3 - "$jsonl" <<'PY' >/dev/null 2>&1
+import json, sys
+from collections import Counter
+
+rows = [json.loads(line) for line in open(sys.argv[1]) if line.strip()]
+expected = {"existence": 60, "count": 60, "position": 60, "color": 60}
+category_order = ["color", "position", "count", "existence"]
+assert len(rows) == 240
+assert dict(Counter(row["category"] for row in rows)) == expected
+assert [row["category"] for row in rows] == [c for c in category_order for _ in range(60)]
+for i in range(0, len(rows), 2):
+    assert rows[i]["category"] == rows[i + 1]["category"]
+    assert rows[i]["image"] == rows[i + 1]["image"]
+    assert rows[i]["label"] in ("yes", "no")
+    assert rows[i + 1]["label"] in ("yes", "no")
+    assert rows[i]["text"].endswith("Answer the question using a single word or phrase.")
+    assert rows[i + 1]["text"].endswith("Answer the question using a single word or phrase.")
+PY
+}
+
 prep() {
     dbg "=== [prep] Download missing assets ==="
     cd "$ROOT"
@@ -142,44 +168,82 @@ for tp, pp in [('random','data/test-00000-of-00003.parquet'), ('popular','data/t
     # MME-Hallucination dataset
     dbg "[prep/5] Checking MME-Hallucination..."
     MME_DIR="${ROOT}/data/mme_hallucination"
-    if [ ! -f "${MME_DIR}/mme_hallucination.jsonl" ]; then
-        dbg "[prep/5] Downloading MME-Hallucination dataset..."
+    if ! mme_hallucination_valid "${MME_DIR}/mme_hallucination.jsonl"; then
+        dbg "[prep/5] Building exact 240-question ONLY/RITUAL MME-Hallucination dataset..."
         mkdir -p "${MME_DIR}/images"
+        dbg "[prep/5] Ensuring datasets in conda env..."
+        conda run -n "$ENV" pip install -q datasets 2>&1 | tail -1
         conda run -n "$ENV" python -c "
-import json, os
+import json, os, re
 from datasets import load_dataset
+from collections import Counter
 
-ds = load_dataset('lmms-lab/MME-Hallucination', split='test')
-print(f'  MME-Hallucination: {len(ds)} samples')
+# ONLY evaluates four MME subsets. The scene subset belongs to full MME perception but
+# is not part of the paper's MME-Hallucination table.
+HALLUCINATION_CATEGORIES = {'existence', 'color', 'count', 'position'}
+
+ds = load_dataset('lmms-lab/MME', split='test')
+print(f'  lmms-lab/MME: {len(ds)} samples total')
+
+# Filter to hallucination categories
+filtered = [item for item in ds if item['category'] in HALLUCINATION_CATEGORIES]
+cats = Counter(item['category'] for item in filtered)
+for cat, count in sorted(cats.items()):
+    print(f'    {cat}: {count}')
+expected = {'existence': 60, 'count': 60, 'position': 60, 'color': 60}
+assert len(filtered) == 240 and dict(cats) == expected, (len(filtered), cats)
+# Match the linked RITUAL JSONL order exactly. This matters under sampling:
+# consuming RNG in a different question order can change a seeded result.
+category_order = ['color', 'position', 'count', 'existence']
+filtered = [item for category in category_order for item in filtered
+            if item['category'] == category]
+print(f'  Exact MME-Hallucination selection: {len(filtered)} samples')
 
 img_dir = '${MME_DIR}/images'
 os.makedirs(img_dir, exist_ok=True)
 
-records = []
-for i, item in enumerate(ds):
-    # Save image to disk
-    img_path = os.path.join(img_dir, f'mme_hallucination_{i}.png')
-    item['image'].save(img_path)
+records, seen = [], Counter()
+for item in filtered:
+    category = item['category']
+    category_index = seen[category]
+    pair_index = category_index // 2
+    relative_image = f'images/{category}_{pair_index:03d}.png'
 
+    # MME has two adjacent questions for each image. Both records must point
+    # to one shared image so accuracy+ pairing is explicit and verifiable.
+    if category_index % 2 == 0:
+        item['image'].save(os.path.join('${MME_DIR}', relative_image))
+
+    # Normalize answer to yes/no
+    answer = str(item['answer']).strip().lower()
+    if answer not in ('yes', 'no'):
+        # Some MME answers are 'Yes.' or similar — normalize
+        answer = 'yes' if answer.startswith('yes') else 'no'
+
+    question = re.sub(r'\s*Please answer yes or no\.?\s*$', '', item['question'], flags=re.I)
+    question += '\nAnswer the question using a single word or phrase.'
     rec = {
-        'question_id': i,
-        'image': f'images/mme_hallucination_{i}.png',
-        'text': item['question'],
-        'answer': item.get('answer', ''),
-        'label': item.get('answer', ''),
-        'category': item.get('category', 'Unknown')
+        'question_id': f'{category}/{pair_index:03d}.png',
+        'image': relative_image,
+        'text': question,
+        'answer': answer,
+        'label': answer,
+        'category': category
     }
     records.append(rec)
+    seen[category] += 1
 
 with open('${MME_DIR}/mme_hallucination.jsonl', 'w') as f:
     for rec in records:
         f.write(json.dumps(rec) + '\n')
 
-print(f'  MME-Hallucination: {len(records)} records ({len(os.listdir(img_dir))} images)')
+assert all(records[i]['image'] == records[i + 1]['image'] for i in range(0, 240, 2))
+print(f'  MME-Hallucination: {len(records)} records, 120 paired images')
 "
-        dbg "[prep/5] MME-Hallucination done"
+        mme_hallucination_valid "${MME_DIR}/mme_hallucination.jsonl"
+        dbg "[prep/5] MME-Hallucination ready (240 questions, 120 paired images)"
     else
-        dbg "[prep/5] MME-Hallucination exists ($(wc -l < "${MME_DIR}/mme_hallucination.jsonl") records)"
+        dbg "[prep/5] Exact MME-Hallucination dataset already exists (240 questions)"
     fi
 
     if [ -f "$TARBALL" ]; then
@@ -196,9 +260,7 @@ print(f'  MME-Hallucination: {len(records)} records ({len(os.listdir(img_dir))} 
         --exclude='*.pyc' \
         ONLY/ \
         colab.sh \
-        data/pope/ \
-        data/chair/ \
-        data/mme_hallucination/
+        data/pope/
     TAR_ELAPSED=$(($(date +%s) - TAR_START))
 
     dbg "[prep/tar] Tarball created in ${TAR_ELAPSED}s"
@@ -286,6 +348,33 @@ print(f'  Patched modeling_llama.py ({old_size} → {dst.stat().st_size} bytes)'
 for p in tf.rglob('__pycache__'): shutil.rmtree(p, ignore_errors=True)
 print(f'  Version checks disabled, transformers=={transformers.__version__}')
 "
+
+    dbg "=== [run/2b] Patch huggingface_hub for transformers 4.31.0 compatibility ==="
+    # transformers 4.31.0 passes use_auth_token kwarg to hf_hub_download,
+    # but huggingface_hub 0.16.x removed it. Edit the installed file on disk
+    # so every Python process sees the fix.
+    python3 -c "
+import transformers.utils.hub as m
+fp = m.__file__
+with open(fp) as f:
+    src = f.read()
+
+# Remove use_auth_token=use_auth_token from all calls.  The token is a
+# deprecated kwarg that huggingface_hub 0.16.x rejects outright.
+import re
+# 1) ', use_auth_token=use_auth_token' + optional trailing comma/newline
+src = re.sub(r',\s*use_auth_token\s*=\s*use_auth_token\s*,?\s*', ',', src)
+# 2) ', use_auth_token=use_auth_token)' — was last positional before close-paren
+src = re.sub(r',\s*use_auth_token\s*=\s*use_auth_token\s*\)', ')', src)
+# 3) 'use_auth_token=use_auth_token,' — first param with trailing comma
+src = re.sub(r'use_auth_token\s*=\s*use_auth_token\s*,\s*', '', src)
+# 4) stray 'use_auth_token=use_auth_token' with no comma at all
+src = re.sub(r'use_auth_token\s*=\s*use_auth_token\s*', '', src)
+
+with open(fp, 'w') as f:
+    f.write(src)
+print(f'  ✅ Patched {fp}')
+" 2>&1 | sed 's/^/  /'
 
     dbg "=== [run/3] Download assets ==="
     # NOTE: we do NOT silence stderr to /dev/null here. Earlier runs died in 1s
@@ -392,9 +481,14 @@ snapshot_download('liuhaotian/llava-v1.5-7b', local_dir='$MODEL_DIR',
         if python -c "
 from huggingface_hub import snapshot_download
 snapshot_download('openai/clip-vit-large-patch14-336', local_dir='$CLIP_DIR',
-                  local_dir_use_symlinks=False, resume_download=True)
+                  resume_download=True)
 " >"$DL_ERR" 2>&1; then
             kill "$HB_PID" 2>/dev/null || true
+            # Remove local_dir_use_symlinks=False above (use default = populate HF
+            # cache). Without the cache, from_pretrained('openai/...') can't find
+            # CLIP and re-downloads it. Default symlinks means files live in the HF
+            # cache and CLIP_DIR has symlinks — from_pretrained works and du -sh
+            # CLIP_DIR reports tiny, which is cosmetic.
             dbg "[run/3]  ✅ CLIP done ($(du -sh "$CLIP_DIR" | cut -f1))"
         else
             kill "$HB_PID" 2>/dev/null || true
@@ -486,33 +580,62 @@ for tp, pp in [('random','data/test-00000-of-00003.parquet'), ('popular','data/t
 
     # MME-Hallucination dataset
     MME_DIR="${ROOT}/data/mme_hallucination"
-    if [ -f "${MME_DIR}/mme_hallucination.jsonl" ]; then
-        dbg "[run/3]  ✅ MME-Hallucination exists ($(wc -l < "${MME_DIR}/mme_hallucination.jsonl") records)"
+    if mme_hallucination_valid "${MME_DIR}/mme_hallucination.jsonl"; then
+        dbg "[run/3]  ✅ Exact MME-Hallucination dataset exists (240 questions)"
     else
-        dbg "[run/3] Downloading MME-Hallucination..."
+        dbg "[run/3] Building exact 240-question ONLY/RITUAL MME-Hallucination dataset..."
         mkdir -p "${MME_DIR}/images"
         pip install -q datasets 2>&1 | tail -1
         python -c "
-import json, os
+import json, os, re
 from datasets import load_dataset
-ds = load_dataset('lmms-lab/MME-Hallucination', split='test')
+from collections import Counter
+
+HALLUCINATION_CATEGORIES = {'existence', 'color', 'count', 'position'}
+ds = load_dataset('lmms-lab/MME', split='test')
+filtered = [item for item in ds if item['category'] in HALLUCINATION_CATEGORIES]
+cats = Counter(item['category'] for item in filtered)
+expected = {'existence': 60, 'count': 60, 'position': 60, 'color': 60}
+assert len(filtered) == 240 and dict(cats) == expected, (len(filtered), cats)
+category_order = ['color', 'position', 'count', 'existence']
+filtered = [item for category in category_order for item in filtered
+            if item['category'] == category]
+print(f'  Exact MME-Hallucination selection: {len(filtered)} samples', flush=True)
+
 img_dir = '${MME_DIR}/images'
 os.makedirs(img_dir, exist_ok=True)
-records = []
-for i, item in enumerate(ds):
-    item['image'].save(os.path.join(img_dir, f'mme_hallucination_{i}.png'))
-    records.append({'question_id': i, 'image': f'images/mme_hallucination_{i}.png',
-                    'text': item['question'], 'answer': item.get('answer', ''),
-                    'label': item.get('answer', ''), 'category': item.get('category', 'Unknown')})
+records, seen = [], Counter()
+for item in filtered:
+    category = item['category']
+    category_index = seen[category]
+    pair_index = category_index // 2
+    relative_image = f'images/{category}_{pair_index:03d}.png'
+    if category_index % 2 == 0:
+        item['image'].save(os.path.join('${MME_DIR}', relative_image))
+    answer = str(item['answer']).strip().lower()
+    answer = 'yes' if answer.startswith('yes') else 'no'
+    question = re.sub(r'\s*Please answer yes or no\.?\s*$', '', item['question'], flags=re.I)
+    question += '\nAnswer the question using a single word or phrase.'
+    records.append({'question_id': f'{category}/{pair_index:03d}.png',
+                    'image': relative_image, 'text': question,
+                    'answer': answer, 'label': answer, 'category': category})
+    seen[category] += 1
 with open('${MME_DIR}/mme_hallucination.jsonl', 'w') as f:
     for rec in records:
         f.write(json.dumps(rec) + '\n')
-print(f'  MME-Hallucination: {len(records)} records ({len(os.listdir(img_dir))} images)')
+assert all(records[i]['image'] == records[i + 1]['image'] for i in range(0, 240, 2))
+print(f'  MME-Hallucination: {len(records)} records, 120 paired images')
 " 2>"$DL_ERR" || dbg "[run/3]  ⚠️  MME-Hallucination download failed"
-        dbg "[run/3]  ✅ MME-Hallucination done"
+        if mme_hallucination_valid "${MME_DIR}/mme_hallucination.jsonl"; then
+            dbg "[run/3]  ✅ MME-Hallucination ready"
+        else
+            dbg "[run/3]  ❌ MME-Hallucination validation failed"
+            return 1
+        fi
     fi
 
     # BENCHMARKS: which benchmarks to run (default: pope chair mme_hallucination)
+    BENCHMARKS="${BENCHMARKS,,}"  # lowercase for case-insensitive matching
     BENCHMARKS="${BENCHMARKS:-pope chair mme_hallucination}"
     dbg "[run/3]  ✅ Benchmark selection: $BENCHMARKS"
 
@@ -547,11 +670,19 @@ print(f'  MME-Hallucination: {len(records)} records ({len(os.listdir(img_dir))} 
     POPE_TOKENS="${POPE_TOKENS:-8}"
     POPE_ALPHA="${POPE_ALPHA:-0.2}"    # <0 = adaptive per-step alpha (option 2)
     POPE_DEBUG_TVD="${POPE_DEBUG_TVD:-0}"
-    POPE_PROPOSAL="${POPE_PROPOSAL:-1}"
+    POPE_PROPOSAL="${POPE_PROPOSAL:-4}"
     POPE_SCORE_THRESHOLD="${POPE_SCORE_THRESHOLD:-0.0}"
     POPE_SCORE_TEMPERATURE="${POPE_SCORE_TEMPERATURE:-1.0}"
     POPE_LAMBDA_DECAY="${POPE_LAMBDA_DECAY:-0.3}"
-    POPE_JS_GAMMA="${POPE_JS_GAMMA:-0.6}"
+    POPE_JS_GAMMA="${POPE_JS_GAMMA:-0.2}"
+    ONLY_EXPERT_LAYERS="${ONLY_EXPERT_LAYERS:-0,8,16,24}"
+    ONLY_CONSENSUS_MIN="${ONLY_CONSENSUS_MIN:-0.75}"
+    ONLY_CONSENSUS_STRENGTH="${ONLY_CONSENSUS_STRENGTH:-1.0}"
+    ONLY_ENTROPY_TEMPERATURE="${ONLY_ENTROPY_TEMPERATURE:-1.0}"
+    # Paper default for LLaVA-1.5. Keep this separate from POPE tuning so an
+    # unrelated POPE sweep cannot silently change the MME reproduction.
+    MME_JS_GAMMA="${MME_JS_GAMMA:-0.2}"
+    MME_SEEDS="${MME_SEEDS:-42 43 44}"
     POPE_MAXQ="${POPE_MAXQ:-0}"       # explicit override; else derived from SHORT below
     mkdir -p "${ROOT}/logs"
     RUN_TS="$(date +%Y-%m-%d_%Hh%Mm%Ss)"
@@ -610,6 +741,10 @@ print(f'  MME-Hallucination: {len(records)} records ({len(os.listdir(img_dir))} 
             --score_temperature "${POPE_SCORE_TEMPERATURE}" \
             --lambda_decay "${POPE_LAMBDA_DECAY}" \
             --js_gamma "${POPE_JS_GAMMA}" \
+            --expert_layers "${ONLY_EXPERT_LAYERS}" \
+            --consensus_min "${ONLY_CONSENSUS_MIN}" \
+            --consensus_strength "${ONLY_CONSENSUS_STRENGTH}" \
+            --entropy_temperature "${ONLY_ENTROPY_TEMPERATURE}" \
             --batch_size "1" \
             --num_workers "1" \
             --seed "42" \
@@ -648,23 +783,50 @@ print(f'  MME-Hallucination: {len(records)} records ({len(os.listdir(img_dir))} 
 
             set +e
             pip install -q nltk 2>&1 | tail -1
+            OFFICIAL_CHAIR_DIR="${ROOT}/ONLY/eval_bench/official_chair"
+            mkdir -p "${OFFICIAL_CHAIR_DIR}"
+            if [ ! -f "${OFFICIAL_CHAIR_DIR}/chair.py" ]; then
+                curl -fsSL https://raw.githubusercontent.com/zifuwan/ONLY/main/eval_bench/chair.py \
+                    -o "${OFFICIAL_CHAIR_DIR}/chair.py"
+            fi
+            if [ ! -f "${OFFICIAL_CHAIR_DIR}/chair.pkl" ]; then
+                curl -fsSL https://raw.githubusercontent.com/zifuwan/ONLY/main/chair.pkl \
+                    -o "${OFFICIAL_CHAIR_DIR}/chair.pkl"
+            fi
+            CHAIR_CAPTIONS="${RUN_DIR}/chair_captions.jsonl"
             python -u "${ROOT}/ONLY/eval_bench/chair_eval_llava.py" \
                 --model_path "${MODEL_DIR}" \
                 --data_path "${COCO_DIR}" \
                 --chair_objects_path "${CHAIR_DIR}/coco_objects.json" \
                 --chair_captions_path "${CHAIR_DIR}/captions_val2014.json" \
                 --log_path "${ROOT}/logs/chair" \
+                --captions_output "${CHAIR_CAPTIONS}" \
                 --use_only "True" \
                 --proposal "${POPE_PROPOSAL}" \
                 --mask_alpha "${POPE_ALPHA}" \
-                --max_new_tokens "100" \
+                --js_gamma "0.25" \
+                --expert_layers "${ONLY_EXPERT_LAYERS}" \
+                --consensus_min "${ONLY_CONSENSUS_MIN}" \
+                --consensus_strength "${ONLY_CONSENSUS_STRENGTH}" \
+                --entropy_temperature "${ONLY_ENTROPY_TEMPERATURE}" \
+                --max_new_tokens "64" \
                 --temperature "1.0" \
-                --max_images "$( if [ "$POPE_MAXQ" -gt 0 ] 2>/dev/null; then echo "$POPE_MAXQ"; else echo "0"; fi )" \
+                --max_images "$( if [ "$POPE_MAXQ" -gt 0 ] 2>/dev/null; then echo "$POPE_MAXQ"; else echo "500"; fi )" \
                 --batch_size "1" \
                 --num_workers "1" \
-                --seed "42" \
+                --seed "3407" \
                 2>&1 | tee "${RUN_DIR}/chair_result.txt"
             CHAIR_EXIT=${PIPESTATUS[0]}
+            if [ "$CHAIR_EXIT" -eq 0 ]; then
+                python -u "${OFFICIAL_CHAIR_DIR}/chair.py" \
+                    --cap_file "${CHAIR_CAPTIONS}" \
+                    --image_id_key image_id \
+                    --caption_key caption \
+                    --cache "${OFFICIAL_CHAIR_DIR}/chair.pkl" \
+                    --save_path "${RUN_DIR}/chair_official_details.json" \
+                    2>&1 | tee "${RUN_DIR}/chair_official_result.txt"
+                CHAIR_EXIT=${PIPESTATUS[0]}
+            fi
             set -e
 
             kill "$CHAIR_HB" 2>/dev/null || true
@@ -682,10 +844,17 @@ print(f'  MME-Hallucination: {len(records)} records ({len(os.listdir(img_dir))} 
     # ---- MME-Hallucination (yes/no QA per category) ----
     if [[ " $BENCHMARKS " == *" mme_hallucination "* ]]; then
         MME_DIR="${ROOT}/data/mme_hallucination"
-        if [ ! -f "${MME_DIR}/mme_hallucination.jsonl" ]; then
+        if ! mme_hallucination_valid "${MME_DIR}/mme_hallucination.jsonl"; then
             dbg "[run/6] ⚠️  MME-Hallucination data missing — skipping"
         else
-            dbg "[run/6] =========== Run MME-Hallucination evaluation ==========="
+            read -r -a MME_SEED_ARRAY <<< "$MME_SEEDS"
+            if [ "${#MME_SEED_ARRAY[@]}" -ne 3 ] || \
+               [ "$(printf '%s\n' "${MME_SEED_ARRAY[@]}" | sort -u | wc -l)" -ne 3 ]; then
+                dbg "[run/6] ❌ MME_SEEDS must contain exactly three distinct seeds; got: $MME_SEEDS"
+                return 1
+            fi
+
+            dbg "[run/6] =========== Run MME-Hallucination: seeds ${MME_SEED_ARRAY[*]} ==========="
             MME_START=$(date +%s)
             (
                 while true; do
@@ -696,31 +865,93 @@ print(f'  MME-Hallucination: {len(records)} records ({len(os.listdir(img_dir))} 
             ) &
             MME_HB=$!
 
-            set +e
-            python -u "${ROOT}/ONLY/eval_bench/mme_hallucination_eval_llava.py" \
-                --model_path "${MODEL_DIR}" \
-                --model_base "llava" \
-                --mme_path "${MME_DIR}/mme_hallucination.jsonl" \
-                --data_path "${MME_DIR}" \
-                --log_path "${ROOT}/logs/mme_hallucination" \
-                --use_only "True" \
-                --dataset_name "mme_hallucination" \
-                --enhance_layer_index "0" \
-                --mask_alpha "${POPE_ALPHA}" \
-                --proposal "${POPE_PROPOSAL}" \
-                --score_threshold "${POPE_SCORE_THRESHOLD}" \
-                --score_temperature "${POPE_SCORE_TEMPERATURE}" \
-                --lambda_decay "${POPE_LAMBDA_DECAY}" \
-                --js_gamma "${POPE_JS_GAMMA}" \
-                --max_new_tokens "8" \
-                --temperature "1.0" \
-                --max_questions "$( if [ "$POPE_MAXQ" -gt 0 ] 2>/dev/null; then echo "$POPE_MAXQ"; else echo "0"; fi )" \
-                --batch_size "1" \
-                --num_workers "1" \
-                --seed "42" \
-                2>&1 | tee "${RUN_DIR}/mme_hallucination_result.txt"
-            MME_EXIT=${PIPESTATUS[0]}
-            set -e
+            MME_EXIT=0
+            for MME_SEED in "${MME_SEED_ARRAY[@]}"; do
+                dbg "[run/6] >>> MME-Hallucination seed ${MME_SEED}"
+                set +e
+                python -u "${ROOT}/ONLY/eval_bench/mme_hallucination_eval_llava.py" \
+                    --model_path "${MODEL_DIR}" \
+                    --model_base "llava" \
+                    --mme_path "${MME_DIR}/mme_hallucination.jsonl" \
+                    --data_path "${MME_DIR}" \
+                    --log_path "${ROOT}/logs/mme_hallucination" \
+                    --summary_path "${RUN_DIR}/mme_hallucination_seed${MME_SEED}_metrics.json" \
+                    --use_only "True" \
+                    --dataset_name "mme_hallucination" \
+                    --enhance_layer_index "0" \
+                    --mask_alpha "${POPE_ALPHA}" \
+                    --proposal "${POPE_PROPOSAL}" \
+                    --score_threshold "${POPE_SCORE_THRESHOLD}" \
+                    --score_temperature "${POPE_SCORE_TEMPERATURE}" \
+                    --lambda_decay "${POPE_LAMBDA_DECAY}" \
+                    --js_gamma "${MME_JS_GAMMA}" \
+                    --expert_layers "${ONLY_EXPERT_LAYERS}" \
+                    --consensus_min "${ONLY_CONSENSUS_MIN}" \
+                    --consensus_strength "${ONLY_CONSENSUS_STRENGTH}" \
+                    --entropy_temperature "${ONLY_ENTROPY_TEMPERATURE}" \
+                    --max_new_tokens "8" \
+                    --temperature "1.0" \
+                    --max_questions "0" \
+                    --batch_size "1" \
+                    --num_workers "1" \
+                    --seed "${MME_SEED}" \
+                    2>&1 | tee "${RUN_DIR}/mme_hallucination_seed${MME_SEED}_result.txt"
+                SEED_EXIT=${PIPESTATUS[0]}
+                set -e
+                if [ "$SEED_EXIT" -ne 0 ]; then
+                    MME_EXIT=$SEED_EXIT
+                    dbg "[run/6] ⚠️  MME-Hallucination seed ${MME_SEED} failed"
+                    break
+                fi
+            done
+
+            if [ "$MME_EXIT" -eq 0 ]; then
+                python - "${RUN_DIR}" "${MME_SEED_ARRAY[@]}" <<'PY' | tee "${RUN_DIR}/mme_hallucination_result.txt"
+import json, os, statistics, sys
+
+run_dir, seed_args = sys.argv[1], sys.argv[2:]
+runs = []
+for seed in seed_args:
+    path = os.path.join(run_dir, f"mme_hallucination_seed{seed}_metrics.json")
+    with open(path) as f:
+        runs.append(json.load(f))
+
+categories = ("existence", "count", "position", "color")
+summary = {"seeds": [int(seed) for seed in seed_args], "categories": {}}
+def raw_score(run, category):
+    metric = run["metrics"][category]
+    return 100 * (
+        (metric["tp"] + metric["tn"]) / metric["count"]
+        + metric["pair_correct"] / metric["pair_count"]
+    )
+
+print("=" * 86)
+print("MME-Hallucination Three-Seed Average (mean +/- sample std)")
+print("=" * 86)
+print(f"{'Category':<14} {'Seed scores':<27} {'Mean':>10} {'Std':>10}")
+print("-" * 86)
+for category in categories:
+    values = [raw_score(run, category) for run in runs]
+    mean = statistics.mean(values)
+    std = statistics.stdev(values)
+    summary["categories"][category] = {"scores": values, "mean": mean, "std": std}
+    shown = ", ".join(f"{value:.2f}" for value in values)
+    print(f"{category:<14} {shown:<27} {mean:>10.2f} {std:>10.2f}")
+
+totals = [sum(raw_score(run, category) for category in categories) for run in runs]
+total_mean = statistics.mean(totals)
+total_std = statistics.stdev(totals)
+summary["total"] = {"scores": totals, "mean": total_mean, "std": total_std}
+shown = ", ".join(f"{value:.2f}" for value in totals)
+print("-" * 86)
+print(f"{'TOTAL':<14} {shown:<27} {total_mean:>10.2f} {total_std:>10.2f}")
+print("=" * 86)
+print(f"Average Official MME Score: {total_mean:.2f} +/- {total_std:.2f} / 800.00")
+
+with open(os.path.join(run_dir, "mme_hallucination_average.json"), "w") as f:
+    json.dump(summary, f, indent=2)
+PY
+            fi
 
             kill "$MME_HB" 2>/dev/null || true
             MME_ELAPSED=$(($(date +%s) - MME_START))

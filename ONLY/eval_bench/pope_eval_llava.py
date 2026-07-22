@@ -99,6 +99,10 @@ def parse_args():
                         help="Sigmoid temperature for proposal 2 score-to-mask conversion")
     parser.add_argument("--lambda_decay", type=float, default=0.3,
                         help="Scaling factor for proposal 3 residual delta accumulation")
+    parser.add_argument("--expert_layers", type=str, default="0,8,16,24")
+    parser.add_argument("--consensus_min", type=float, default=0.75)
+    parser.add_argument("--consensus_strength", type=float, default=1.0)
+    parser.add_argument("--entropy_temperature", type=float, default=1.0)
 
     args = parser.parse_args()
     return args
@@ -255,7 +259,7 @@ def main():
 
             if pos_aug is not None:
                 raw_image_pos = aug_dict[pos_aug](raw_image)
-                image_pos = image_processor.preprocess(raw_image_pos, return_tensor='pt')['pixel_values'][0] 
+                image_pos = image_processor.preprocess(raw_image_pos, return_tensors='pt')['pixel_values'][0]
                 image_pos = torch.tensor(image_pos)
                 
             pos_aug_counter[pos_aug] += 1
@@ -320,6 +324,10 @@ def main():
                     score_threshold=args.score_threshold,
                     score_temperature=args.score_temperature,
                     lambda_decay=args.lambda_decay,
+                    expert_layers=args.expert_layers,
+                    consensus_min=args.consensus_min,
+                    consensus_strength=args.consensus_strength,
+                    entropy_temperature=args.entropy_temperature,
                 )
                 
         if args.debug_tvd:

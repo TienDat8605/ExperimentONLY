@@ -33,6 +33,7 @@ from ...modeling_outputs import BaseModelOutputWithPast, CausalLMOutputWithPast,
 from ...modeling_utils import PreTrainedModel
 from ...utils import add_start_docstrings, add_start_docstrings_to_model_forward, logging, replace_return_docstrings
 from .configuration_llama import LlamaConfig
+from only_utils.proposal4_utils import soft_head_gate
 
 
 logger = logging.get_logger(__name__)
@@ -323,6 +324,9 @@ class LlamaAttention(nn.Module):
         score_threshold: Optional[float] = 0.0,
         score_temperature: Optional[float] = 1.0,
         lambda_decay: Optional[float] = 0.3,
+        entropy_temperature: Optional[float] = 1.0,
+        image_token_start: Optional[int] = None,
+        image_token_end: Optional[int] = None,
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor], Optional[Tuple[torch.Tensor]], Optional[torch.Tensor], Optional[torch.Tensor], Optional[torch.Tensor]]:
         bsz, q_len, _ = hidden_states.size()
 
@@ -422,7 +426,11 @@ class LlamaAttention(nn.Module):
         attn_output_cd = hidden_states_cd
 
         # Compute/update mask for contrastive decoding when use_only is active
-        if use_only and last_layer != 'last layer':
+        run_te_attention = (
+            proposal in (1, 2, 3)
+            or (proposal in (0, 4) and last_layer == 'get hidden states')
+        )
+        if use_only and last_layer != 'last layer' and run_te_attention:
             # For proposal=0, only compute mask at the enhance layer (last_layer='get hidden states')
             # For proposal=1 and proposal=2, compute at every layer (accumulate across layers)
             should_compute_mask = (proposal != 0) or (last_layer == 'get hidden states')
@@ -566,6 +574,27 @@ class LlamaAttention(nn.Module):
                         n_heads = int(fresh_mask.shape[0])
                         print(f"[TVDA] proposal=3 mask keep_ratio={fresh_mask.sum().float() / n_heads:.3f} suppressed={n_suppressed}/{n_heads}")
 
+                elif proposal == 4:
+                    if image_token_start is None or image_token_end is None:
+                        raise ValueError("proposal 4 requires explicit image_token_start/image_token_end")
+                    head_gate, local_score = soft_head_gate(
+                        attn_weights_cd,
+                        int(image_token_start),
+                        int(image_token_end),
+                        entropy_temperature,
+                    )
+                    # The first local expert is preceded by an exact original-
+                    # ONLY binary-mask state. It provides a safe fallback for
+                    # the consensus decoder.
+                    original_only_mask = (ratio >= ratio.mean()) if hidden_states_cd is None else None
+                    if debug_tvd:
+                        print(
+                            f"[LLC-MASK] gate_min={head_gate.min().item():.3f} "
+                            f"gate_mean={head_gate.mean().item():.3f} "
+                            f"gate_max={head_gate.max().item():.3f} "
+                            f"score_median={local_score.median().item():.4f}"
+                        )
+
             else:
                 # For proposal=0 at non-enhance layers, just use existing cumulative_mask
                 if cumulative_mask is not None:
@@ -579,14 +608,33 @@ class LlamaAttention(nn.Module):
             attn_weights_cd = attn_weights.clone()
             attn_weights_cd = nn.functional.softmax(attn_weights_cd, dim=-1, dtype=torch.float32).to(query_states.dtype)
 
-            # Zero out suppressed heads
-            attn_weights_cd[:, suppressed_heads, :, :] = 0
+            if proposal == 4:
+                # Soft, layer-local selection. No head-indexed state crosses a
+                # Transformer-layer boundary.
+                attn_weights_cd = attn_weights_cd * head_gate.view(1, -1, 1, 1)
+            else:
+                # Zero out suppressed heads
+                attn_weights_cd[:, suppressed_heads, :, :] = 0
 
             # Compute contrastive attention output
             attn_output_cd = torch.matmul(attn_weights_cd, value_states)
             attn_output_cd = attn_output_cd.transpose(1, 2).contiguous()
             attn_output_cd = attn_output_cd.reshape(bsz, q_len, self.hidden_size)
             attn_output_cd = self.o_proj(attn_output_cd)
+
+            if proposal == 4:
+                experts = [] if hidden_states_cd is None else list(hidden_states_cd)
+                if original_only_mask is not None:
+                    original_weights = nn.functional.softmax(
+                        attn_weights.clone(), dim=-1, dtype=torch.float32
+                    ).to(query_states.dtype)
+                    original_weights[:, ~original_only_mask, :, :] = 0
+                    original_output = torch.matmul(original_weights, value_states)
+                    original_output = original_output.transpose(1, 2).contiguous()
+                    original_output = original_output.reshape(bsz, q_len, self.hidden_size)
+                    experts.append(self.o_proj(original_output))
+                experts.append(attn_output_cd)
+                attn_output_cd = experts
 
             # Proposal 3: compute delta and accumulate into hidden_states_cd
             if proposal == 3:
@@ -611,7 +659,9 @@ class LlamaAttention(nn.Module):
                 attn_output_cd = hidden_states_cd
         elif last_layer == 'last layer':
             # Last layer: use the final cumulative mask
-            if cumulative_mask is not None:
+            if proposal in (0, 4):
+                attn_output_cd = hidden_states_cd
+            elif cumulative_mask is not None:
                 attn_weights_cd = attn_weights.clone()
                 attn_weights_cd = nn.functional.softmax(attn_weights_cd, dim=-1, dtype=torch.float32).to(query_states.dtype)
                 suppressed_heads = cumulative_mask < 0.5
@@ -722,6 +772,9 @@ class LlamaDecoderLayer(nn.Module):
         score_threshold: Optional[float] = 0.0,
         score_temperature: Optional[float] = 1.0,
         lambda_decay: Optional[float] = 0.3,
+        entropy_temperature: Optional[float] = 1.0,
+        image_token_start: Optional[int] = None,
+        image_token_end: Optional[int] = None,
     ) -> Tuple[torch.FloatTensor, Optional[Tuple[torch.FloatTensor, torch.FloatTensor]]]:
         """
         Args:
@@ -761,6 +814,9 @@ class LlamaDecoderLayer(nn.Module):
                 score_threshold=score_threshold,
                 score_temperature=score_temperature,
                 lambda_decay=lambda_decay,
+                entropy_temperature=entropy_temperature,
+                image_token_start=image_token_start,
+                image_token_end=image_token_end,
             )
         else:
             hidden_states, self_attn_weights, present_key_value, hidden_states_cd, cumulative_mask, score_accum = self.self_attn(
@@ -781,17 +837,32 @@ class LlamaDecoderLayer(nn.Module):
                 score_threshold=score_threshold,
                 score_temperature=score_temperature,
                 lambda_decay=lambda_decay,
+                entropy_temperature=entropy_temperature,
+                image_token_start=image_token_start,
+                image_token_end=image_token_end,
             )
         hidden_states = residual + hidden_states
 
 
         if last_layer == 'last layer':
-            hidden_states_cd = self.input_layernorm(hidden_states_cd)
-            hidden_states_cd = 0.2 * residual + hidden_states_cd
-            residual_cd = hidden_states_cd
-            hidden_states_cd = self.post_attention_layernorm(hidden_states_cd)
-            hidden_states_cd = self.mlp(hidden_states_cd)
-            hidden_states_cd = residual_cd + hidden_states_cd
+            if proposal == 4:
+                processed_experts = []
+                for expert_state in hidden_states_cd:
+                    expert_state = self.input_layernorm(expert_state)
+                    expert_state = 0.2 * residual + expert_state
+                    expert_residual = expert_state
+                    expert_state = self.post_attention_layernorm(expert_state)
+                    expert_state = self.mlp(expert_state)
+                    processed_experts.append(expert_residual + expert_state)
+                hidden_states_cd = processed_experts
+                residual_cd = None
+            else:
+                hidden_states_cd = self.input_layernorm(hidden_states_cd)
+                hidden_states_cd = 0.2 * residual + hidden_states_cd
+                residual_cd = hidden_states_cd
+                hidden_states_cd = self.post_attention_layernorm(hidden_states_cd)
+                hidden_states_cd = self.mlp(hidden_states_cd)
+                hidden_states_cd = residual_cd + hidden_states_cd
 
 
         # Fully Connected
@@ -997,12 +1068,24 @@ class LlamaModel(LlamaPreTrainedModel):
         score_threshold: Optional[float] = 0.0,
         score_temperature: Optional[float] = 1.0,
         lambda_decay: Optional[float] = 0.3,
+        expert_layers: Optional[Tuple[int, ...]] = (0, 8, 16, 24),
+        entropy_temperature: Optional[float] = 1.0,
+        image_token_start: Optional[int] = None,
+        image_token_end: Optional[int] = None,
     ) -> Union[Tuple, BaseModelOutputWithPast]:
         output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
         output_hidden_states = (
             output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
         )
         use_cache = use_cache if use_cache is not None else self.config.use_cache
+
+        if proposal == 4:
+            if not expert_layers or expert_layers[0] != 0:
+                raise ValueError("proposal 4 requires layer 0 as its first expert")
+            if any(layer < 0 or layer >= len(self.layers) - 1 for layer in expert_layers):
+                raise ValueError(
+                    f"proposal-4 expert layers must be in [0, {len(self.layers) - 2}]: {expert_layers}"
+                )
 
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
@@ -1087,7 +1170,8 @@ class LlamaModel(LlamaPreTrainedModel):
                     None,
                 )
             else:
-                if idx == enhance_layer_index and use_only:
+                is_expert_layer = proposal == 4 and idx in expert_layers
+                if (idx == enhance_layer_index or is_expert_layer) and use_only:
                     layer_outputs, hidden_states_cd, residual_cd, cumulative_mask, score_accum = decoder_layer(
                         hidden_states,
                         attention_mask=attention_mask,
@@ -1106,6 +1190,9 @@ class LlamaModel(LlamaPreTrainedModel):
                         score_threshold=score_threshold,
                         score_temperature=score_temperature,
                         lambda_decay=lambda_decay,
+                        entropy_temperature=entropy_temperature,
+                        image_token_start=image_token_start,
+                        image_token_end=image_token_end,
                     )
                 elif idx == 31 and use_only:
                     layer_outputs, hidden_states_cd, residual_cd, cumulative_mask, score_accum = decoder_layer(
@@ -1126,6 +1213,9 @@ class LlamaModel(LlamaPreTrainedModel):
                         score_threshold=score_threshold,
                         score_temperature=score_temperature,
                         lambda_decay=lambda_decay,
+                        entropy_temperature=entropy_temperature,
+                        image_token_start=image_token_start,
+                        image_token_end=image_token_end,
                     )
                 else:
                     layer_outputs, hidden_states_cd, residual_cd, cumulative_mask, score_accum = decoder_layer(
@@ -1145,6 +1235,9 @@ class LlamaModel(LlamaPreTrainedModel):
                         score_threshold=score_threshold,
                         score_temperature=score_temperature,
                         lambda_decay=lambda_decay,
+                        entropy_temperature=entropy_temperature,
+                        image_token_start=image_token_start,
+                        image_token_end=image_token_end,
                     )
 
             hidden_states = layer_outputs[0]
@@ -1155,7 +1248,15 @@ class LlamaModel(LlamaPreTrainedModel):
                 all_self_attns += (layer_outputs[1],)
             
         if use_only:
-            hidden_states_cd = self.norm(hidden_states_cd)
+            if proposal == 4:
+                expected_experts = len(expert_layers) + 1  # original ONLY fallback + local experts
+                if len(hidden_states_cd) != expected_experts:
+                    raise RuntimeError(
+                        f"Expected {expected_experts} proposal-4 states, got {len(hidden_states_cd)}"
+                    )
+                hidden_states_cd = torch.stack([self.norm(state) for state in hidden_states_cd], dim=0)
+            else:
+                hidden_states_cd = self.norm(hidden_states_cd)
 
         hidden_states = self.norm(hidden_states)
 

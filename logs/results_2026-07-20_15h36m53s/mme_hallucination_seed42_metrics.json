@@ -1,0 +1,83 @@
+{
+  "seed": 42,
+  "metrics": {
+    "color": {
+      "accuracy": 86.67,
+      "accuracy_plus": 73.33,
+      "mme_score": 160.0,
+      "precision": 78.95,
+      "recall": 100.0,
+      "f1": 88.24,
+      "count": 60,
+      "pair_correct": 22,
+      "pair_count": 30,
+      "other": 0,
+      "tp": 30,
+      "tn": 22,
+      "fp": 8,
+      "fn": 0
+    },
+    "count": {
+      "accuracy": 85.0,
+      "accuracy_plus": 73.33,
+      "mme_score": 158.33,
+      "precision": 81.82,
+      "recall": 90.0,
+      "f1": 85.71,
+      "count": 60,
+      "pair_correct": 22,
+      "pair_count": 30,
+      "other": 0,
+      "tp": 27,
+      "tn": 24,
+      "fp": 6,
+      "fn": 3
+    },
+    "existence": {
+      "accuracy": 95.0,
+      "accuracy_plus": 90.0,
+      "mme_score": 185.0,
+      "precision": 93.55,
+      "recall": 96.67,
+      "f1": 95.08,
+      "count": 60,
+      "pair_correct": 27,
+      "pair_count": 30,
+      "other": 0,
+      "tp": 29,
+      "tn": 28,
+      "fp": 2,
+      "fn": 1
+    },
+    "position": {
+      "accuracy": 76.67,
+      "accuracy_plus": 56.67,
+      "mme_score": 133.33,
+      "precision": 70.0,
+      "recall": 93.33,
+      "f1": 80.0,
+      "count": 60,
+      "pair_correct": 17,
+      "pair_count": 30,
+      "other": 0,
+      "tp": 28,
+      "tn": 18,
+      "fp": 12,
+      "fn": 2
+    },
+    "overall": {
+      "accuracy": 85.83,
+      "precision": 80.28,
+      "recall": 95.0,
+      "f1": 87.02,
+      "count": 240,
+      "mme_score": 636.67,
+      "other": 0,
+      "tp": 114,
+      "tn": 92,
+      "fp": 28,
+      "fn": 6
+    }
+  },
+  "total_questions": 240
+}
