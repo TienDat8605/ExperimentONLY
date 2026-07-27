@@ -328,7 +328,7 @@ print(f'  Version checks disabled, transformers=={transformers.__version__}')
         # Retry loop: HF API gateway is flaky from some Colab regions (504
         # Gateway Timeout on repo_info). We retry with backoff + optional
         # mirror + longer timeout.
-        #   POPE_HF_ENDPOINT=https://hf-mirror.com  — use Chinese mirror
+        #   POPE_HF_ENDPOINT=https://hf-mirror.com  — use Chinese mirro
         #   POPE_HF_TIMEOUT=120                     — increase API timeout
         DL_OK=0
         for ATTEMPT in 1 2 3; do
@@ -529,7 +529,7 @@ print(f'  MME-Hallucination: {len(records)} records ({len(os.listdir(img_dir))} 
     #
     # max_new_tokens=8: KEEP AT 8. An earlier attempt to cut this to 3 (to save
     # decode time) tanked accuracy because the eval uses STOCHASTIC sampling
-    # (do_sample=True, temperature=1.0, top_p=1). recorder() scores the answer
+    # (do_sample=True, temperature=1.0, top_p=1). recorder() scores the answe
     # as "no" ONLY if a negation word (No/not/no/NO, "...n't") appears in the
     # generated text, else defaults to "yes". With only 3 tokens at temp=1 the
     # negation token frequently lands AFTER the cutoff → the answer is recorded
@@ -552,6 +552,12 @@ print(f'  MME-Hallucination: {len(records)} records ({len(os.listdir(img_dir))} 
     POPE_SCORE_TEMPERATURE="${POPE_SCORE_TEMPERATURE:-1.0}"
     POPE_LAMBDA_DECAY="${POPE_LAMBDA_DECAY:-0.3}"
     POPE_JS_GAMMA="${POPE_JS_GAMMA:-0.6}"
+    POPE_ALPHA_1="${POPE_ALPHA_1:-}"
+    POPE_ALPHA_2="${POPE_ALPHA_2:-}"
+    POPE_ALPHA_3="${POPE_ALPHA_3:-}"
+    POPE_ALPHA_4="${POPE_ALPHA_4:-}"
+    POPE_GAMMA_1="${POPE_GAMMA_1:-}"
+    POPE_GAMMA_2="${POPE_GAMMA_2:-}"
     POPE_MAXQ="${POPE_MAXQ:-0}"       # explicit override; else derived from SHORT below
     mkdir -p "${ROOT}/logs"
     RUN_TS="$(date +%Y-%m-%d_%Hh%Mm%Ss)"
@@ -588,6 +594,14 @@ print(f'  MME-Hallucination: {len(records)} records ({len(os.listdir(img_dir))} 
         ) &
         HEARTBEAT_PID=$!
 
+        EXTRA_ARGS=()
+        [ -n "$POPE_ALPHA_1" ] && EXTRA_ARGS+=(--alpha_1 "$POPE_ALPHA_1")
+        [ -n "$POPE_ALPHA_2" ] && EXTRA_ARGS+=(--alpha_2 "$POPE_ALPHA_2")
+        [ -n "$POPE_ALPHA_3" ] && EXTRA_ARGS+=(--alpha_3 "$POPE_ALPHA_3")
+        [ -n "$POPE_ALPHA_4" ] && EXTRA_ARGS+=(--alpha_4 "$POPE_ALPHA_4")
+        [ -n "$POPE_GAMMA_1" ] && EXTRA_ARGS+=(--gamma_1 "$POPE_GAMMA_1")
+        [ -n "$POPE_GAMMA_2" ] && EXTRA_ARGS+=(--gamma_2 "$POPE_GAMMA_2")
+
         set +e  # don't abort the loop if one setup fails — capture + continue
         python -u "${ROOT}/ONLY/eval_bench/pope_eval_llava.py" \
             --model_path "${MODEL_DIR}" \
@@ -610,9 +624,11 @@ print(f'  MME-Hallucination: {len(records)} records ({len(os.listdir(img_dir))} 
             --score_temperature "${POPE_SCORE_TEMPERATURE}" \
             --lambda_decay "${POPE_LAMBDA_DECAY}" \
             --js_gamma "${POPE_JS_GAMMA}" \
+            "${EXTRA_ARGS[@]}" \
             --batch_size "1" \
             --num_workers "1" \
             --seed "42" \
+            2>&1 | tee "${RUN_DIR}/proposal${POPE_PROPOSAL}_result_${SETUP}.txt"
             2>&1 | tee "${RUN_DIR}/proposal${POPE_PROPOSAL}_result_${SETUP}.txt"
         EVAL_EXIT=${PIPESTATUS[0]}
         set -e

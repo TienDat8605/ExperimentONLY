@@ -1,0 +1,14 @@
+[2026-07-22 09:58:57] Experiment directory created at /content/logs/pope/llava-v1.5-7b/ONLY_coco_adversarial_3_1_0.1_0.6_layer_0_proposal4
+[2026-07-22 09:58:57] Initializing Model
+[2026-07-22 10:08:36] Experiment directory created at /content/logs/pope/llava-v1.5-7b/ONLY_coco_adversarial_3_1_0.1_0.6_layer_0_proposal4
+[2026-07-22 10:08:36] Initializing Model
+[2026-07-22 10:12:15] Experiment directory created at /content/logs/pope/llava-v1.5-7b/ONLY_coco_adversarial_3_1_0.1_0.6_layer_0_proposal4
+[2026-07-22 10:12:15] Initializing Model
+[2026-07-22 10:12:15] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+[2026-07-22 10:13:23] Start eval...
+[2026-07-22 10:22:25] Experiment directory created at /content/logs/pope/llava-v1.5-7b/ONLY_coco_adversarial_3_1_0.1_0.6_layer_0_proposal4
+[2026-07-22 10:22:25] Initializing Model
+[2026-07-22 10:22:25] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+[2026-07-22 10:23:32] Start eval...
+[2026-07-22 10:30:17] {'model_path': '/content/models/llava-v1.5-7b', 'model_base': 'llava', 'conv_mode': 'llava_v1', 'temperature': 1.0, 'top_p': 1.0, 'top_k': None, 'data_path': '/content/data/coco/val2014', 'pope_path': '/content/data/pope/coco_pope_adversarial.json', 'log_path': '/content/logs', 'seed': 42, 'batch_size': 1, 'num_workers': 1, 'use_ritual': False, 'use_vcd': False, 'noise_step': 500, 'use_m3id': False, 'use_only': True, 'enhance_layer_index': 0, 'mask_alpha': 0.2, 'ritual_alpha_pos': 3, 'ritual_alpha_neg': 1, 'ritual_beta': 0.1, 'js_gamma': 0.6, 'max_new_tokens': 8, 'type': 'adversarial', 'dataset_name': 'coco', 'max_questions': 300, 'debug_tvd': True, 'proposal': 4, 'score_threshold': 0.0, 'score_temperature': 1.0, 'lambda_decay': 0.3, 'alpha_1': None, 'alpha_2': None, 'alpha_3': None, 'alpha_4': None, 'gamma_1': None, 'gamma_2': None}
+[2026-07-22 10:30:17] acc: 87.33, precision: 82.18, recall: 95.33, f1: 88.27, yes_ratio: 58.0

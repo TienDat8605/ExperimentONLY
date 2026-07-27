@@ -81,6 +81,12 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
         score_threshold: Optional[float] = 0.0,
         score_temperature: Optional[float] = 1.0,
         lambda_decay: Optional[float] = 0.3,
+        alpha_1: Optional[float] = None,
+        alpha_2: Optional[float] = None,
+        alpha_3: Optional[float] = None,
+        alpha_4: Optional[float] = None,
+        gamma_1: Optional[float] = None,
+        gamma_2: Optional[float] = None,
         ritual_alpha_pos: Optional[torch.FloatTensor] = None,
         ritual_alpha_neg: Optional[torch.FloatTensor] = None,
         ritual_beta: Optional[torch.FloatTensor] = None,
@@ -130,9 +136,16 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
                 score_temperature=score_temperature,
                 lambda_decay=lambda_decay,
             )
-            hidden_states_cd = hidden_states_cd + 0.5 * outputs[0]
-            # hidden_states_cd = hidden_states_cd + outputs[0]
-            logits_cd = self.lm_head(hidden_states_cd)
+            if proposal in (4, 5):
+                hidden_states_cd_vis, hidden_states_cd_txt = hidden_states_cd
+                hidden_states_cd_vis = hidden_states_cd_vis + 0.5 * outputs[0]
+                hidden_states_cd_txt = hidden_states_cd_txt + 0.5 * outputs[0]
+                logits_cd_vis = self.lm_head(hidden_states_cd_vis)
+                logits_cd_txt = self.lm_head(hidden_states_cd_txt)
+                logits_cd = (logits_cd_vis, logits_cd_txt)
+            else:
+                hidden_states_cd = hidden_states_cd + 0.5 * outputs[0]
+                logits_cd = self.lm_head(hidden_states_cd)
 
         hidden_states = outputs[0]
         logits = self.lm_head(hidden_states)
@@ -193,6 +206,12 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
                 "score_threshold": kwargs.get("score_threshold", 0.0),
                 "score_temperature": kwargs.get("score_temperature", 1.0),
                 "lambda_decay": kwargs.get("lambda_decay", 0.3),
+                "alpha_1": kwargs.get("alpha_1", None),
+                "alpha_2": kwargs.get("alpha_2", None),
+                "alpha_3": kwargs.get("alpha_3", None),
+                "alpha_4": kwargs.get("alpha_4", None),
+                "gamma_1": kwargs.get("gamma_1", None),
+                "gamma_2": kwargs.get("gamma_2", None),
             }
         )
         return model_inputs

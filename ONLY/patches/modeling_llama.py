@@ -423,9 +423,9 @@ class LlamaAttention(nn.Module):
 
         # Compute/update mask for contrastive decoding when use_only is active
         if use_only and last_layer != 'last layer':
-            # For proposal=0, only compute mask at the enhance layer (last_layer='get hidden states')
-            # For proposal=1 and proposal=2, compute at every layer (accumulate across layers)
-            should_compute_mask = (proposal != 0) or (last_layer == 'get hidden states')
+            # For proposal=0 and proposal=4 (static masks), only compute mask at enhance layer
+            # For proposal=1, 2, 3, 5 (adaptive masks), compute at every layer
+            should_compute_mask = (proposal not in (0, 4)) or (last_layer == 'get hidden states')
 
             if should_compute_mask:
                 # Compute entropy ratio for fresh mask
@@ -566,27 +566,76 @@ class LlamaAttention(nn.Module):
                         n_heads = int(fresh_mask.shape[0])
                         print(f"[TVDA] proposal=3 mask keep_ratio={fresh_mask.sum().float() / n_heads:.3f} suppressed={n_suppressed}/{n_heads}")
 
+                elif proposal in (4, 5):
+                    # Proposal 4a (static, proposal=4) & Proposal 4b (adaptive, proposal=5)
+                    # Opposing masks: vis (keep TVER >= mean) vs txt (keep TVER < mean)
+                    fresh_mask_vis = (ratio >= ratio.mean()).float()
+                    fresh_mask_txt = (ratio < ratio.mean()).float()
+
+                    if cumulative_mask is None:
+                        cumulative_mask = torch.stack([fresh_mask_vis, fresh_mask_txt], dim=0)
+                    else:
+                        if mask_alpha < 0:
+                            nheads = float(fresh_mask_vis.shape[0])
+                            kept_ratio_vis = fresh_mask_vis.sum().float() / nheads
+                            dynamic_alpha_vis = 0.05 + 0.45 * (1.0 - kept_ratio_vis)
+                            kept_ratio_txt = fresh_mask_txt.sum().float() / nheads
+                            dynamic_alpha_txt = 0.05 + 0.45 * (1.0 - kept_ratio_txt)
+
+                            cumulative_mask[0] = dynamic_alpha_vis * fresh_mask_vis + (1 - dynamic_alpha_vis) * cumulative_mask[0]
+                            cumulative_mask[1] = dynamic_alpha_txt * fresh_mask_txt + (1 - dynamic_alpha_txt) * cumulative_mask[1]
+                        else:
+                            cumulative_mask[0] = mask_alpha * fresh_mask_vis + (1 - mask_alpha) * cumulative_mask[0]
+                            cumulative_mask[1] = mask_alpha * fresh_mask_txt + (1 - mask_alpha) * cumulative_mask[1]
+
+                    suppressed_heads_vis = cumulative_mask[0] < 0.5
+                    suppressed_heads_txt = cumulative_mask[1] < 0.5
+
             else:
-                # For proposal=0 at non-enhance layers, just use existing cumulative_mask
                 if cumulative_mask is not None:
-                    suppressed_heads = cumulative_mask < 0.5
+                    if proposal in (4, 5):
+                        suppressed_heads_vis = cumulative_mask[0] < 0.5
+                        suppressed_heads_txt = cumulative_mask[1] < 0.5
+                    else:
+                        suppressed_heads = cumulative_mask < 0.5
                 else:
-                    # No mask computed yet (shouldn't happen if enhance_layer was processed)
-                    # Fallback: don't suppress any heads
-                    suppressed_heads = torch.zeros(self.num_heads, dtype=torch.bool, device=hidden_states.device)
+                    if proposal in (4, 5):
+                        suppressed_heads_vis = torch.zeros(self.num_heads, dtype=torch.bool, device=hidden_states.device)
+                        suppressed_heads_txt = torch.zeros(self.num_heads, dtype=torch.bool, device=hidden_states.device)
+                    else:
+                        suppressed_heads = torch.zeros(self.num_heads, dtype=torch.bool, device=hidden_states.device)
 
-            # Apply mask to attention weights
-            attn_weights_cd = attn_weights.clone()
-            attn_weights_cd = nn.functional.softmax(attn_weights_cd, dim=-1, dtype=torch.float32).to(query_states.dtype)
+            if proposal in (4, 5):
+                attn_weights_cd_vis = attn_weights.clone()
+                attn_weights_cd_vis = nn.functional.softmax(attn_weights_cd_vis, dim=-1, dtype=torch.float32).to(query_states.dtype)
+                attn_weights_cd_vis[:, suppressed_heads_vis, :, :] = 0
+                attn_output_cd_vis = torch.matmul(attn_weights_cd_vis, value_states)
+                attn_output_cd_vis = attn_output_cd_vis.transpose(1, 2).contiguous()
+                attn_output_cd_vis = attn_output_cd_vis.reshape(bsz, q_len, self.hidden_size)
+                attn_output_cd_vis = self.o_proj(attn_output_cd_vis)
 
-            # Zero out suppressed heads
-            attn_weights_cd[:, suppressed_heads, :, :] = 0
+                attn_weights_cd_txt = attn_weights.clone()
+                attn_weights_cd_txt = nn.functional.softmax(attn_weights_cd_txt, dim=-1, dtype=torch.float32).to(query_states.dtype)
+                attn_weights_cd_txt[:, suppressed_heads_txt, :, :] = 0
+                attn_output_cd_txt = torch.matmul(attn_weights_cd_txt, value_states)
+                attn_output_cd_txt = attn_output_cd_txt.transpose(1, 2).contiguous()
+                attn_output_cd_txt = attn_output_cd_txt.reshape(bsz, q_len, self.hidden_size)
+                attn_output_cd_txt = self.o_proj(attn_output_cd_txt)
 
-            # Compute contrastive attention output
-            attn_output_cd = torch.matmul(attn_weights_cd, value_states)
-            attn_output_cd = attn_output_cd.transpose(1, 2).contiguous()
-            attn_output_cd = attn_output_cd.reshape(bsz, q_len, self.hidden_size)
-            attn_output_cd = self.o_proj(attn_output_cd)
+                attn_output_cd = (attn_output_cd_vis, attn_output_cd_txt)
+            else:
+                # Apply mask to attention weights
+                attn_weights_cd = attn_weights.clone()
+                attn_weights_cd = nn.functional.softmax(attn_weights_cd, dim=-1, dtype=torch.float32).to(query_states.dtype)
+
+                # Zero out suppressed heads
+                attn_weights_cd[:, suppressed_heads, :, :] = 0
+
+                # Compute contrastive attention output
+                attn_output_cd = torch.matmul(attn_weights_cd, value_states)
+                attn_output_cd = attn_output_cd.transpose(1, 2).contiguous()
+                attn_output_cd = attn_output_cd.reshape(bsz, q_len, self.hidden_size)
+                attn_output_cd = self.o_proj(attn_output_cd)
 
             # Proposal 3: compute delta and accumulate into hidden_states_cd
             if proposal == 3:
@@ -612,14 +661,36 @@ class LlamaAttention(nn.Module):
         elif last_layer == 'last layer':
             # Last layer: use the final cumulative mask
             if cumulative_mask is not None:
-                attn_weights_cd = attn_weights.clone()
-                attn_weights_cd = nn.functional.softmax(attn_weights_cd, dim=-1, dtype=torch.float32).to(query_states.dtype)
-                suppressed_heads = cumulative_mask < 0.5
-                attn_weights_cd[:, suppressed_heads, :, :] = 0
-                attn_output_cd = torch.matmul(attn_weights_cd, value_states)
-                attn_output_cd = attn_output_cd.transpose(1, 2).contiguous()
-                attn_output_cd = attn_output_cd.reshape(bsz, q_len, self.hidden_size)
-                attn_output_cd = self.o_proj(attn_output_cd)
+                if proposal in (4, 5):
+                    suppressed_heads_vis = cumulative_mask[0] < 0.5
+                    suppressed_heads_txt = cumulative_mask[1] < 0.5
+
+                    attn_weights_cd_vis = attn_weights.clone()
+                    attn_weights_cd_vis = nn.functional.softmax(attn_weights_cd_vis, dim=-1, dtype=torch.float32).to(query_states.dtype)
+                    attn_weights_cd_vis[:, suppressed_heads_vis, :, :] = 0
+                    attn_output_cd_vis = torch.matmul(attn_weights_cd_vis, value_states)
+                    attn_output_cd_vis = attn_output_cd_vis.transpose(1, 2).contiguous()
+                    attn_output_cd_vis = attn_output_cd_vis.reshape(bsz, q_len, self.hidden_size)
+                    attn_output_cd_vis = self.o_proj(attn_output_cd_vis)
+
+                    attn_weights_cd_txt = attn_weights.clone()
+                    attn_weights_cd_txt = nn.functional.softmax(attn_weights_cd_txt, dim=-1, dtype=torch.float32).to(query_states.dtype)
+                    attn_weights_cd_txt[:, suppressed_heads_txt, :, :] = 0
+                    attn_output_cd_txt = torch.matmul(attn_weights_cd_txt, value_states)
+                    attn_output_cd_txt = attn_output_cd_txt.transpose(1, 2).contiguous()
+                    attn_output_cd_txt = attn_output_cd_txt.reshape(bsz, q_len, self.hidden_size)
+                    attn_output_cd_txt = self.o_proj(attn_output_cd_txt)
+
+                    attn_output_cd = (attn_output_cd_vis, attn_output_cd_txt)
+                else:
+                    attn_weights_cd = attn_weights.clone()
+                    attn_weights_cd = nn.functional.softmax(attn_weights_cd, dim=-1, dtype=torch.float32).to(query_states.dtype)
+                    suppressed_heads = cumulative_mask < 0.5
+                    attn_weights_cd[:, suppressed_heads, :, :] = 0
+                    attn_output_cd = torch.matmul(attn_weights_cd, value_states)
+                    attn_output_cd = attn_output_cd.transpose(1, 2).contiguous()
+                    attn_output_cd = attn_output_cd.reshape(bsz, q_len, self.hidden_size)
+                    attn_output_cd = self.o_proj(attn_output_cd)
             else:
                 attn_output_cd = hidden_states_cd
         else:
@@ -786,12 +857,32 @@ class LlamaDecoderLayer(nn.Module):
 
 
         if last_layer == 'last layer':
-            hidden_states_cd = self.input_layernorm(hidden_states_cd)
-            hidden_states_cd = 0.2 * residual + hidden_states_cd
-            residual_cd = hidden_states_cd
-            hidden_states_cd = self.post_attention_layernorm(hidden_states_cd)
-            hidden_states_cd = self.mlp(hidden_states_cd)
-            hidden_states_cd = residual_cd + hidden_states_cd
+            if proposal in (4, 5):
+                hidden_states_cd_vis, hidden_states_cd_txt = hidden_states_cd
+
+                hidden_states_cd_vis = self.input_layernorm(hidden_states_cd_vis)
+                hidden_states_cd_vis = 0.2 * residual + hidden_states_cd_vis
+                residual_cd_vis = hidden_states_cd_vis
+                hidden_states_cd_vis = self.post_attention_layernorm(hidden_states_cd_vis)
+                hidden_states_cd_vis = self.mlp(hidden_states_cd_vis)
+                hidden_states_cd_vis = residual_cd_vis + hidden_states_cd_vis
+
+                hidden_states_cd_txt = self.input_layernorm(hidden_states_cd_txt)
+                hidden_states_cd_txt = 0.2 * residual + hidden_states_cd_txt
+                residual_cd_txt = hidden_states_cd_txt
+                hidden_states_cd_txt = self.post_attention_layernorm(hidden_states_cd_txt)
+                hidden_states_cd_txt = self.mlp(hidden_states_cd_txt)
+                hidden_states_cd_txt = residual_cd_txt + hidden_states_cd_txt
+
+                hidden_states_cd = (hidden_states_cd_vis, hidden_states_cd_txt)
+                residual_cd = (residual_cd_vis, residual_cd_txt)
+            else:
+                hidden_states_cd = self.input_layernorm(hidden_states_cd)
+                hidden_states_cd = 0.2 * residual + hidden_states_cd
+                residual_cd = hidden_states_cd
+                hidden_states_cd = self.post_attention_layernorm(hidden_states_cd)
+                hidden_states_cd = self.mlp(hidden_states_cd)
+                hidden_states_cd = residual_cd + hidden_states_cd
 
 
         # Fully Connected
@@ -1155,7 +1246,13 @@ class LlamaModel(LlamaPreTrainedModel):
                 all_self_attns += (layer_outputs[1],)
             
         if use_only:
-            hidden_states_cd = self.norm(hidden_states_cd)
+            if proposal in (4, 5):
+                hidden_states_cd_vis, hidden_states_cd_txt = hidden_states_cd
+                hidden_states_cd_vis = self.norm(hidden_states_cd_vis)
+                hidden_states_cd_txt = self.norm(hidden_states_cd_txt)
+                hidden_states_cd = (hidden_states_cd_vis, hidden_states_cd_txt)
+            else:
+                hidden_states_cd = self.norm(hidden_states_cd)
 
         hidden_states = self.norm(hidden_states)
 

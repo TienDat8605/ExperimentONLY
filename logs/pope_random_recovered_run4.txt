@@ -1,0 +1,73 @@
+>>> POPE random  (Questions: 3000, max_new_tokens=8, batch_size=1, mask_alpha=0.2, proposal=4, js_gamma=0.6 , SHORT=300)
+[04:03:07] [run/4] pope_path=/content/data/pope/coco_pope_random.json
+[04:03:07] [run/4] log=/content/logs/results_2026-07-23_04h03m07s/proposal4_result_random.txt
+[04:03:07] [run/4] Loading model and starting evaluation...
+Starting rank=0, seed=42, world_size=1, device=0
+[2026-07-23 04:03:28] Experiment directory created at /content/logs/pope/llava-v1.5-7b/ONLY_coco_random_3_1_0.1_0.6_layer_0_proposal4
+[2026-07-23 04:03:28] Initializing Model
+[2026-07-23 04:03:28] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s][04:04:07] [run/4] (POPE/random) still running... 60s elapsed
+
+Loading checkpoint shards:  50%|█████     | 1/2 [00:43<00:43, 43.85s/it]
+Loading checkpoint shards: 100%|██████████| 2/2 [00:59<00:00, 27.43s/it]
+Loading checkpoint shards: 100%|██████████| 2/2 [00:59<00:00, 29.89s/it]
+[2026-07-23 04:04:36] Start eval...
+
+  0%|          | 0/3000 [00:00<?, ?it/s]
+  0%|          | 0/3000 [00:01<?, ?it/s]
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/content/ONLY/eval_bench/pope_eval_llava.py", line 406, in <module>
+[rank0]:     main()
+[rank0]:   File "/content/ONLY/eval_bench/pope_eval_llava.py", line 303, in main
+[rank0]:     output_ids, overlapping_index_len = model.generate(
+[rank0]:                                         ^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+[rank0]:     return func(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/transformers/generation/utils.py", line 1282, in generate
+[rank0]:     self._validate_model_kwargs(model_kwargs.copy())
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/transformers/generation/utils.py", line 1155, in _validate_model_kwargs
+[rank0]:     raise ValueError(
+[rank0]: ValueError: The following `model_kwargs` are not used by the model: ['alpha_1', 'alpha_2', 'alpha_3', 'alpha_4', 'gamma_1', 'gamma_2'] (note: typos in the generate arguments will also show up in this list)
+[rank0]:[W723 04:04:39.218457327 ProcessGroupNCCL.cpp:1575] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+[04:04:44] [run/4] POPE/random: Python exit code 0, elapsed 97s
+[04:04:44] [run/5] 🚫 CHAIR: skipped (not in BENCHMARKS='pope')
+[04:04:44] [run/6] 🚫 MME-Hallucination: skipped (not in BENCHMARKS='pope')
+[04:04:44] === [run/7] Packaging logs ===
+[04:04:44] [run/7] Created /content/results.tar.gz (865 bytes)
+[04:04:44] === [run/done] All benchmarks finished in 97s (overall exit 0) ===
+
+Results — /content/logs/results_2026-07-23_04h03m07s:
+  POPE/random: /content/logs/results_2026-07-23_04h03m07s/proposal4_result_random.txt
+---
+/usr/local/lib/python3.12/dist-packages/IPython/core/interactiveshell.py:3561: UserWarning: To exit: use 'exit', 'quit', or Ctrl-D.
+  warn("To exit: use 'exit', 'quit', or Ctrl-D.", stacklevel=1)
+[Colab] Extracting code bundle...
+[Colab] Running evaluation for Proposal 4...
+[04:24:53] [run] WORKDIR=/content
+[04:24:53] [run] PYTHONPATH=/content/ONLY:/content/ONLY/eval_bench:/content/ONLY/experiments:/env/python
+[04:24:53] === [run/1] Install dependencies (in-place on Colab system Python) ===
+[04:24:57] [run/1] Python 3.12.13, torch=2.11.0+cu128
+ERROR: ERROR: Failed to build installable wheels for some pyproject.toml based projects (tokenizers)
+[04:25:19] === [run/1b] Disable transformers version check (before importing it) ===
+[04:25:19] [run/1b] Patched /usr/local/lib/python3.12/dist-packages/transformers/dependency_versions_check.py (orig saved as .bak)
+[04:25:20] [run/1] versions: tf=4.31.0 hub=0.16.4 tok=0.19.1
+[04:25:20] [run/1] pip done in 27s
+[04:25:20] === [run/2] Patch transformers with ONLY modifications ===
+  Patched modeling_llama.py (45548 → 77068 bytes)
+  Version checks disabled, transformers==4.31.0
+[04:25:21] === [run/3] Download assets ===
+[04:25:21] [run/3]  ✅ LLaVA exists (13G)
+[04:25:21] [run/3]  ✅ CLIP exists (3.2G)
+[04:25:21] [run/3]  ✅ COCO exists (40504 images)
+[04:25:21] [run/3]  ✅ POPE exists (3000 adversarial records, JSONL)
+[04:25:21] [run/3]  ✅ CHAIR annotations exist
+[04:25:21] [run/3] Downloading MME-Hallucination...
+sentence-transformers 5.6.0 requires transformers<6.0.0,>=4.41.0, but you have transformers 4.31.0 which is incompatible.
+[04:25:28] [run/3]  ⚠️  MME-Hallucination download failed
+[04:25:28] [run/3]  ✅ MME-Hallucination done
+[04:25:28] [run/3]  ✅ Benchmark selection: pope
+[04:25:28] === [run/4] Run POPE evaluation ===
+[04:25:28] [run/4] ===========================================
+[04:25:28] [run/4] 

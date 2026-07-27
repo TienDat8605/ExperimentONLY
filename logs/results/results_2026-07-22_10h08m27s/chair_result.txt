@@ -1,0 +1,55 @@
+Starting rank=0, seed=42, world_size=1, device=0
+[2026-07-22 10:08:48] Experiment directory created at /content/logs/chair/llava-v1.5-7b/ONLY_chair_proposal4
+[2026-07-22 10:08:48] Initializing Model
+/usr/local/lib/python3.12/dist-packages/huggingface_hub/utils/_validators.py:189: UserWarning: The `resume_download` argument is deprecated and ignored in `hf_hub_download`. Downloads always resume whenever possible.
+  warnings.warn(
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/transformers/configuration_utils.py", line 672, in _get_config_dict
+[rank0]:     resolved_config_file = cached_file(
+[rank0]:                            ^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/transformers/utils/hub.py", line 417, in cached_file
+[rank0]:     resolved_file = hf_hub_download(
+[rank0]:                     ^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+[rank0]:     return fn(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^
+[rank0]: TypeError: hf_hub_download() got an unexpected keyword argument 'use_auth_token'
+
+[rank0]: During handling of the above exception, another exception occurred:
+
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/content/ONLY/eval_bench/chair_eval_llava.py", line 479, in <module>
+[rank0]:     main()
+[rank0]:   File "/content/ONLY/eval_bench/chair_eval_llava.py", line 312, in main
+[rank0]:     tokenizer, model, image_processor, context_len = load_pretrained_model(
+[rank0]:                                                      ^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/content/ONLY/experiments/llava/model/builder.py", line 103, in load_pretrained_model
+[rank0]:     model = LlavaLlamaForCausalLM.from_pretrained(model_path, low_cpu_mem_usage=True, **kwargs)
+[rank0]:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/transformers/modeling_utils.py", line 2700, in from_pretrained
+[rank0]:     model = cls(config, *model_args, **model_kwargs)
+[rank0]:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/content/ONLY/experiments/llava/model/language_model/llava_llama.py", line 50, in __init__
+[rank0]:     self.model = LlavaLlamaModel(config)
+[rank0]:                  ^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/content/ONLY/experiments/llava/model/language_model/llava_llama.py", line 40, in __init__
+[rank0]:     super(LlavaLlamaModel, self).__init__(config)
+[rank0]:   File "/content/ONLY/experiments/llava/model/llava_arch.py", line 33, in __init__
+[rank0]:     self.vision_tower = build_vision_tower(config, delay_load=True)
+[rank0]:                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/content/ONLY/experiments/llava/model/multimodal_encoder/builder.py", line 9, in build_vision_tower
+[rank0]:     return CLIPVisionTower(vision_tower, args=vision_tower_cfg, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/content/ONLY/experiments/llava/model/multimodal_encoder/clip_encoder.py", line 20, in __init__
+[rank0]:     self.cfg_only = CLIPVisionConfig.from_pretrained(self.vision_tower_name)
+[rank0]:                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/transformers/models/clip/configuration_clip.py", line 239, in from_pretrained
+[rank0]:     config_dict, kwargs = cls.get_config_dict(pretrained_model_name_or_path, **kwargs)
+[rank0]:                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/transformers/configuration_utils.py", line 617, in get_config_dict
+[rank0]:     config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)
+[rank0]:                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/usr/local/lib/python3.12/dist-packages/transformers/configuration_utils.py", line 693, in _get_config_dict
+[rank0]:     raise EnvironmentError(
+[rank0]: OSError: Can't load the configuration of 'openai/clip-vit-large-patch14-336'. If you were trying to load it from 'https://huggingface.co/models', make sure you don't have a local directory with the same name. Otherwise, make sure 'openai/clip-vit-large-patch14-336' is the correct path to a directory containing a config.json file
+[rank0]:[W722 10:08:51.731228723 ProcessGroupNCCL.cpp:1575] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())

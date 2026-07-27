@@ -10,6 +10,14 @@ class CLIPVisionTower(nn.Module):
 
         self.is_loaded = False
 
+        import os
+        if not os.path.exists(vision_tower):
+            local_clip = os.path.join(os.getcwd(), "models", os.path.basename(vision_tower))
+            if os.path.exists(local_clip):
+                vision_tower = local_clip
+            elif os.path.exists(f"/content/models/{os.path.basename(vision_tower)}"):
+                vision_tower = f"/content/models/{os.path.basename(vision_tower)}"
+
         self.vision_tower_name = vision_tower
         self.select_layer = args.mm_vision_select_layer
         self.select_feature = getattr(args, 'mm_vision_select_feature', 'patch')

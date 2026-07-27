@@ -193,43 +193,74 @@ def sample(
                 t += 1
             elif use_only:
                 assert logits_cd is not None
-                next_token_logits_cd = logits_cd[:, -1, :]
-                # print(torch.topk(next_token_logits, k=6, dim=-1))
-                # print(torch.topk(next_token_logits_cd, k=6, dim=-1))
-
-                tvd = torch.sum(torch.abs(nn.functional.softmax(next_token_logits, dim=-1) - nn.functional.softmax(next_token_logits_cd, dim=-1)))
-                
-                # js = 0.5 * nn.functional.kl_div(nn.functional.log_softmax(next_token_logits, dim=-1), M, reduction='batchmean') + 0.5 * nn.functional.kl_div(nn.functional.log_softmax(next_token_logits_cd, dim=-1), M, reduction='batchmean')
-                # print('js_gamma', js_gamma)
-                # print('ritual_beta', ritual_beta)
-                # print('js', js)
-                # print(nn.functional.softmax(next_token_logits, dim=-1))
-                # print(nn.functional.softmax(next_token_logits_cd, dim=-1))
-                # print('js', js, 'js_gamma', js_gamma)
-                # print('tvd', tvd, 'js_gamma', js_gamma)
-                # print('next_token_logits', next_token_logits)
-                # print('next_token_logits_cd', next_token_logits_cd)
-                # import ipdb; ipdb.set_trace()
-
-
                 debug_tvd_active = model_kwargs.get("debug_tvd", False)
-                if tvd < js_gamma:
-                    # print('++++++++++')
-                    diffs = next_token_logits + ritual_alpha_pos * next_token_logits_cd
-                else:
-                    # print('----------')
-                    # print(torch.topk(next_token_logits, k=6, dim=-1))
-                    # print(torch.topk(next_token_logits_cd, k=6, dim=-1))
-                    # print('tvd', tvd, 'js_gamma', js_gamma)
-                    # import ipdb; ipdb.set_trace()
-                    diffs = (1 + ritual_alpha_neg) * next_token_logits - ritual_alpha_neg * next_token_logits_cd
 
-                if debug_tvd_active:
-                    regime = "comp" if tvd.item() < js_gamma else "contr"
-                    print(f"[TVDT t={len(total_overlapping_index_len)}] tvd={tvd.item():.4f} regime={regime}")
-                    total_overlapping_index_len.append((tvd.item(), regime == "contr"))
+                if isinstance(logits_cd, tuple):
+                    # Proposal 4a / 4b: 3-Branch Symmetric Contrastive Decoding
+                    logits_cd_vis, logits_cd_txt = logits_cd
+                    next_token_logits_vis = logits_cd_vis[:, -1, :]
+                    next_token_logits_txt = logits_cd_txt[:, -1, :]
+
+                    p_normal = nn.functional.softmax(next_token_logits, dim=-1)
+                    p_text = nn.functional.softmax(next_token_logits_txt, dim=-1)
+                    p_visual = nn.functional.softmax(next_token_logits_vis, dim=-1)
+
+                    # Cross-Modal Conflict Disagreement Scoring (TVD)
+                    d_text = 0.5 * torch.sum(torch.abs(p_normal - p_text), dim=-1)
+                    d_visual = 0.5 * torch.sum(torch.abs(p_normal - p_visual), dim=-1)
+
+                    # Hyperparameters with None-safe fallbacks
+                    gamma_1 = model_kwargs.get("gamma_1") if model_kwargs.get("gamma_1") is not None else js_gamma
+                    gamma_2 = model_kwargs.get("gamma_2") if model_kwargs.get("gamma_2") is not None else js_gamma
+                    alpha_1 = model_kwargs.get("alpha_1") if model_kwargs.get("alpha_1") is not None else ritual_alpha_pos
+                    alpha_2 = model_kwargs.get("alpha_2") if model_kwargs.get("alpha_2") is not None else ritual_alpha_neg
+                    alpha_3 = model_kwargs.get("alpha_3") if model_kwargs.get("alpha_3") is not None else ritual_alpha_pos
+                    alpha_4 = model_kwargs.get("alpha_4") if model_kwargs.get("alpha_4") is not None else ritual_alpha_neg
+
+                    # Dual-Branch Adaptive Anchored Decoding Rule
+                    # Base anchor scaling factor (1 + alpha) prevents raw logit sign inversion when subtracting contrastive heads
+                    anchor_scale = 1.0
+
+                    if d_text < gamma_1:
+                        delta_text = alpha_1 * next_token_logits_txt
+                        regime_txt = "comp_txt"
+                    else:
+                        delta_text = -alpha_2 * next_token_logits_txt
+                        anchor_scale += alpha_2
+                        regime_txt = "contr_txt"
+
+                    if d_visual < gamma_2:
+                        delta_visual = alpha_3 * next_token_logits_vis
+                        regime_vis = "comp_vis"
+                    else:
+                        delta_visual = -alpha_4 * next_token_logits_vis
+                        anchor_scale += alpha_4
+                        regime_vis = "penal_vis"
+
+                    # 3-Branch Resolution Formula with Base Logit Anchoring
+                    diffs = anchor_scale * next_token_logits + delta_text + delta_visual
+
+                    if debug_tvd_active:
+                        print(f"[TVDT t={len(total_overlapping_index_len)}] d_txt={d_text.item():.4f} ({regime_txt}) d_vis={d_visual.item():.4f} ({regime_vis})")
+                        total_overlapping_index_len.append((d_text.item(), d_visual.item()))
+                    else:
+                        total_overlapping_index_len.append((d_text.item(), d_visual.item()))
                 else:
-                    total_overlapping_index_len.append(tvd.item())
+                    # Single contrastive branch (Proposals 0-3)
+                    next_token_logits_cd = logits_cd[:, -1, :]
+                    tvd = 0.5 * torch.sum(torch.abs(nn.functional.softmax(next_token_logits, dim=-1) - nn.functional.softmax(next_token_logits_cd, dim=-1)))
+
+                    if tvd < js_gamma:
+                        diffs = next_token_logits + ritual_alpha_pos * next_token_logits_cd
+                    else:
+                        diffs = (1 + ritual_alpha_neg) * next_token_logits - ritual_alpha_neg * next_token_logits_cd
+
+                    if debug_tvd_active:
+                        regime = "comp" if tvd.item() < js_gamma else "contr"
+                        print(f"[TVDT t={len(total_overlapping_index_len)}] tvd={tvd.item():.4f} regime={regime}")
+                        total_overlapping_index_len.append((tvd.item(), regime == "contr"))
+                    else:
+                        total_overlapping_index_len.append(tvd.item())
 
             # logits = next_token_logits
             logits = diffs.masked_fill(next_token_logits < cutoff, -float("inf"))

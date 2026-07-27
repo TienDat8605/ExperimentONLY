@@ -1,0 +1,12 @@
+[2026-07-22 09:59:13] Experiment directory created at /content/logs/chair/llava-v1.5-7b/ONLY_chair_proposal4
+[2026-07-22 09:59:13] Initializing Model
+[2026-07-22 10:08:48] Experiment directory created at /content/logs/chair/llava-v1.5-7b/ONLY_chair_proposal4
+[2026-07-22 10:08:48] Initializing Model
+[2026-07-22 10:13:50] Experiment directory created at /content/logs/chair/llava-v1.5-7b/ONLY_chair_proposal4
+[2026-07-22 10:13:50] Initializing Model
+[2026-07-22 10:13:52] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+[2026-07-22 10:14:59] Loading COCO objects from /content/data/chair/coco_objects.json
+[2026-07-22 10:14:59] Loaded 80 COCO object categories
+[2026-07-22 10:14:59] Loading reference captions from /content/data/chair/captions_val2014.json
+[2026-07-22 10:15:00] Total images with captions: 40504
+[2026-07-22 10:15:00] Start caption generation for CHAIR evaluation...

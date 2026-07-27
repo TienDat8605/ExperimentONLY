@@ -1,4 +1,2 @@
 # POPE recovered-log summary
-  random       |     0 questions | (no acc line found) | pope_random_recovered.txt
-  popular      |     0 questions | (no acc line found) | pope_popular_recovered.txt
-  adversarial  |     0 questions | (no acc line found) | pope_adversarial_recovered.txt
+  adversarial  | 10500 questions | acc: 81.63, yes_ratio: 50.77 | pope_adversarial_recovered.txt

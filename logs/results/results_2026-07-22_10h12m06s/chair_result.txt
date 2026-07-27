@@ -1,0 +1,19 @@
+Starting rank=0, seed=42, world_size=1, device=0
+[2026-07-22 10:13:50] Experiment directory created at /content/logs/chair/llava-v1.5-7b/ONLY_chair_proposal4
+[2026-07-22 10:13:50] Initializing Model
+[2026-07-22 10:13:52] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:43<00:43, 43.46s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:58<00:00, 27.03s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:58<00:00, 29.50s/it]
+[2026-07-22 10:14:59] Loading COCO objects from /content/data/chair/coco_objects.json
+[2026-07-22 10:14:59] Loaded 80 COCO object categories
+[2026-07-22 10:14:59] Loading reference captions from /content/data/chair/captions_val2014.json
+[2026-07-22 10:15:00] Total images with captions: 40504
+[2026-07-22 10:15:00] Start caption generation for CHAIR evaluation...
+  0%|          | 0/40504 [00:00<?, ?it/s]  0%|          | 0/40504 [00:00<?, ?it/s]
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/content/ONLY/eval_bench/chair_eval_llava.py", line 479, in <module>
+[rank0]:     main()
+[rank0]:   File "/content/ONLY/eval_bench/chair_eval_llava.py", line 390, in main
+[rank0]:     images=image.unsqueeze(0).half().cuda(),
+[rank0]:            ^^^^^^^^^^^^^^^
+[rank0]: AttributeError: 'numpy.ndarray' object has no attribute 'unsqueeze'. Did you mean: 'squeeze'?
+[rank0]:[W722 10:15:01.188467627 ProcessGroupNCCL.cpp:1575] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
