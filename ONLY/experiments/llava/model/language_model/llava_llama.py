@@ -81,6 +81,9 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
         score_threshold: Optional[float] = 0.0,
         score_temperature: Optional[float] = 1.0,
         lambda_decay: Optional[float] = 0.3,
+        mask_layers: Optional[List[int]] = None,
+        mask_alpha_min: Optional[float] = 0.05,
+        mask_alpha_max: Optional[float] = 0.50,
         alpha_1: Optional[float] = None,
         alpha_2: Optional[float] = None,
         alpha_3: Optional[float] = None,
@@ -135,8 +138,11 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
                 score_threshold=score_threshold,
                 score_temperature=score_temperature,
                 lambda_decay=lambda_decay,
+                mask_layers=mask_layers,
+                mask_alpha_min=mask_alpha_min,
+                mask_alpha_max=mask_alpha_max,
             )
-            if proposal in (4, 5):
+            if proposal in (4, 5, 6):
                 hidden_states_cd_vis, hidden_states_cd_txt = hidden_states_cd
                 hidden_states_cd_vis = hidden_states_cd_vis + 0.5 * outputs[0]
                 hidden_states_cd_txt = hidden_states_cd_txt + 0.5 * outputs[0]
@@ -206,6 +212,9 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
                 "score_threshold": kwargs.get("score_threshold", 0.0),
                 "score_temperature": kwargs.get("score_temperature", 1.0),
                 "lambda_decay": kwargs.get("lambda_decay", 0.3),
+                "mask_layers": kwargs.get("mask_layers", None),
+                "mask_alpha_min": kwargs.get("mask_alpha_min", 0.05),
+                "mask_alpha_max": kwargs.get("mask_alpha_max", 0.50),
                 "alpha_1": kwargs.get("alpha_1", None),
                 "alpha_2": kwargs.get("alpha_2", None),
                 "alpha_3": kwargs.get("alpha_3", None),

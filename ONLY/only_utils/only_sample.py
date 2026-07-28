@@ -196,7 +196,7 @@ def sample(
                 debug_tvd_active = model_kwargs.get("debug_tvd", False)
 
                 if isinstance(logits_cd, tuple):
-                    # Proposal 4a / 4b: 3-Branch Symmetric Contrastive Decoding
+                    # Proposals 4/5/6: 3-Branch Symmetric Contrastive Decoding
                     logits_cd_vis, logits_cd_txt = logits_cd
                     next_token_logits_vis = logits_cd_vis[:, -1, :]
                     next_token_logits_txt = logits_cd_txt[:, -1, :]

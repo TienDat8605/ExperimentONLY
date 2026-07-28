@@ -50,6 +50,22 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
+def parse_layer_list(value):
+    parts = value.split(',')
+    if not parts or any(part.strip() == '' for part in parts):
+        raise argparse.ArgumentTypeError("--layer requires a comma-separated list such as 0,1,2,3")
+    try:
+        layers = [int(part) for part in parts]
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("--layer values must be integers") from exc
+    if len(layers) != len(set(layers)):
+        raise argparse.ArgumentTypeError("--layer values must be unique")
+    invalid = [layer for layer in layers if layer < 0 or layer > 30]
+    if invalid:
+        raise argparse.ArgumentTypeError(f"--layer values must be between 0 and 30; invalid: {invalid}")
+    return sorted(layers)
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="POPE evaluation on LVLMs.")
     parser.add_argument("--model_path", type=str, default="/mnt/server8_hard1/donguk/checkpoints/llava-v1.5-7b")
@@ -92,19 +108,25 @@ def parse_args():
     parser.add_argument("--debug_tvd", type=str2bool, default=False,
                         help="Log per-step TVD, regime, suppression_ratio, dynamic_alpha to stdout.")
     parser.add_argument("--proposal", type=int, default=1,
-                        help="0=original ONLY (layer 0 only), 1=EMA mask (current/multi-layer), 2=score accumulation")
+                        help="0=ONLY, 1=EMA, 2=score, 3=residual, 4=static dual, 5=binary EMA dual, 6=continuous adaptive dual")
     parser.add_argument("--score_threshold", type=float, default=0.0,
                         help="Threshold for entropy ratio in proposal 2 (0.0 = auto from first-layer ratio mean)")
     parser.add_argument("--score_temperature", type=float, default=1.0,
                         help="Sigmoid temperature for proposal 2 score-to-mask conversion")
     parser.add_argument("--lambda_decay", type=float, default=0.3,
                         help="Scaling factor for proposal 3 residual delta accumulation")
-    parser.add_argument("--alpha_1", type=float, default=None, help="Collaborative text alpha for proposal 4/5")
-    parser.add_argument("--alpha_2", type=float, default=None, help="Contrastive text alpha for proposal 4/5")
-    parser.add_argument("--alpha_3", type=float, default=None, help="Collaborative visual alpha for proposal 4/5")
-    parser.add_argument("--alpha_4", type=float, default=None, help="Adaptive grounding visual alpha for proposal 4/5")
-    parser.add_argument("--gamma_1", type=float, default=None, help="Threshold gamma_1 for text TVD in proposal 4/5")
-    parser.add_argument("--gamma_2", type=float, default=None, help="Threshold gamma_2 for visual TVD in proposal 4/5")
+    parser.add_argument("--layer", dest="mask_layers", type=parse_layer_list, default=None,
+                        help="Proposal 6 accumulation layers, e.g. 0,1,2,3 (default: all layers 0-30)")
+    parser.add_argument("--mask_alpha_min", type=float, default=0.05,
+                        help="Proposal 6 minimum per-head adaptive EMA gain")
+    parser.add_argument("--mask_alpha_max", type=float, default=0.50,
+                        help="Proposal 6 maximum per-head adaptive EMA gain")
+    parser.add_argument("--alpha_1", type=float, default=None, help="Collaborative text alpha for proposal 4/5/6")
+    parser.add_argument("--alpha_2", type=float, default=None, help="Contrastive text alpha for proposal 4/5/6")
+    parser.add_argument("--alpha_3", type=float, default=None, help="Collaborative visual alpha for proposal 4/5/6")
+    parser.add_argument("--alpha_4", type=float, default=None, help="Adaptive grounding visual alpha for proposal 4/5/6")
+    parser.add_argument("--gamma_1", type=float, default=None, help="Threshold gamma_1 for text TVD in proposal 4/5/6")
+    parser.add_argument("--gamma_2", type=float, default=None, help="Threshold gamma_2 for visual TVD in proposal 4/5/6")
 
     args = parser.parse_args()
     return args
@@ -326,6 +348,9 @@ def main():
                     score_threshold=args.score_threshold,
                     score_temperature=args.score_temperature,
                     lambda_decay=args.lambda_decay,
+                    mask_layers=args.mask_layers,
+                    mask_alpha_min=args.mask_alpha_min,
+                    mask_alpha_max=args.mask_alpha_max,
                     alpha_1=args.alpha_1,
                     alpha_2=args.alpha_2,
                     alpha_3=args.alpha_3,

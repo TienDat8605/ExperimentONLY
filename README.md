@@ -78,6 +78,21 @@ Then run a small smoke test before starting the full evaluation:
 CUDA_VISIBLE_DEVICES=0 bash run_proposal4_local.sh run --setups adversarial --maxq=10
 ```
 
+Proposal 6 adds continuous TVER mask accumulation with per-head adaptive gains.
+Choose an exact set of accumulation layers, or omit `--layer` to use layers
+0 through 30:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 bash run_proposal4_local.sh run \
+  --proposal=6 \
+  --layer=0,1,2,3 \
+  --mask-alpha-min=0.05 \
+  --mask-alpha-max=0.50 \
+  --setups=adversarial \
+  --maxq=10 \
+  --debug
+```
+
 ### Colab Run (recommended for GPU)
 
 ```bash

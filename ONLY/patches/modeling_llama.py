@@ -28,6 +28,13 @@ import torch.utils.checkpoint
 from torch import nn
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, MSELoss
 
+from only_utils.proposal6_mask import (
+    proposal6_keep_masks,
+    resolve_proposal6_layers,
+    update_proposal6_mask,
+    validate_alpha_bounds,
+)
+
 from ...activations import ACT2FN
 from ...modeling_outputs import BaseModelOutputWithPast, CausalLMOutputWithPast, SequenceClassifierOutputWithPast
 from ...modeling_utils import PreTrainedModel
@@ -323,6 +330,10 @@ class LlamaAttention(nn.Module):
         score_threshold: Optional[float] = 0.0,
         score_temperature: Optional[float] = 1.0,
         lambda_decay: Optional[float] = 0.3,
+        mask_update: Optional[bool] = False,
+        layer_idx: Optional[int] = None,
+        mask_alpha_min: Optional[float] = 0.05,
+        mask_alpha_max: Optional[float] = 0.50,
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor], Optional[Tuple[torch.Tensor]], Optional[torch.Tensor], Optional[torch.Tensor], Optional[torch.Tensor]]:
         bsz, q_len, _ = hidden_states.size()
 
@@ -423,9 +434,12 @@ class LlamaAttention(nn.Module):
 
         # Compute/update mask for contrastive decoding when use_only is active
         if use_only and last_layer != 'last layer':
-            # For proposal=0 and proposal=4 (static masks), only compute mask at enhance layer
-            # For proposal=1, 2, 3, 5 (adaptive masks), compute at every layer
-            should_compute_mask = (proposal not in (0, 4)) or (last_layer == 'get hidden states')
+            # Proposal 6 updates only on its explicitly selected layers. Existing
+            # proposals retain their original static/all-layer behavior.
+            if proposal == 6:
+                should_compute_mask = mask_update
+            else:
+                should_compute_mask = (proposal not in (0, 4)) or (last_layer == 'get hidden states')
 
             if should_compute_mask:
                 # Compute entropy ratio for fresh mask
@@ -591,21 +605,49 @@ class LlamaAttention(nn.Module):
                     suppressed_heads_vis = cumulative_mask[0] < 0.5
                     suppressed_heads_txt = cumulative_mask[1] < 0.5
 
+                elif proposal == 6:
+                    cumulative_mask, mask_stats = update_proposal6_mask(
+                        ratio,
+                        cumulative_mask,
+                        alpha_min=mask_alpha_min,
+                        alpha_max=mask_alpha_max,
+                    )
+                    visual_keep, text_keep = proposal6_keep_masks(cumulative_mask)
+                    suppressed_heads_vis = ~visual_keep
+                    suppressed_heads_txt = ~text_keep
+
+                    if debug_tvd:
+                        gain = mask_stats["gain"]
+                        state = "init" if bool(mask_stats["initialized"].item()) else "update"
+                        print(
+                            f"[TVDA6 layer={layer_idx}] state={state} "
+                            f"confidence={mask_stats['confidence'].mean().item():.4f} "
+                            f"innovation={mask_stats['innovation'].mean().item():.4f} "
+                            f"gain=[{gain.min().item():.4f},{gain.mean().item():.4f},{gain.max().item():.4f}] "
+                            f"vis_suppressed={int(mask_stats['visual_suppressed'].item())}/{self.num_heads} "
+                            f"txt_suppressed={int(mask_stats['text_suppressed'].item())}/{self.num_heads}"
+                        )
+
             else:
                 if cumulative_mask is not None:
-                    if proposal in (4, 5):
-                        suppressed_heads_vis = cumulative_mask[0] < 0.5
-                        suppressed_heads_txt = cumulative_mask[1] < 0.5
+                    if proposal in (4, 5, 6):
+                        if proposal == 6:
+                            visual_keep, text_keep = proposal6_keep_masks(cumulative_mask)
+                            suppressed_heads_vis = ~visual_keep
+                            suppressed_heads_txt = ~text_keep
+                        else:
+                            suppressed_heads_vis = cumulative_mask[0] < 0.5
+                            suppressed_heads_txt = cumulative_mask[1] < 0.5
                     else:
                         suppressed_heads = cumulative_mask < 0.5
                 else:
-                    if proposal in (4, 5):
+                    if proposal in (4, 5, 6):
                         suppressed_heads_vis = torch.zeros(self.num_heads, dtype=torch.bool, device=hidden_states.device)
                         suppressed_heads_txt = torch.zeros(self.num_heads, dtype=torch.bool, device=hidden_states.device)
                     else:
                         suppressed_heads = torch.zeros(self.num_heads, dtype=torch.bool, device=hidden_states.device)
 
-            if proposal in (4, 5):
+            if proposal in (4, 5, 6):
                 attn_weights_cd_vis = attn_weights.clone()
                 attn_weights_cd_vis = nn.functional.softmax(attn_weights_cd_vis, dim=-1, dtype=torch.float32).to(query_states.dtype)
                 attn_weights_cd_vis[:, suppressed_heads_vis, :, :] = 0
@@ -661,9 +703,14 @@ class LlamaAttention(nn.Module):
         elif last_layer == 'last layer':
             # Last layer: use the final cumulative mask
             if cumulative_mask is not None:
-                if proposal in (4, 5):
-                    suppressed_heads_vis = cumulative_mask[0] < 0.5
-                    suppressed_heads_txt = cumulative_mask[1] < 0.5
+                if proposal in (4, 5, 6):
+                    if proposal == 6:
+                        visual_keep, text_keep = proposal6_keep_masks(cumulative_mask)
+                        suppressed_heads_vis = ~visual_keep
+                        suppressed_heads_txt = ~text_keep
+                    else:
+                        suppressed_heads_vis = cumulative_mask[0] < 0.5
+                        suppressed_heads_txt = cumulative_mask[1] < 0.5
 
                     attn_weights_cd_vis = attn_weights.clone()
                     attn_weights_cd_vis = nn.functional.softmax(attn_weights_cd_vis, dim=-1, dtype=torch.float32).to(query_states.dtype)
@@ -793,6 +840,10 @@ class LlamaDecoderLayer(nn.Module):
         score_threshold: Optional[float] = 0.0,
         score_temperature: Optional[float] = 1.0,
         lambda_decay: Optional[float] = 0.3,
+        mask_update: Optional[bool] = False,
+        layer_idx: Optional[int] = None,
+        mask_alpha_min: Optional[float] = 0.05,
+        mask_alpha_max: Optional[float] = 0.50,
     ) -> Tuple[torch.FloatTensor, Optional[Tuple[torch.FloatTensor, torch.FloatTensor]]]:
         """
         Args:
@@ -832,6 +883,10 @@ class LlamaDecoderLayer(nn.Module):
                 score_threshold=score_threshold,
                 score_temperature=score_temperature,
                 lambda_decay=lambda_decay,
+                mask_update=mask_update,
+                layer_idx=layer_idx,
+                mask_alpha_min=mask_alpha_min,
+                mask_alpha_max=mask_alpha_max,
             )
         else:
             hidden_states, self_attn_weights, present_key_value, hidden_states_cd, cumulative_mask, score_accum = self.self_attn(
@@ -852,12 +907,16 @@ class LlamaDecoderLayer(nn.Module):
                 score_threshold=score_threshold,
                 score_temperature=score_temperature,
                 lambda_decay=lambda_decay,
+                mask_update=mask_update,
+                layer_idx=layer_idx,
+                mask_alpha_min=mask_alpha_min,
+                mask_alpha_max=mask_alpha_max,
             )
         hidden_states = residual + hidden_states
 
 
         if last_layer == 'last layer':
-            if proposal in (4, 5):
+            if proposal in (4, 5, 6):
                 hidden_states_cd_vis, hidden_states_cd_txt = hidden_states_cd
 
                 hidden_states_cd_vis = self.input_layernorm(hidden_states_cd_vis)
@@ -1088,6 +1147,9 @@ class LlamaModel(LlamaPreTrainedModel):
         score_threshold: Optional[float] = 0.0,
         score_temperature: Optional[float] = 1.0,
         lambda_decay: Optional[float] = 0.3,
+        mask_layers: Optional[List[int]] = None,
+        mask_alpha_min: Optional[float] = 0.05,
+        mask_alpha_max: Optional[float] = 0.50,
     ) -> Union[Tuple, BaseModelOutputWithPast]:
         output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
         output_hidden_states = (
@@ -1153,6 +1215,15 @@ class LlamaModel(LlamaPreTrainedModel):
         cumulative_mask = None
         score_accum = None
 
+        final_layer_index = len(self.layers) - 1
+        proposal6_layer_set = None
+        proposal6_first_layer = None
+        if use_only and proposal == 6:
+            selected_layers = resolve_proposal6_layers(len(self.layers), mask_layers)
+            validate_alpha_bounds(mask_alpha_min, mask_alpha_max)
+            proposal6_layer_set = set(selected_layers)
+            proposal6_first_layer = min(selected_layers)
+
         # random select layer
         # enhance_layer_index = random.randint(0, 30)
         for idx, decoder_layer in enumerate(self.layers):
@@ -1178,65 +1249,45 @@ class LlamaModel(LlamaPreTrainedModel):
                     None,
                 )
             else:
-                if idx == enhance_layer_index and use_only:
-                    layer_outputs, hidden_states_cd, residual_cd, cumulative_mask, score_accum = decoder_layer(
-                        hidden_states,
-                        attention_mask=attention_mask,
-                        position_ids=position_ids,
-                        past_key_value=past_key_value,
-                        output_attentions=output_attentions,
-                        use_cache=use_cache,
-                        last_layer='get hidden states',
-                        hidden_states_cd=hidden_states_cd,
-                        cumulative_mask=cumulative_mask,
-                        mask_alpha=mask_alpha,
-                        use_only=use_only,
-                        debug_tvd=debug_tvd,
-                        proposal=proposal,
-                        score_accum=score_accum,
-                        score_threshold=score_threshold,
-                        score_temperature=score_temperature,
-                        lambda_decay=lambda_decay,
-                    )
-                elif idx == 31 and use_only:
-                    layer_outputs, hidden_states_cd, residual_cd, cumulative_mask, score_accum = decoder_layer(
-                        hidden_states,
-                        attention_mask=attention_mask,
-                        position_ids=position_ids,
-                        past_key_value=past_key_value,
-                        output_attentions=output_attentions,
-                        use_cache=use_cache,
-                        last_layer='last layer',
-                        hidden_states_cd=hidden_states_cd,
-                        cumulative_mask=cumulative_mask,
-                        mask_alpha=mask_alpha,
-                        use_only=use_only,
-                        debug_tvd=debug_tvd,
-                        proposal=proposal,
-                        score_accum=score_accum,
-                        score_threshold=score_threshold,
-                        score_temperature=score_temperature,
-                        lambda_decay=lambda_decay,
-                    )
-                else:
-                    layer_outputs, hidden_states_cd, residual_cd, cumulative_mask, score_accum = decoder_layer(
-                        hidden_states,
-                        attention_mask=attention_mask,
-                        position_ids=position_ids,
-                        past_key_value=past_key_value,
-                        output_attentions=output_attentions,
-                        use_cache=use_cache,
-                        hidden_states_cd=hidden_states_cd,
-                        cumulative_mask=cumulative_mask,
-                        mask_alpha=mask_alpha,
-                        use_only=use_only,
-                        debug_tvd=debug_tvd,
-                        proposal=proposal,
-                        score_accum=score_accum,
-                        score_threshold=score_threshold,
-                        score_temperature=score_temperature,
-                        lambda_decay=lambda_decay,
-                    )
+                layer_use_only = use_only
+                layer_stage = False
+                layer_mask_update = False
+                if use_only and proposal == 6:
+                    layer_use_only = idx >= proposal6_first_layer
+                    layer_mask_update = idx in proposal6_layer_set
+                    if idx == proposal6_first_layer:
+                        layer_stage = 'get hidden states'
+                    elif idx == final_layer_index:
+                        layer_stage = 'last layer'
+                elif use_only:
+                    if idx == enhance_layer_index:
+                        layer_stage = 'get hidden states'
+                    elif idx == final_layer_index:
+                        layer_stage = 'last layer'
+
+                layer_outputs, hidden_states_cd, residual_cd, cumulative_mask, score_accum = decoder_layer(
+                    hidden_states,
+                    attention_mask=attention_mask,
+                    position_ids=position_ids,
+                    past_key_value=past_key_value,
+                    output_attentions=output_attentions,
+                    use_cache=use_cache,
+                    last_layer=layer_stage,
+                    hidden_states_cd=hidden_states_cd,
+                    cumulative_mask=cumulative_mask,
+                    mask_alpha=mask_alpha,
+                    use_only=layer_use_only,
+                    debug_tvd=debug_tvd,
+                    proposal=proposal,
+                    score_accum=score_accum,
+                    score_threshold=score_threshold,
+                    score_temperature=score_temperature,
+                    lambda_decay=lambda_decay,
+                    mask_update=layer_mask_update,
+                    layer_idx=idx,
+                    mask_alpha_min=mask_alpha_min,
+                    mask_alpha_max=mask_alpha_max,
+                )
 
             hidden_states = layer_outputs[0]
 
@@ -1246,7 +1297,7 @@ class LlamaModel(LlamaPreTrainedModel):
                 all_self_attns += (layer_outputs[1],)
             
         if use_only:
-            if proposal in (4, 5):
+            if proposal in (4, 5, 6):
                 hidden_states_cd_vis, hidden_states_cd_txt = hidden_states_cd
                 hidden_states_cd_vis = self.norm(hidden_states_cd_vis)
                 hidden_states_cd_txt = self.norm(hidden_states_cd_txt)

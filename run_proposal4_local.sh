@@ -14,6 +14,7 @@
 set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export PYTHONPATH="${ROOT}/ONLY:${ROOT}/ONLY/eval_bench:${ROOT}/ONLY/experiments${PYTHONPATH:+:${PYTHONPATH}}"
 VENV_DIR="${PROPOSAL4_VENV:-${ROOT}/.venv-proposal4}"
 PYTHON_BIN="${PROPOSAL4_PYTHON:-python3}"
 MODEL_DIR="${ROOT}/models/llava-v1.5-7b"
@@ -32,6 +33,13 @@ SETUPS="random popular adversarial"
 MAX_QUESTIONS=0
 MAX_NEW_TOKENS=8
 MASK_ALPHA=0.2
+PROPOSAL=4
+MASK_LAYERS=""
+MASK_LAYERS_SET=0
+MASK_ALPHA_MIN=0.05
+MASK_ALPHA_MAX=0.50
+MASK_ALPHA_MIN_SET=0
+MASK_ALPHA_MAX_SET=0
 JS_GAMMA=0.6
 DEBUG_TVD=0
 ALPHA_1=""
@@ -63,7 +71,11 @@ Run options:
   --short                               Run 300 questions per split.
   --maxq=N                              Run N questions per split (0 = all 3000).
   --tokens N, --tokens=N                Maximum new tokens per answer (default: 8).
-  --mask-alpha=F                        Mask EMA alpha (Proposal 4 is static).
+  --proposal N, --proposal=N            Decoding proposal (default: 4).
+  --layer L,..., --layer=L,...          Proposal 6 accumulation layers (default: 0-30).
+  --mask-alpha-min=F                    Proposal 6 minimum adaptive gain (default: 0.05).
+  --mask-alpha-max=F                    Proposal 6 maximum adaptive gain (default: 0.50).
+  --mask-alpha=F                        Binary-mask EMA alpha for Proposals 1 and 5.
   --js-gamma=F                          Fallback TVD threshold (default: 0.6).
   --alpha-1=F ... --alpha-4=F           Dual-branch decoding coefficients.
   --gamma-1=F --gamma-2=F               Text and visual TVD thresholds.
@@ -113,6 +125,33 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --tokens=*) MAX_NEW_TOKENS="${1#--tokens=}"; shift ;;
+        --proposal)
+            [[ $# -ge 2 && "$2" != --* ]] || die "--proposal requires an integer"
+            PROPOSAL="$2"
+            shift 2
+            ;;
+        --proposal=*) PROPOSAL="${1#--proposal=}"; shift ;;
+        --layer)
+            [[ $# -ge 2 && "$2" != --* ]] || die "--layer requires a comma-separated list"
+            MASK_LAYERS="$2"
+            MASK_LAYERS_SET=1
+            shift 2
+            ;;
+        --layer=*) MASK_LAYERS="${1#--layer=}"; MASK_LAYERS_SET=1; shift ;;
+        --mask-alpha-min)
+            [[ $# -ge 2 && "$2" != --* ]] || die "--mask-alpha-min requires a number"
+            MASK_ALPHA_MIN="$2"
+            MASK_ALPHA_MIN_SET=1
+            shift 2
+            ;;
+        --mask-alpha-min=*) MASK_ALPHA_MIN="${1#--mask-alpha-min=}"; MASK_ALPHA_MIN_SET=1; shift ;;
+        --mask-alpha-max)
+            [[ $# -ge 2 && "$2" != --* ]] || die "--mask-alpha-max requires a number"
+            MASK_ALPHA_MAX="$2"
+            MASK_ALPHA_MAX_SET=1
+            shift 2
+            ;;
+        --mask-alpha-max=*) MASK_ALPHA_MAX="${1#--mask-alpha-max=}"; MASK_ALPHA_MAX_SET=1; shift ;;
         --mask-alpha=*) MASK_ALPHA="${1#--mask-alpha=}"; shift ;;
         --js-gamma=*) JS_GAMMA="${1#--js-gamma=}"; shift ;;
         --alpha-1=*) ALPHA_1="${1#--alpha-1=}"; shift ;;
@@ -528,31 +567,69 @@ PY
         failed=1
     fi
     [[ "$failed" -eq 0 ]] || die "Prerequisite check failed. Run the setup/download actions or provide the missing assets."
-    log "All Proposal 4 prerequisites are ready"
+    log "All evaluation prerequisites are ready"
 }
 
-run_eval() {
-    check_ready
-    patch_transformers
-
+validate_run_options() {
     [[ "$MAX_QUESTIONS" =~ ^[0-9]+$ ]] || die "--maxq must be a non-negative integer"
     [[ "$MAX_NEW_TOKENS" =~ ^[1-9][0-9]*$ ]] || die "--tokens must be a positive integer"
+    [[ "$PROPOSAL" =~ ^[0-6]$ ]] || die "--proposal must be an integer from 0 to 6"
+
     for setup in $SETUPS; do
         case "$setup" in random|popular|adversarial) ;; *) die "Unknown POPE setup: $setup" ;; esac
     done
 
+    if [[ "$PROPOSAL" -ne 6 ]]; then
+        if [[ "$MASK_LAYERS_SET" -eq 1 || "$MASK_ALPHA_MIN_SET" -eq 1 || "$MASK_ALPHA_MAX_SET" -eq 1 ]]; then
+            die "--layer, --mask-alpha-min, and --mask-alpha-max are only valid with --proposal=6"
+        fi
+        return
+    fi
+
+    if [[ "$MASK_LAYERS_SET" -eq 1 ]]; then
+        [[ "$MASK_LAYERS" =~ ^[0-9]+(,[0-9]+)*$ ]] || \
+            die "--layer must be a comma-separated list such as 0,1,2,3"
+        local -A seen_layers=()
+        local layer
+        local old_ifs="$IFS"
+        IFS=','
+        for layer in $MASK_LAYERS; do
+            [[ "$layer" -le 30 ]] || die "--layer values must be between 0 and 30; layer 31 is reserved"
+            [[ -z "${seen_layers[$layer]:-}" ]] || die "--layer values must be unique: $MASK_LAYERS"
+            seen_layers[$layer]=1
+        done
+        IFS="$old_ifs"
+    fi
+
+    [[ "$MASK_ALPHA_MIN" =~ ^([0-9]+([.][0-9]*)?|[.][0-9]+)$ ]] || \
+        die "--mask-alpha-min must be a number between 0 and 1"
+    [[ "$MASK_ALPHA_MAX" =~ ^([0-9]+([.][0-9]*)?|[.][0-9]+)$ ]] || \
+        die "--mask-alpha-max must be a number between 0 and 1"
+    "$PYTHON_BIN" - "$MASK_ALPHA_MIN" "$MASK_ALPHA_MAX" <<'PY' || \
+        die "Proposal 6 alpha bounds must satisfy 0 <= min <= max <= 1"
+import sys
+
+alpha_min, alpha_max = map(float, sys.argv[1:])
+raise SystemExit(0 if 0.0 <= alpha_min <= alpha_max <= 1.0 else 1)
+PY
+}
+
+run_eval() {
+    validate_run_options
+    check_ready
+    patch_transformers
+
     local py run_dir overall_exit=0
     py="$(venv_python)"
-    run_dir="${ROOT}/logs/results_$(date +%Y-%m-%d_%Hh%Mm%Ss)_proposal4_local"
+    run_dir="${ROOT}/logs/results_$(date +%Y-%m-%d_%Hh%Mm%Ss)_proposal${PROPOSAL}_local"
     mkdir -p "$run_dir"
-    export PYTHONPATH="${ROOT}/ONLY:${ROOT}/ONLY/eval_bench:${ROOT}/ONLY/experiments${PYTHONPATH:+:${PYTHONPATH}}"
     export MASTER_ADDR="${MASTER_ADDR:-127.0.0.1}"
     export MASTER_PORT="${MASTER_PORT:-29500}"
     export RANK=0
     export WORLD_SIZE=1
 
     for setup in $SETUPS; do
-        local output_file="${run_dir}/proposal4_result_${setup}.txt"
+        local output_file="${run_dir}/proposal${PROPOSAL}_result_${setup}.txt"
         local extra_args=()
         [[ -n "$ALPHA_1" ]] && extra_args+=(--alpha_1 "$ALPHA_1")
         [[ -n "$ALPHA_2" ]] && extra_args+=(--alpha_2 "$ALPHA_2")
@@ -560,8 +637,12 @@ run_eval() {
         [[ -n "$ALPHA_4" ]] && extra_args+=(--alpha_4 "$ALPHA_4")
         [[ -n "$GAMMA_1" ]] && extra_args+=(--gamma_1 "$GAMMA_1")
         [[ -n "$GAMMA_2" ]] && extra_args+=(--gamma_2 "$GAMMA_2")
+        if [[ "$PROPOSAL" -eq 6 ]]; then
+            [[ "$MASK_LAYERS_SET" -eq 1 ]] && extra_args+=(--layer "$MASK_LAYERS")
+            extra_args+=(--mask_alpha_min "$MASK_ALPHA_MIN" --mask_alpha_max "$MASK_ALPHA_MAX")
+        fi
 
-        log "Running Proposal 4 on POPE/${setup}; output: ${output_file}"
+        log "Running Proposal ${PROPOSAL} on POPE/${setup}; output: ${output_file}"
         set +e
         "$py" -u "${ROOT}/ONLY/eval_bench/pope_eval_llava.py" \
             --model_path "$MODEL_DIR" \
@@ -579,7 +660,7 @@ run_eval() {
             --max_new_tokens "$MAX_NEW_TOKENS" \
             --max_questions "$MAX_QUESTIONS" \
             --debug_tvd "$([[ "$DEBUG_TVD" -eq 1 ]] && echo True || echo False)" \
-            --proposal 4 \
+            --proposal "$PROPOSAL" \
             --js_gamma "$JS_GAMMA" \
             --batch_size 1 \
             --num_workers 1 \
