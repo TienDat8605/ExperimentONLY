@@ -61,6 +61,23 @@ bash colab.sh prep
 bash colab.sh run
 ```
 
+### Proposal 4 on a CUDA 12.8 GPU server
+
+On a fresh rented server, the bootstrap script loads `~/.bashrc`, deactivates
+any inherited Conda/virtual environment, creates `.venv-proposal4`, installs
+the pinned CUDA 12.8 PyTorch stack, downloads the models and the POPE dataset,
+downloads only the COCO images referenced by POPE, and checks the result:
+
+```bash
+bash bootstrap_proposal4_server.sh
+```
+
+Then run a small smoke test before starting the full evaluation:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 bash run_proposal4_local.sh run --setups adversarial --maxq=10
+```
+
 ### Colab Run (recommended for GPU)
 
 ```bash

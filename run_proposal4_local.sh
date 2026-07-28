@@ -9,8 +9,8 @@
 # Or perform all three stages:
 #   bash run_proposal4_local.sh all --short --setups adversarial
 #
-# The virtual environment inherits the server's PyTorch installation. Install a
-# CUDA-enabled PyTorch build in the base Python environment before running setup.
+# The setup action creates a self-contained virtual environment and installs the
+# tested CUDA 12.8 PyTorch build. The host only needs a compatible NVIDIA driver.
 set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,6 +20,11 @@ MODEL_DIR="${ROOT}/models/llava-v1.5-7b"
 CLIP_DIR="${ROOT}/models/clip-vit-large-patch14-336"
 COCO_DIR="${ROOT}/data/coco/val2014"
 POPE_DIR="${ROOT}/data/pope"
+TORCH_VERSION="${PROPOSAL4_TORCH_VERSION:-2.11.0}"
+TORCHVISION_VERSION="${PROPOSAL4_TORCHVISION_VERSION:-0.26.0}"
+PYTORCH_INDEX_URL="${PROPOSAL4_PYTORCH_INDEX_URL:-https://download.pytorch.org/whl/cu128}"
+COCO_BASE_URL="${PROPOSAL4_COCO_BASE_URL:-http://images.cocodataset.org/val2014}"
+COCO_WORKERS="${PROPOSAL4_COCO_WORKERS:-16}"
 
 ACTION="run"
 SETUPS="random popular adversarial"
@@ -46,7 +51,7 @@ Usage:
 
 Actions:
   setup       Create .venv-proposal4 and install compatible dependencies.
-  download    Download LLaVA-1.5-7B, CLIP, COCO val2014, and POPE.
+  download    Download models, POPE, and only the COCO images POPE needs.
   check       Validate CUDA, dependencies, model weights, and datasets.
   run         Validate and evaluate Proposal 4 (default action).
   all         Run setup, download, then evaluation.
@@ -64,8 +69,10 @@ Run options:
   --debug                               Print per-token TVD diagnostics.
 
 Environment:
-  PROPOSAL4_PYTHON=/path/to/python      Base Python used to create the venv.
+  PROPOSAL4_PYTHON=/path/to/python      Python used to create the venv.
   PROPOSAL4_VENV=/path/to/venv          Override the virtual environment path.
+  PROPOSAL4_COCO_WORKERS=16             Concurrent COCO image downloads.
+  PROPOSAL4_COCO_BASE_URL=http://...    Override the COCO image endpoint.
   HF_TOKEN=...                          Optional token for Hugging Face downloads.
   CUDA_VISIBLE_DEVICES=0                Select the GPU used for evaluation.
 EOF
@@ -123,10 +130,41 @@ venv_python() {
     printf '%s\n' "${VENV_DIR}/bin/python"
 }
 
-patch_transformers() {
+transformers_dir() {
+    local py
+    py="$(venv_python)"
+    "$py" -c 'import pathlib, sysconfig; print(pathlib.Path(sysconfig.get_paths()["purelib"]) / "transformers")'
+}
+
+patch_transformers_version_gate() {
     local py tf_dir
     py="$(venv_python)"
-    tf_dir="$($py -c 'import pathlib, transformers; print(pathlib.Path(transformers.__file__).parent)')"
+    tf_dir="$(transformers_dir)"
+    TF_DIR="$tf_dir" "$py" - <<'PY'
+import os
+from pathlib import Path
+
+path = Path(os.environ["TF_DIR"]) / "dependency_versions_check.py"
+if not path.is_file():
+    raise SystemExit(f"Transformers is not installed at {path.parent}")
+
+text = path.read_text()
+old = "require_version_core(deps[pkg])"
+legacy = "pass  # ONLY: tokenizers 0.19 on Python 3.12"
+replacement = 'if pkg != "tokenizers":  # ONLY: 0.19 wheel on Python 3.12\n            require_version_core(deps[pkg])'
+if old in text:
+    path.write_text(text.replace(old, replacement))
+elif legacy in text:
+    path.write_text(text.replace(legacy, replacement))
+elif 'if pkg != "tokenizers":  # ONLY:' not in text:
+    raise SystemExit(f"Could not patch the tokenizers version gate in {path}")
+PY
+}
+
+patch_transformers() {
+    local tf_dir
+    patch_transformers_version_gate
+    tf_dir="$(transformers_dir)"
     cp "${ROOT}/ONLY/patches/modeling_llama.py" "${tf_dir}/models/llama/modeling_llama.py"
     find "${tf_dir}/models/llama" -type d -name __pycache__ -prune -exec rm -rf {} +
     log "Patched ${tf_dir}/models/llama/modeling_llama.py"
@@ -134,14 +172,17 @@ patch_transformers() {
 
 setup_env() {
     command -v "$PYTHON_BIN" >/dev/null 2>&1 || die "Python executable not found: ${PYTHON_BIN}"
-    "$PYTHON_BIN" -c 'import torch, torchvision; print(f"Using base PyTorch {torch.__version__}")' || \
-        die "Install a CUDA-enabled PyTorch and matching torchvision build from pytorch.org before setup."
     log "Creating isolated environment at ${VENV_DIR}"
-    "$PYTHON_BIN" -m venv --system-site-packages "$VENV_DIR"
+    "$PYTHON_BIN" -m venv "$VENV_DIR"
     local py pip tokenizers_version
     py="${VENV_DIR}/bin/python"
     pip="${VENV_DIR}/bin/pip"
     "$py" -m pip install --upgrade pip wheel setuptools
+
+    log "Installing PyTorch ${TORCH_VERSION} with CUDA 12.8"
+    "$pip" install \
+        "torch==${TORCH_VERSION}" "torchvision==${TORCHVISION_VERSION}" \
+        --index-url "$PYTORCH_INDEX_URL"
 
     if "$py" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 12) else 1)'; then
         tokenizers_version="0.19.1"
@@ -152,7 +193,7 @@ setup_env() {
     "$pip" install \
         accelerate==0.21.0 sentencepiece einops==0.6.1 timm==0.6.13 \
         scipy opencv-python pycocotools pandas pyarrow pillow tqdm pyyaml \
-        requests regex packaging safetensors
+        requests regex packaging safetensors hf_transfer
     "$pip" install --no-deps \
         transformers==4.31.0 huggingface_hub==0.16.4 "tokenizers==${tokenizers_version}"
 
@@ -160,67 +201,20 @@ setup_env() {
     # compatible 0.19 wheel on Colab; disable only Transformers' strict version
     # gate while retaining the pinned Transformers API expected by the patch.
     if [[ "$tokenizers_version" == "0.19.1" ]]; then
-        "$py" - <<'PY'
-import importlib.util
-from pathlib import Path
-
-spec = importlib.util.find_spec("transformers")
-path = Path(spec.origin).parent / "dependency_versions_check.py"
-text = path.read_text()
-text = text.replace("require_version_core(deps[pkg])", "pass  # ONLY: tokenizers 0.19 on Python 3.12")
-path.write_text(text)
-PY
+        patch_transformers_version_gate
     fi
 
-    "$py" -c 'import torch; print(f"PyTorch {torch.__version__}; CUDA available: {torch.cuda.is_available()}")' || \
-        die "PyTorch is missing. Install the CUDA build recommended by your GPU provider, then rerun setup."
+    "$py" -c 'import torch, torchvision; print(f"PyTorch {torch.__version__}; torchvision {torchvision.__version__}; runtime CUDA {torch.version.cuda}")' || \
+        die "The CUDA 12.8 PyTorch installation failed."
     patch_transformers
     log "Environment setup complete"
 }
 
-download_assets() {
+download_pope() {
     local py
     py="$(venv_python)"
-    mkdir -p "${ROOT}/models" "${ROOT}/data/coco" "$POPE_DIR"
-
-    if [[ ! -s "${MODEL_DIR}/config.json" ]]; then
-        log "Downloading LLaVA-1.5-7B (about 14 GB)"
-        MODEL_DIR="$MODEL_DIR" "$py" - <<'PY'
-import os
-from huggingface_hub import snapshot_download
-snapshot_download("liuhaotian/llava-v1.5-7b", local_dir=os.environ["MODEL_DIR"], local_dir_use_symlinks=False, resume_download=True)
-PY
-    else
-        log "LLaVA weights already present"
-    fi
-
-    if [[ ! -s "${CLIP_DIR}/config.json" ]]; then
-        log "Downloading CLIP ViT-L/14-336 (about 1.7 GB)"
-        CLIP_DIR="$CLIP_DIR" "$py" - <<'PY'
-import os
-from huggingface_hub import snapshot_download
-snapshot_download("openai/clip-vit-large-patch14-336", local_dir=os.environ["CLIP_DIR"], local_dir_use_symlinks=False, resume_download=True)
-PY
-    else
-        log "CLIP weights already present"
-    fi
-
-    if [[ ! -d "$COCO_DIR" ]] || [[ -z "$(find "$COCO_DIR" -maxdepth 1 -name '*.jpg' -print -quit 2>/dev/null)" ]]; then
-        command -v wget >/dev/null 2>&1 || die "wget is required to download COCO"
-        command -v unzip >/dev/null 2>&1 || die "unzip is required to extract COCO"
-        log "Downloading COCO val2014 (about 4 GB)"
-        local archive="${ROOT}/data/coco/val2014.zip"
-        wget -c https://images.cocodataset.org/zips/val2014.zip -O "$archive"
-        unzip -tq "$archive" >/dev/null
-        unzip -q "$archive" -d "${ROOT}/data/coco"
-        rm -f "$archive"
-    else
-        log "COCO val2014 already present"
-    fi
-
-    if [[ ! -s "${POPE_DIR}/coco_pope_adversarial.json" ]]; then
-        log "Downloading and converting POPE annotations"
-        POPE_DIR="$POPE_DIR" "$py" - <<'PY'
+    log "Downloading and converting POPE annotations"
+    POPE_DIR="$POPE_DIR" "$py" - <<'PY'
 import json
 import os
 import pandas as pd
@@ -249,23 +243,137 @@ for split, filename in splits.items():
             handle.write(json.dumps(record) + "\n")
     print(f"{split}: {len(frame)} questions")
 PY
-    else
-        log "POPE annotations already present"
-    fi
+}
+
+download_coco_subset() {
+    local py
+    py="$(venv_python)"
+    log "Downloading only the unique COCO images referenced by POPE (${COCO_WORKERS} workers)"
+    POPE_DIR="$POPE_DIR" COCO_DIR="$COCO_DIR" COCO_BASE_URL="$COCO_BASE_URL" COCO_WORKERS="$COCO_WORKERS" "$py" - <<'PY'
+import json
+import os
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
+
+import requests
+from PIL import Image
+
+pope_dir = Path(os.environ["POPE_DIR"])
+coco_dir = Path(os.environ["COCO_DIR"])
+base_url = os.environ["COCO_BASE_URL"].rstrip("/")
+workers = int(os.environ["COCO_WORKERS"])
+if workers < 1:
+    raise SystemExit("PROPOSAL4_COCO_WORKERS must be a positive integer")
+
+coco_dir.mkdir(parents=True, exist_ok=True)
+names = set()
+for annotation in sorted(pope_dir.glob("coco_pope_*.json")):
+    with annotation.open(encoding="utf-8") as handle:
+        for line in handle:
+            names.add(Path(json.loads(line)["image"]).name)
+if not names:
+    raise SystemExit(f"No POPE image references found in {pope_dir}")
+
+def valid_image(path):
+    if not path.is_file() or path.stat().st_size == 0:
+        return False
+    try:
+        with Image.open(path) as image:
+            image.verify()
+        return True
+    except Exception:
+        return False
+
+pending = [name for name in sorted(names) if not valid_image(coco_dir / name)]
+print(f"COCO images: {len(names)} required, {len(names) - len(pending)} present, {len(pending)} to download")
+
+def download(name):
+    target = coco_dir / name
+    partial = target.with_suffix(target.suffix + ".part")
+    url = f"{base_url}/{name}"
+    for attempt in range(1, 6):
+        try:
+            with requests.get(url, stream=True, timeout=(15, 120)) as response:
+                response.raise_for_status()
+                with partial.open("wb") as handle:
+                    for chunk in response.iter_content(chunk_size=1024 * 1024):
+                        if chunk:
+                            handle.write(chunk)
+            if not valid_image(partial):
+                raise RuntimeError("downloaded file is not a valid image")
+            partial.replace(target)
+            return name
+        except Exception as exc:
+            partial.unlink(missing_ok=True)
+            if attempt == 5:
+                raise RuntimeError(f"{name}: {exc}") from exc
+            time.sleep(attempt * 2)
+
+failures = []
+completed = 0
+with ThreadPoolExecutor(max_workers=workers) as executor:
+    futures = {executor.submit(download, name): name for name in pending}
+    for future in as_completed(futures):
+        completed += 1
+        try:
+            future.result()
+        except Exception as exc:
+            failures.append(str(exc))
+        if completed % 100 == 0 or completed == len(pending):
+            print(f"Downloaded {completed}/{len(pending)}", flush=True)
+
+if failures:
+    print("COCO download failures:")
+    for failure in failures[:20]:
+        print(f"  {failure}")
+    raise SystemExit(f"Failed to download {len(failures)} COCO images; rerun to retry")
+PY
+}
+
+download_assets() {
+    local py
+    py="$(venv_python)"
+    mkdir -p "${ROOT}/models" "${ROOT}/data/coco" "$POPE_DIR"
+
+    log "Synchronizing LLaVA-1.5-7B (about 14 GB; resumable)"
+    HF_HUB_ENABLE_HF_TRANSFER=1 MODEL_DIR="$MODEL_DIR" "$py" - <<'PY'
+import os
+from huggingface_hub import snapshot_download
+snapshot_download("liuhaotian/llava-v1.5-7b", local_dir=os.environ["MODEL_DIR"], local_dir_use_symlinks=False, resume_download=True)
+PY
+
+    log "Synchronizing CLIP ViT-L/14-336 (about 1.7 GB; resumable)"
+    HF_HUB_ENABLE_HF_TRANSFER=1 CLIP_DIR="$CLIP_DIR" "$py" - <<'PY'
+import os
+from huggingface_hub import snapshot_download
+snapshot_download("openai/clip-vit-large-patch14-336", local_dir=os.environ["CLIP_DIR"], local_dir_use_symlinks=False, resume_download=True)
+PY
+
+    download_pope
+    download_coco_subset
 }
 
 check_ready() {
     local py failed=0
     py="$(venv_python)"
+    patch_transformers
     "$py" - <<'PY' || failed=1
 import sys
 import torch
+import torchvision
 import transformers
+import tokenizers
 
 print(f"Python: {sys.version.split()[0]}")
 print(f"PyTorch: {torch.__version__}")
+print(f"torchvision: {torchvision.__version__}")
+print(f"PyTorch CUDA runtime: {torch.version.cuda}")
 print(f"Transformers: {transformers.__version__}")
+print(f"tokenizers: {tokenizers.__version__}")
 print(f"CUDA available: {torch.cuda.is_available()}")
+if torch.version.cuda != "12.8":
+    raise SystemExit(f"Expected the CUDA 12.8 PyTorch build, found {torch.version.cuda}")
 if torch.cuda.is_available():
     props = torch.cuda.get_device_properties(0)
     print(f"GPU: {props.name} ({props.total_memory / 2**30:.1f} GiB)")
@@ -284,8 +392,45 @@ PY
             failed=1
         fi
     done
-    if [[ ! -d "$COCO_DIR" ]] || [[ -z "$(find "$COCO_DIR" -maxdepth 1 -name '*.jpg' -print -quit 2>/dev/null)" ]]; then
-        echo "Missing COCO images: $COCO_DIR" >&2
+    if ! MODEL_DIR="$MODEL_DIR" CLIP_DIR="$CLIP_DIR" POPE_DIR="$POPE_DIR" COCO_DIR="$COCO_DIR" "$py" - <<'PY'
+import json
+import os
+from pathlib import Path
+
+model_dir = Path(os.environ["MODEL_DIR"])
+clip_dir = Path(os.environ["CLIP_DIR"])
+pope_dir = Path(os.environ["POPE_DIR"])
+coco_dir = Path(os.environ["COCO_DIR"])
+
+def weight_files(directory):
+    return list(directory.glob("*.bin")) + list(directory.glob("*.safetensors"))
+
+errors = []
+if not weight_files(model_dir):
+    errors.append(f"No LLaVA weight files found in {model_dir}")
+if not weight_files(clip_dir):
+    errors.append(f"No CLIP weight files found in {clip_dir}")
+
+expected = set()
+for split in ("random", "popular", "adversarial"):
+    annotation = pope_dir / f"coco_pope_{split}.json"
+    if not annotation.is_file():
+        continue
+    with annotation.open(encoding="utf-8") as handle:
+        for line in handle:
+            expected.add(Path(json.loads(line)["image"]).name)
+
+missing = sorted(name for name in expected if not (coco_dir / name).is_file())
+print(f"POPE COCO images: {len(expected) - len(missing)}/{len(expected)} present")
+if not expected:
+    errors.append(f"No COCO image references found in {pope_dir}")
+if missing:
+    errors.append(f"Missing {len(missing)} POPE COCO images (first: {missing[:5]})")
+
+if errors:
+    raise SystemExit("\n".join(errors))
+PY
+    then
         failed=1
     fi
     [[ "$failed" -eq 0 ]] || die "Prerequisite check failed. Run the setup/download actions or provide the missing assets."
