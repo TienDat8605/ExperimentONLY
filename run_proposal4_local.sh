@@ -144,22 +144,47 @@ patch_transformers_version_gate() {
     tf_dir="$(transformers_dir)"
     TF_DIR="$tf_dir" "$py" - <<'PY'
 import os
+import re
 from pathlib import Path
 
-path = Path(os.environ["TF_DIR"]) / "dependency_versions_check.py"
-if not path.is_file():
-    raise SystemExit(f"Transformers is not installed at {path.parent}")
+root = Path(os.environ["TF_DIR"])
+check_path = root / "dependency_versions_check.py"
+table_path = root / "dependency_versions_table.py"
+if not check_path.is_file() or not table_path.is_file():
+    raise SystemExit(f"Transformers is not installed correctly at {root}")
 
-text = path.read_text()
-old = "require_version_core(deps[pkg])"
-legacy = "pass  # ONLY: tokenizers 0.19 on Python 3.12"
-replacement = 'if pkg != "tokenizers":  # ONLY: 0.19 wheel on Python 3.12\n            require_version_core(deps[pkg])'
-if old in text:
-    path.write_text(text.replace(old, replacement))
-elif legacy in text:
-    path.write_text(text.replace(legacy, replacement))
-elif 'if pkg != "tokenizers":  # ONLY:' not in text:
-    raise SystemExit(f"Could not patch the tokenizers version gate in {path}")
+# Repair files produced by the older non-idempotent workaround. Every inserted
+# guard is removed and the official require_version_core call is restored at
+# its original indentation. This is safe to run repeatedly.
+lines = check_path.read_text().splitlines()
+repaired = []
+found_requirement = False
+for line in lines:
+    if 'if pkg != "tokenizers":  # ONLY:' in line:
+        continue
+    if "pass  # ONLY: tokenizers 0.19" in line:
+        line = "        require_version_core(deps[pkg])"
+    elif "require_version_core(deps[pkg])" in line:
+        line = "        require_version_core(deps[pkg])"
+    if "require_version_core(deps[pkg])" in line:
+        if found_requirement:
+            continue
+        found_requirement = True
+    repaired.append(line)
+if not found_requirement:
+    raise SystemExit(f"Could not repair the dependency check in {check_path}")
+check_text = "\n".join(repaired) + "\n"
+compile(check_text, str(check_path), "exec")
+check_path.write_text(check_text)
+
+# Transformers 4.31 pins tokenizers below 0.14, whose wheels do not support
+# Python 3.12. Loosen only that dependency entry; keep every other version gate.
+table_text = table_path.read_text()
+pattern = r'("tokenizers"\s*:\s*"tokenizers[^"\n]*<)0\.14(")'
+updated, count = re.subn(pattern, r"\g<1>0.20\2", table_text)
+if count == 0 and not re.search(r'"tokenizers"\s*:\s*"tokenizers[^"\n]*<0\.20"', table_text):
+    raise SystemExit(f"Could not adjust the tokenizers requirement in {table_path}")
+table_path.write_text(updated)
 PY
 }
 
