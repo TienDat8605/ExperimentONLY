@@ -25,6 +25,7 @@ TORCHVISION_VERSION="${PROPOSAL4_TORCHVISION_VERSION:-0.26.0}"
 PYTORCH_INDEX_URL="${PROPOSAL4_PYTORCH_INDEX_URL:-https://download.pytorch.org/whl/cu128}"
 COCO_BASE_URL="${PROPOSAL4_COCO_BASE_URL:-http://images.cocodataset.org/val2014}"
 COCO_WORKERS="${PROPOSAL4_COCO_WORKERS:-16}"
+HF_DOWNLOAD_TIMEOUT="${PROPOSAL4_HF_TIMEOUT:-120}"
 
 ACTION="run"
 SETUPS="random popular adversarial"
@@ -73,6 +74,7 @@ Environment:
   PROPOSAL4_VENV=/path/to/venv          Override the virtual environment path.
   PROPOSAL4_COCO_WORKERS=16             Concurrent COCO image downloads.
   PROPOSAL4_COCO_BASE_URL=http://...    Override the COCO image endpoint.
+  PROPOSAL4_HF_TIMEOUT=120              Hugging Face download timeout in seconds.
   HF_TOKEN=...                          Optional token for Hugging Face downloads.
   CUDA_VISIBLE_DEVICES=0                Select the GPU used for evaluation.
 EOF
@@ -193,7 +195,7 @@ setup_env() {
     "$pip" install \
         accelerate==0.21.0 sentencepiece einops==0.6.1 timm==0.6.13 \
         scipy opencv-python pycocotools pandas pyarrow pillow tqdm pyyaml \
-        requests regex packaging safetensors hf_transfer
+        requests regex packaging safetensors
     "$pip" install --no-deps \
         transformers==4.31.0 huggingface_hub==0.16.4 "tokenizers==${tokenizers_version}"
 
@@ -331,24 +333,86 @@ if failures:
 PY
 }
 
-download_assets() {
-    local py
+download_model_snapshot() {
+    local repo_id="$1" target_dir="$2" label="$3" py
     py="$(venv_python)"
+    mkdir -p "$target_dir"
+    REPO_ID="$repo_id" TARGET_DIR="$target_dir" MODEL_LABEL="$label" \
+        HF_HUB_ENABLE_HF_TRANSFER=0 \
+        HF_HUB_DOWNLOAD_TIMEOUT="$HF_DOWNLOAD_TIMEOUT" \
+        HF_HUB_ETAG_TIMEOUT="$HF_DOWNLOAD_TIMEOUT" \
+        "$py" -u - <<'PY'
+import os
+import threading
+import time
+from pathlib import Path
+
+repo_id = os.environ["REPO_ID"]
+target_dir = Path(os.environ["TARGET_DIR"])
+label = os.environ["MODEL_LABEL"]
+
+def directory_size(path):
+    total = 0
+    for item in path.rglob("*"):
+        try:
+            if item.is_file():
+                total += item.stat().st_size
+        except OSError:
+            pass
+    value = float(total)
+    for unit in ("B", "KiB", "MiB", "GiB", "TiB"):
+        if value < 1024 or unit == "TiB":
+            return f"{value:.1f} {unit}"
+        value /= 1024
+
+def heartbeat(stop):
+    while not stop.wait(30):
+        print(f"  {label} download is active; local size: {directory_size(target_dir)}", flush=True)
+
+last_error = None
+for attempt in range(1, 4):
+    print(f"  {label} download attempt {attempt}/3", flush=True)
+    stop = threading.Event()
+    worker = threading.Thread(target=heartbeat, args=(stop,), daemon=True)
+    worker.start()
+    try:
+        # Import after setting the transfer/time-out environment variables.
+        # hf_transfer is deliberately disabled: its legacy path can stall
+        # without progress or resumable error handling on rented servers.
+        from huggingface_hub import snapshot_download
+        snapshot_download(
+            repo_id,
+            local_dir=str(target_dir),
+            local_dir_use_symlinks=False,
+            resume_download=True,
+        )
+        print(f"  {label} synchronized ({directory_size(target_dir)})", flush=True)
+        last_error = None
+        break
+    except Exception as exc:
+        last_error = exc
+        print(f"  {label} attempt {attempt} failed: {exc!r}", flush=True)
+    finally:
+        stop.set()
+        worker.join(timeout=1)
+    if attempt < 3:
+        delay = attempt * 15
+        print(f"  Retrying in {delay}s; completed files will be reused", flush=True)
+        time.sleep(delay)
+
+if last_error is not None:
+    raise SystemExit(f"{label} download failed after 3 attempts: {last_error!r}")
+PY
+}
+
+download_assets() {
     mkdir -p "${ROOT}/models" "${ROOT}/data/coco" "$POPE_DIR"
 
     log "Synchronizing LLaVA-1.5-7B (about 14 GB; resumable)"
-    HF_HUB_ENABLE_HF_TRANSFER=1 MODEL_DIR="$MODEL_DIR" "$py" - <<'PY'
-import os
-from huggingface_hub import snapshot_download
-snapshot_download("liuhaotian/llava-v1.5-7b", local_dir=os.environ["MODEL_DIR"], local_dir_use_symlinks=False, resume_download=True)
-PY
+    download_model_snapshot "liuhaotian/llava-v1.5-7b" "$MODEL_DIR" "LLaVA-1.5-7B"
 
     log "Synchronizing CLIP ViT-L/14-336 (about 1.7 GB; resumable)"
-    HF_HUB_ENABLE_HF_TRANSFER=1 CLIP_DIR="$CLIP_DIR" "$py" - <<'PY'
-import os
-from huggingface_hub import snapshot_download
-snapshot_download("openai/clip-vit-large-patch14-336", local_dir=os.environ["CLIP_DIR"], local_dir_use_symlinks=False, resume_download=True)
-PY
+    download_model_snapshot "openai/clip-vit-large-patch14-336" "$CLIP_DIR" "CLIP ViT-L/14-336"
 
     download_pope
     download_coco_subset
