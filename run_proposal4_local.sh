@@ -62,7 +62,7 @@ Run options:
   --setups=adversarial                  One or more quoted split names.
   --short                               Run 300 questions per split.
   --maxq=N                              Run N questions per split (0 = all 3000).
-  --tokens=N                            Generated tokens per answer (default: 8).
+  --tokens N, --tokens=N                Maximum new tokens per answer (default: 8).
   --mask-alpha=F                        Mask EMA alpha (Proposal 4 is static).
   --js-gamma=F                          Fallback TVD threshold (default: 0.6).
   --alpha-1=F ... --alpha-4=F           Dual-branch decoding coefficients.
@@ -107,6 +107,11 @@ while [[ $# -gt 0 ]]; do
         --setups=*) SETUPS="${1#--setups=}"; shift ;;
         --short) MAX_QUESTIONS=300; shift ;;
         --maxq=*) MAX_QUESTIONS="${1#--maxq=}"; shift ;;
+        --tokens)
+            [[ $# -ge 2 && "$2" != --* ]] || die "--tokens requires a positive integer"
+            MAX_NEW_TOKENS="$2"
+            shift 2
+            ;;
         --tokens=*) MAX_NEW_TOKENS="${1#--tokens=}"; shift ;;
         --mask-alpha=*) MASK_ALPHA="${1#--mask-alpha=}"; shift ;;
         --js-gamma=*) JS_GAMMA="${1#--js-gamma=}"; shift ;;
