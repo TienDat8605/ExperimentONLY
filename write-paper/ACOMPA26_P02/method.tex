@@ -1,0 +1,221 @@
+\section{Method}
+\label{sec:method}
+
+We present \emph{Adaptive Dual-Branch Decoding} (ADBD), a training-free decoding method that augments the normal LVLM path with two complementary auxiliary paths. ADBD consists of four stages: (1) computing layer-specific TVER evidence, (2) accumulating the evidence through per-head adaptive updates, (3) constructing complementary high- and low-TVER ghost branches, and (4) resolving the three distributions with independently switched, anchored decoding. We first review the ONLY framework that ADBD extends, then describe each stage.
+
+\subsection{Preliminaries: The ONLY Framework}
+
+ONLY~\cite{wan2025only} is a training-free, single-forward-pass decoding approach that produces two logit distributions simultaneously: a normal distribution and a textually enhanced auxiliary (contrastive) distribution, which are combined through an adaptive switching rule.
+
+\subsubsection{Text-to-Visual Entropy Ratio}
+
+At a chosen intervention layer $\tilde{\ell}$, the attention weights $a_{\tilde{\ell},i}$ for each head $i$ are split into textual and visual subsets according to token position:
+\begin{equation}
+\begin{aligned}
+a_{\tilde{\ell},i}^{\mathcal{T}} &= \{a_{\tilde{\ell},i,j} \mid j \in \mathcal{I}_{\mathcal{T}}\}, \\
+a_{\tilde{\ell},i}^{\mathcal{V}} &= \{a_{\tilde{\ell},i,j} \mid j \in \mathcal{I}_{\mathcal{V}}\}.
+\end{aligned}
+\end{equation}
+Within each subset, outlier attention values exceeding the subset mean plus one standard deviation are removed and the remaining weights are re-normalized. The textual and visual entropies are
+\begin{equation}
+H_{\tilde{\ell},i}^{\mathcal{T}} = -\sum_{j \in \mathcal{I}_{\mathcal{T}}} \hat{a}_{\tilde{\ell},i,j}^{\mathcal{T}} \log\!\left(\hat{a}_{\tilde{\ell},i,j}^{\mathcal{T}} + \epsilon\right),
+\end{equation}
+\begin{equation}
+H_{\tilde{\ell},i}^{\mathcal{V}} = -\sum_{j \in \mathcal{I}_{\mathcal{V}}} \hat{a}_{\tilde{\ell},i,j}^{\mathcal{V}} \log\!\left(\hat{a}_{\tilde{\ell},i,j}^{\mathcal{V}} + \epsilon\right).
+\end{equation}
+The Text-to-Visual Entropy Ratio (TVER) for head $i$ is then
+\begin{equation}
+r_{\tilde{\ell},i} = \frac{H_{\tilde{\ell},i}^{\mathcal{T}}}{H_{\tilde{\ell},i}^{\mathcal{V}}}.
+\end{equation}
+A low ratio indicates concentrated textual attention relative to diffuse visual attention, whereas a high ratio indicates the complementary entropy pattern. Wan et al.~\cite{wan2025only} characterize heads with low TVER as uncertain connectors that can mediate spurious visual--textual correlations and contribute to hallucinations.
+
+\subsubsection{Single-Layer Head Suppression and Ghost Path}
+
+ONLY computes a binary mask at one intervention layer $\tilde{\ell}$ (typically layer~0) using the mean ratio across heads:
+\begin{equation}
+m_{\tilde{\ell},i} = \mathbb{1}\!\left[ r_{\tilde{\ell},i} \geq \frac{1}{H}\sum_{h=1}^{H} r_{\tilde{\ell},h} \right].
+\end{equation}
+The attention outputs of suppressed heads are zeroed to create an auxiliary hidden state. This state is threaded through the remaining decoder layers without the complete normal residual and feed-forward computation (a \emph{ghost path}), then processed and anchored to the normal representation at the final layer:
+\begin{align}
+h^{\mathrm{cd}}_{L-1} &= \texttt{LayerNorm}(h^{\mathrm{cd}}_{L-2}), \\
+h^{\mathrm{cd}}_{L-1} &= 0.2 \cdot r_{L-1} + h^{\mathrm{cd}}_{L-1}, \\
+h^{\mathrm{cd}}_{L-1} &= \texttt{MLP}(h^{\mathrm{cd}}_{L-1}) + r^{\mathrm{cd}}_{L-1}, \\
+\tilde{h}^{\mathrm{cd}} &= \texttt{LayerNorm}(h^{\mathrm{cd}}_{L-1}) + 0.5 \cdot \tilde{h}^{\mathrm{normal}}_{L-1}, \\
+\mathrm{logits}_{\mathrm{cd}} &= \texttt{lm\_head}(\tilde{h}^{\mathrm{cd}}).
+\end{align}
+The residual injections $0.2 \cdot r_{L-1}$ and $0.5 \cdot \tilde{h}^{\mathrm{normal}}_{L-1}$ stabilize the ghost signal by anchoring it to the normal-path representation.
+
+\subsubsection{TVD-Based Single-Branch Switching}
+
+At each autoregressive step $t$, the Total Variation Distance (TVD) between the normal and auxiliary distributions determines the decoding strategy:
+\begin{equation}
+d_t = \frac{1}{2}\sum_{y \in \mathcal{V}} \left|p_t^{0}(y) - p_t^{\mathrm{aux}}(y)\right|.
+\end{equation}
+When $d_t < \gamma$, the two distributions agree and collaborative decoding amplifies the shared signal:
+\begin{equation}
+f^{\mathrm{final}} = f_{\theta} + \alpha_1 \cdot f^{\mathrm{aux}}.
+\end{equation}
+When $d_t \geq \gamma$, the distributions diverge and contrastive decoding penalizes tokens scoring highly under the auxiliary path:
+\begin{equation}
+f^{\mathrm{final}} = (1 + \alpha_2) \cdot f_{\theta} - \alpha_2 \cdot f^{\mathrm{aux}}.
+\end{equation}
+An adaptive plausibility constraint~\cite{li2023contrastive}, with $\beta = 0.1$, discards tokens with near-zero probability under the normal distribution before sampling.
+
+\subsection{Limitations of a Single-Layer, Single-Branch Mask}
+
+Despite its efficiency, ONLY makes its head-selection decision from a single layer, typically layer~0. This creates two limitations. \emph{First}, the decision cannot be revised using deeper representations, even though cross-modal associations evolve throughout the decoder~\cite{abnar2020quantifying,clark2019does}. A head selected from noisy early-layer attention remains selected for the rest of generation, whereas a head that becomes problematic only at a later layer is never captured. \emph{Second}, a single binary mask collapses a continuous spectrum of text--visual attention behavior into one auxiliary path, so it cannot separately represent the complementary behaviors of heads above and below the TVER reference level.
+
+\subsection{Adaptive Dual-Branch Decoding}
+
+ADBD addresses both limitations. Instead of freezing a binary mask, it accumulates a continuous, layer-specific TVER state per head and uses it to construct two complementary auxiliary branches, which are resolved through an independently switched, anchored three-branch rule.
+
+\subsubsection{Continuous Layer-Wise TVER Evidence}
+
+A binary mask records only whether a head lies above or below a threshold, discarding the distance from that threshold. ADBD instead converts the raw TVER vector at every selected layer into a continuous, bounded evidence score. Let
+\begin{equation}
+\bar{r}_{\ell} = \frac{1}{H}\sum_{h=1}^{H} r_{\ell,h}, \qquad \sigma_{\ell} = \mathrm{std}\!\left(\{r_{\ell,h}\}_{h=1}^{H}\right)
+\end{equation}
+be the layer mean and standard deviation. We define the per-head visual evidence as the sigmoid of the standardized ratio:
+\begin{equation}
+e_{\ell,h} = \sigma\!\left(\frac{r_{\ell,h} - \bar{r}_{\ell}}{\sigma_{\ell} + \epsilon}\right) \in [0,1],
+\end{equation}
+where $\sigma(\cdot)$ is the logistic sigmoid and $\epsilon$ guards against division by zero. Values above $0.5$ correspond to heads on the high-TVER side of the layer reference, while values below $0.5$ correspond to the low-TVER side. Unlike a binary mask, $e_{\ell,h}$ retains both the direction and the strength of the current layer's evidence. Because the sigmoid is applied to a standardized ratio, the evidence is scale-invariant across layers with very different TVER magnitudes.
+
+\subsubsection{Per-Head Adaptive State Update}
+
+For each head $h$, ADBD maintains a continuous state $s_{\ell,h} \in [0,1]$ (the accumulated visual evidence). At the first selected layer $\ell_0$, the state is initialized directly from the current evidence:
+\begin{equation}
+s_{\ell_0,h} = e_{\ell_0,h}.
+\end{equation}
+At a later selected layer $\ell$, the state is updated by an exponential moving average with a head-specific adaptive gain $g_{\ell,h}$:
+\begin{equation}
+s_{\ell,h} = (1 - g_{\ell,h})\, s_{\ell^{-},h} + g_{\ell,h}\, e_{\ell,h},
+\end{equation}
+where $\ell^{-}$ is the previous selected layer. The gain is bounded by $\alpha_{\min} \leq g_{\ell,h} \leq \alpha_{\max}$ and is derived from two quantities:
+\begin{itemize}
+    \item \textbf{Confidence} $c_{\ell,h} = |2\,e_{\ell,h} - 1| \in [0,1]$, which measures how far the current evidence sits from the decision boundary $0.5$. Evidence near $0.5$ is ambiguous and assigned low confidence; evidence near $0$ or $1$ is decisive and assigned high confidence.
+    \item \textbf{Innovation} $\iota_{\ell,h} = |e_{\ell,h} - s_{\ell^{-},h}| \in [0,1]$, which measures how much the current observation differs from the accumulated state. Redundant observations that merely restate the existing state receive low innovation; observations that would revise the state receive high innovation.
+\end{itemize}
+The adaptive gain combines both quantities multiplicatively:
+\begin{equation}
+g_{\ell,h} = \alpha_{\min} + (\alpha_{\max} - \alpha_{\min})\, c_{\ell,h}\, \iota_{\ell,h},
+\end{equation}
+with $\alpha_{\min}=0.05$ and $\alpha_{\max}=0.50$. Because both $c_{\ell,h}$ and $\iota_{\ell,h}$ lie in $[0,1]$, the gain is automatically bounded. The update is therefore large only when the current evidence is \emph{both} confident and innovative; weak or redundant observations produce small changes. This bounded update prevents abrupt state replacement while allowing informative layer evidence to revise uncertain historical decisions.
+
+The update is performed only at a chosen set of accumulation layers $\mathcal{L}_{\mathrm{upd}}$; non-selected layers reuse the most recent state. In our default configuration on the 32-layer LLaVA-1.5 decoder, layers $0$--$30$ accumulate evidence while the final layer~$31$ is reserved for auxiliary-path integration. The final paper reports the exact selected set used for the best experiment.
+
+\subsubsection{Complementary Head Partition}
+
+The accumulated state partitions attention heads into two complementary sets. Because the two branches share a single state, the low-TVER state is the exact complement of the high-TVER state:
+\begin{equation}
+k_{\ell,h}^{+} = \mathbb{1}\!\left[s_{\ell,h} \geq 0.5\right], \qquad k_{\ell,h}^{-} = 1 - k_{\ell,h}^{+}.
+\end{equation}
+The $+$ mask retains heads whose accumulated evidence lies on the high-TVER side, while the $-$ mask retains heads on the low-TVER side. We use the descriptive names \emph{high-TVER branch} and \emph{low-TVER branch} throughout. The implementation refers to them as visual and textual branches, respectively; however, the TVER-based names avoid assuming a semantic specialization that has not yet been independently established. For branch $b \in \{+,-\}$, the masked attention is
+\begin{equation}
+\tilde{a}_{\ell,h}^{b} =
+\begin{cases}
+a_{\ell,h}, & k_{\ell,h}^{b} = 1, \\
+0, & k_{\ell,h}^{b} = 0,
+\end{cases}
+\end{equation}
+producing two auxiliary attention outputs at each accumulation layer.
+
+\subsubsection{Dual Ghost Paths}
+
+Let $h_{\ell}^{0}$ denote the normal hidden representation and $h_{\ell}^{+}, h_{\ell}^{-}$ the two auxiliary representations. Both auxiliary states are propagated through the decoder's ghost-path mechanism. At the final layer, each branch is normalized, receives a residual anchor from the normal path, passes through the final MLP, and is again anchored to the normal final representation before the language-model head. Both branches share the same integration structure; their distinction arises solely from the complementary head masks. The resulting logits are $f_t^{0}$, $f_t^{+}$, and $f_t^{-}$.
+
+\subsubsection{Independent Branch Disagreement}
+
+ADBD calculates branch-specific TVDs from the normal distribution:
+\begin{equation}
+d_t^{+} = \frac{1}{2}\sum_{y \in \mathcal{V}} \left|p_t^{0}(y) - p_t^{+}(y)\right|, \qquad
+d_t^{-} = \frac{1}{2}\sum_{y \in \mathcal{V}} \left|p_t^{0}(y) - p_t^{-}(y)\right|.
+\end{equation}
+Each distance is compared with its own threshold $\gamma_{+}$ or $\gamma_{-}$. Consequently, one branch can be collaborative while the other is contrastive at the same generation step.
+
+\subsubsection{Anchored Three-Branch Resolution}
+
+The contribution of the high-TVER branch is
+\begin{equation}
+\Delta_t^{+} =
+\begin{cases}
+\alpha_{+}^{\mathrm{col}}\, f_t^{+}, & d_t^{+} < \gamma_{+}, \\
+-\alpha_{+}^{\mathrm{con}}\, f_t^{+}, & d_t^{+} \geq \gamma_{+},
+\end{cases}
+\end{equation}
+and symmetrically the low-TVER branch contributes
+\begin{equation}
+\Delta_t^{-} =
+\begin{cases}
+\alpha_{-}^{\mathrm{col}}\, f_t^{-}, & d_t^{-} < \gamma_{-}, \\
+-\alpha_{-}^{\mathrm{con}}\, f_t^{-}, & d_t^{-} \geq \gamma_{-}.
+\end{cases}
+\end{equation}
+To stabilize subtraction, ADBD increases the normal-logit anchor for every branch that enters the contrastive regime:
+\begin{equation}
+\kappa_t = 1 + \alpha_{+}^{\mathrm{con}}\, \mathbb{1}\!\left[d_t^{+} \geq \gamma_{+}\right] + \alpha_{-}^{\mathrm{con}}\, \mathbb{1}\!\left[d_t^{-} \geq \gamma_{-}\right].
+\end{equation}
+The final logits are
+\begin{equation}
+f_t^{\mathrm{final}} = \kappa_t\, f_t^{0} + \Delta_t^{+} + \Delta_t^{-}.
+\end{equation}
+This rule yields four joint regimes (Table~\ref{tab:regimes}): each branch is independently collaborative (reinforced) or contrastive (penalized), and the normal anchor is strengthened once per contrastive branch. When branch-specific coefficients are not overridden, the implementation falls back to collaborative weight $3.0$ and contrastive weight $1.0$ for each branch, with a default TVD threshold of $0.6$. The adaptive plausibility constraint~\cite{li2023contrastive} is applied to the normal logits before sampling.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lll}
+\toprule
+High-TVER branch & Low-TVER branch & Final behavior \\
+\midrule
+Collaborative & Collaborative & Reinforce both auxiliary distributions \\
+Collaborative & Contrastive   & Reinforce $+$, penalize $-$ \\
+Contrastive   & Collaborative & Penalize $+$, reinforce $-$ \\
+Contrastive   & Contrastive   & Penalize both; anchor strengthened twice \\
+\bottomrule
+\end{tabular}
+\caption{The four joint regimes of anchored three-branch resolution. Each branch is switched independently.}
+\label{tab:regimes}
+\end{table}
+
+\begin{center}
+\begin{minipage}{0.95\linewidth}
+\hrule
+\vspace{0.5em}
+\noindent\textbf{Algorithm 1: Adaptive Dual-Branch Decoding}
+\vspace{0.25em}
+
+\noindent\textbf{Input:} decoder layers $\{0,\ldots,L-1\}$, accumulation layers $\mathcal{L}_{\mathrm{upd}}$, gain bounds $\alpha_{\min},\alpha_{\max}$, branch thresholds $\gamma_{+},\gamma_{-}$, branch weights.\par
+\noindent\textbf{Output:} final next-token logits $f_t^{\mathrm{final}}$.
+\begin{enumerate}
+    \item Initialize the continuous head state $s \leftarrow \emptyset$.
+    \item For each decoder layer $\ell$:
+    \begin{enumerate}
+        \item Compute the normal self-attention output.
+        \item If $\ell \in \mathcal{L}_{\mathrm{upd}}$:
+        \begin{enumerate}
+            \item Compute TVER $r_{\ell,h}$ and evidence $e_{\ell,h} = \sigma((r_{\ell,h}-\bar{r}_{\ell})/(\sigma_{\ell}+\epsilon))$ for each head.
+            \item If $s$ is empty, set $s_h \leftarrow e_{\ell,h}$.
+            \item Otherwise compute $c_{\ell,h} \leftarrow |2e_{\ell,h}-1|$, $\iota_{\ell,h} \leftarrow |e_{\ell,h}-s_h|$, $g_{\ell,h} \leftarrow \alpha_{\min}+(\alpha_{\max}-\alpha_{\min})c_{\ell,h}\iota_{\ell,h}$.
+            \item Update $s_h \leftarrow (1-g_{\ell,h})s_h + g_{\ell,h}e_{\ell,h}$.
+        \end{enumerate}
+        \item Construct complementary masks $k^{+} \leftarrow \mathbb{1}[s \geq 0.5]$, $k^{-} \leftarrow 1-k^{+}$.
+        \item Produce high- and low-TVER masked attention outputs and propagate their ghost states.
+    \end{enumerate}
+    \item At the final layer, integrate both ghost states to obtain $f_t^{+}$ and $f_t^{-}$ alongside $f_t^{0}$.
+    \item Compute $d_t^{+}$ and $d_t^{-}$, independently select each branch's contribution, and form $f_t^{\mathrm{final}}$.
+    \item Apply the adaptive plausibility constraint and sample the next token.
+\end{enumerate}
+\hrule
+\end{minipage}
+\end{center}
+
+\subsection{Computational Characteristics}
+
+ADBD is training-free and does not require an additional image encoding or an independent second invocation of the full LVLM. It reuses the normal attention tensors to construct two masked attention outputs and propagates two lightweight auxiliary states. Relative to ONLY, the method adds a second auxiliary branch, per-layer TVER-state updates on the selected layers, and one additional language-model-head projection. These operations increase arithmetic and memory use, so efficiency must be established empirically rather than described as negligible. We report wall-clock latency, tokens per second, and peak GPU memory in Section~\ref{subsec:efficiency}.
+
+\subsection{Relation to Earlier Variants}
+\label{subsec:discussion}
+
+The development of ADBD proceeded through a sequence of simpler variants, which we retain as ablations (Section~\ref{subsec:ablations}). \emph{Binary multi-layer accumulation} blends fresh per-layer binary masks via EMA but discards the continuous evidence magnitude. \emph{Continuous score accumulation} retains the magnitude but uses a fixed or globally shared update rate rather than per-head adaptive gains, and still produces a single auxiliary branch. \emph{Static dual branches} introduces complementary high/low-TVER branches but computes them from a single layer. \emph{Global-EMA dual branches} combines dual branches with a shared EMA update across heads. Full ADBD adds per-head adaptive gains to continuous dual-branch accumulation. This organization lets the main narrative focus on ADBD while the ablations isolate which components drive the observed improvement.

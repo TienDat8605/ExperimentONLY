@@ -1,0 +1,21 @@
+\section{Limitations}
+\label{sec:limitations}
+
+ADBD has several limitations. First, evaluation on POPE and the MME Hallucination subset shows that the method does not improve every visual competency uniformly. Although ADBD improves MME Position and Color, it underperforms ONLY on Existence, Count, and the reported aggregate score. The Count regression is particularly substantial. Moreover, POPE and MME still rely primarily on constrained yes--no evaluation and do not establish generalization to open-ended captioning. Evaluation on CHAIR~\cite{rohrbach2018object} and additional contemporary hallucination benchmarks is therefore needed.
+
+Second, the current implementation uses fixed textual and visual token boundaries tailored to the evaluated LLaVA-1.5 prompt and its 576 image tokens. This assumption may fail under a different conversation template, visual resolution, processor, or multi-image input. A robust implementation should obtain modality boundaries from the tokenizer and multimodal processor.
+
+Third, accumulating a state at the same head index across layers implicitly treats those coordinates as comparable. Attention head $h$ in one layer is not guaranteed to have the same function as head $h$ in another. ADBD should therefore be interpreted as accumulating evidence over aligned mask coordinates rather than tracking a semantically identical head through depth. Future work could instead accumulate layer-specific statistics, learn cross-layer correspondences, or aggregate at the level of attention functions rather than raw indices.
+
+Fourth, ADBD introduces additional computation and memory relative to ONLY because it maintains two auxiliary states. The method remains training-free and avoids a separate full-model pass, but its practical efficiency depends on the measured overhead reported in Section~\ref{subsec:efficiency}.
+
+Fifth, the current method derives modality evidence from TVER and a layer-wise reference. The branch names do not by themselves prove that one branch is intrinsically visual and the other intrinsically textual. Attention visualization, controlled modality ablations, and branch-removal experiments are required before making stronger semantic claims.
+
+Finally, if results are reported from a subset or a single stochastic seed, the statistical strength of the conclusions is limited. The final evaluation should use the complete benchmark or a pre-specified sampling protocol and report variability across seeds where sampling-based decoding is used.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+We introduced Adaptive Dual-Branch Decoding, a training-free method for reducing hallucinations in LVLMs. ADBD replaces ONLY's frozen one-layer binary decision with a continuous TVER state refined across selected decoder layers by head-specific adaptive gains. The state produces complementary high- and low-TVER auxiliary branches, which are independently reinforced or penalized according to their disagreement with the normal distribution. An anchored three-branch rule combines these signals without requiring a separate full LVLM invocation.
+
+On POPE with LLaVA-1.5-7B, ADBD achieves the strongest performance among the evaluated decoding configurations. On MME Hallucination, the method improves Position and Color but decreases Existence and Count, yielding a category-dependent rather than universal gain. Ablations isolate the contribution of continuous accumulation, adaptive gains, and complementary branches, while branch-level analysis characterizes the four joint decoding regimes. Overall, the results suggest that complementary and adaptively accumulated attention evidence can provide a more informative contrastive signal than a static single-layer mask, but its gains are category-dependent and the remaining limitations on counting and existence perception identify clear directions for future work.

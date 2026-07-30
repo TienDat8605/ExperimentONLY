@@ -1,0 +1,27 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Large vision--language models (LVLMs) have demonstrated remarkable capabilities in image captioning, visual question answering, and visual reasoning~\cite{alayrac2022flamingo,li2023blip2,liu2024visual}. Despite this progress, they remain susceptible to hallucination: generating objects, attributes, or relations that are unsupported by the visual input~\cite{rohrbach2018object,li2023pope}. Such errors reduce user trust and restrict deployment in safety-sensitive settings including medical imaging, autonomous navigation, and assistive technologies.
+
+A prominent family of training-free mitigation methods operates during decoding. Contrastive approaches compare the model's standard next-token distribution with a deliberately distorted counterpart and use their disagreement to reduce reliance on unsupported language priors. Visual Contrastive Decoding (VCD)~\cite{leng2024mitigating} constructs the distorted distribution from a perturbed image, while M3ID~\cite{fayyaz2024m3id} alters the multimodal conditioning signal. Although effective, methods that independently evaluate normal and distorted inputs require multiple model passes per generation step, increasing latency and memory consumption.
+
+The ONLY method~\cite{wan2025only} avoids this duplication by producing a normal distribution and an auxiliary contrastive distribution within one forward process. At a selected intervention layer, ONLY calculates a Text-to-Visual Entropy Ratio (TVER) for every attention head. Heads with low TVER are suppressed to create a textually enhanced hidden representation, which is propagated through the remaining layers using a lightweight ghost path and converted into auxiliary logits. A TVD-based switching rule then either reinforces the auxiliary logits when both paths agree or subtracts them when their distributions diverge.
+
+\paragraph{Limitations of ONLY.}
+Despite its efficiency, ONLY makes its head-selection decision from a single layer, typically layer~0. This creates two limitations. \emph{First}, the decision cannot be revised using deeper representations, even though cross-modal associations evolve throughout the decoder~\cite{abnar2020quantifying,clark2019does}. A head selected from noisy early-layer attention remains selected for the rest of generation, whereas a head that becomes problematic only at a later layer is never captured. \emph{Second}, a single binary mask collapses a continuous spectrum of text--visual attention behavior into one auxiliary path. It therefore cannot separately represent the complementary behaviors of heads above and below the TVER reference level.
+
+\paragraph{This work.}
+We address these limitations with \emph{Adaptive Dual-Branch Decoding} (ADBD). ADBD accumulates continuous, layer-specific TVER evidence instead of freezing a binary mask. For each head, the method maintains a running state and updates it with a bounded adaptive gain. The gain is head-specific: confident and informative evidence can revise the state more strongly, while weak or redundant observations produce smaller changes. The resulting continuous state partitions the heads into complementary high-TVER and low-TVER groups. Both groups are retained as separate auxiliary branches, producing three next-token distributions in total: the normal distribution, a high-TVER branch, and a low-TVER branch.
+
+The two auxiliary distributions are not forced to follow the same decoding regime. ADBD independently computes their TVD from the normal distribution. Each branch is reinforced when it remains close to the normal path and penalized when it diverges beyond its branch-specific threshold. Whenever a branch is subtracted, the normal logits receive a corresponding anchor increase, preventing auxiliary subtraction from overwhelming the base model. This construction yields four possible joint regimes and allows the two complementary branches to contribute differently at the same generation step.
+
+\paragraph{Contributions.}
+Our contributions are as follows:
+\begin{enumerate}
+    \item We introduce a \textbf{continuous multi-layer TVER state} that preserves the magnitude and direction of head-level evidence instead of immediately reducing every layer to a binary mask.
+    \item We propose a \textbf{head-specific adaptive update mechanism} that controls how strongly new layer evidence changes the accumulated state using bounded gains derived from confidence and innovation.
+    \item We construct \textbf{complementary high-TVER and low-TVER ghost branches} and combine them with the normal distribution through an independently switched, anchored three-branch decoding rule.
+    \item We evaluate the method on POPE~\cite{li2023pope} and the MME Hallucination subset~\cite{fu2023mme} using LLaVA-1.5-7B~\cite{liu2024visual}. ADBD is the strongest evaluated configuration on the primary POPE evaluation, while MME provides a complementary diagnosis of category-specific gains and regressions. Earlier proposal variants are reported only as ablations.
+\end{enumerate}
+
+The remainder of this paper is organized as follows. Section~\ref{sec:related} discusses related work. Section~\ref{sec:method} presents ADBD. Section~\ref{sec:experiments} describes the experimental setup, main results, ablations, and mechanistic analysis. Section~\ref{sec:limitations} discusses limitations, and Section~\ref{sec:conclusion} concludes.

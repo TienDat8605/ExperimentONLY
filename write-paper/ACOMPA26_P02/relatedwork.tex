@@ -1,0 +1,24 @@
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Large Vision-Language Models (LVLMs)}
+Large vision--language models (LVLMs) have achieved remarkable progress by integrating powerful visual encoders with robust language backbones through a projection module \cite{liu2024visual, alayrac2022flamingo, li2023blip2}. These architectures enable strong performance across image captioning, visual question answering, and complex visual reasoning tasks. However, despite impressive capabilities, LVLMs remain highly susceptible to hallucinations — generating objects, attributes, or relations that are unsupported by the visual input \cite{rohrbach2018object, li2023pope}. Such errors severely limit deployment in safety-critical applications including medical imaging, autonomous navigation, and assistive technologies.
+
+\subsection{Hallucination Mitigation}
+Two main paradigms have emerged for reducing hallucinations in LVLMs.
+
+\textbf{Training-based methods} attempt to realign model outputs with visual evidence by optimizing on curated data or applying reinforcement learning from human feedback (RLHF) and related techniques. While these approaches can effectively reduce language priors, they require computationally expensive fine-tuning and cannot be applied at inference time.
+
+\textbf{Training-free decoding-time interventions} operate directly during generation without modifying model parameters. Visual Contrastive Decoding (VCD) \cite{leng2024mitigating} constructs a contrastive distribution from a visually perturbed input, while M3ID \cite{fayyaz2024m3id} uses mutual information between modalities to guide decoding. Although effective, these methods typically require multiple model evaluations per token, significantly increasing latency and memory usage.
+
+\textbf{Single-forward-pass methods} represent a more efficient family. The ONLY framework \cite{wan2025only} produces both a normal distribution and an auxiliary contrastive distribution within a single forward pass by suppressing attention heads with low text-to-visual entropy ratio at a single early layer. This approach achieves strong results without additional model invocations but relies on a frozen binary mask computed at one layer.
+
+\textbf{Attention-head suppression techniques} exploit the correlation between hallucination and attention allocation patterns. The ONLY method~\cite{wan2025only} dynamically identifies and suppresses heads that mediate spurious text--image correlations using a text-to-visual entropy ratio (TVER) at a single early layer. This approach demonstrates the power of targeted attention manipulation for hallucination reduction but relies on a frozen binary mask computed once.
+
+\subsection{Evaluation Benchmarks}
+Hallucination in LVLMs is typically evaluated using specialized benchmarks. The POPE benchmark \cite{li2023pope} uses polling-based yes--no questions derived from COCO images to probe object hallucination under random, popular, and adversarial sampling strategies. CHAIR \cite{rohrbach2018object} measures captioning hallucination by comparing generated descriptions against object presence in the image. The MME benchmark \cite{fu2023mme} provides a broader evaluation including existence, count, position, and color perception questions. Recent work has shown that these benchmarks reveal complementary failure modes that single-metric evaluations may miss \cite{wan2025only}.
+
+\subsection{Gaps and Opportunities}
+Despite progress, current methods share common limitations. Many contrastive approaches incur high computational cost due to multiple forward passes. Single-layer methods like ONLY suffer from the inability to incorporate deeper cross-modal evidence and collapse the rich spectrum of head behaviors into a single auxiliary branch. Recent advances in 2024--2025 have explored more sophisticated contrastive mechanisms, yet few have addressed the need for adaptive, multi-layer accumulation of evidence with complementary branch resolution.
+
+This work addresses these limitations by introducing Adaptive Dual-Branch Decoding (ADBD), which accumulates continuous TVER evidence across multiple layers using per-head adaptive gains, produces complementary high-TVER and low-TVER branches, and resolves them through an independently switched, anchored three-branch decoding rule. ADBD achieves state-of-the-art performance on POPE while providing a more informative contrastive signal than prior single-forward-pass or multi-pass methods, all without requiring additional model invocations.

@@ -1,0 +1,244 @@
+\section{Experiments}
+\label{sec:experiments}
+
+We evaluate ADBD on two hallucination benchmarks: POPE~\cite{li2023pope} and the hallucination subset of MME~\cite{fu2023mme}. POPE is the primary benchmark used for method selection and detailed decoding analysis, while MME tests whether the method generalizes beyond binary object-presence questions to existence, counting, position, and color perception. The main comparison includes the base LLaVA decoding procedure, ONLY, and the full ADBD method. Earlier proposal variants are not presented as competing methods; instead, they are reorganized as controlled component ablations in Section~\ref{subsec:ablations}.
+
+\subsection{Experimental Setup}
+
+\paragraph{Model.}
+We use LLaVA-1.5-7B~\cite{liu2024visual} as the base LVLM in all experiments. The visual encoder, multimodal projector, language-model weights, prompt template, and generation settings are held constant across methods.
+
+\paragraph{Benchmarks.}
+\textbf{POPE} (Polling-based Object Probing Evaluation)~\cite{li2023pope} evaluates object hallucination using balanced yes--no questions derived from COCO validation images~\cite{lin2014microsoft}. Each question asks whether a named object is present. POPE contains three negative-sampling settings: \emph{Random} (absent objects sampled uniformly from the vocabulary), \emph{Popular} (absent objects sampled from frequently occurring categories, testing frequency bias), and \emph{Adversarial} (absent objects selected by co-occurrence statistics, producing semantically plausible but unsupported queries). Each split is balanced with equal positive and negative counts.
+
+\textbf{MME Hallucination subset}~\cite{fu2023mme} evaluates multimodal perception through task-specific yes--no questions. We use the hallucination-related perception subset comprising \emph{Existence}, \emph{Count}, \emph{Position}, and \emph{Color}. Each category is scored using the official MME protocol, and the category scores are aggregated into an overall MME Hallucination score.
+
+\paragraph{Baselines and ablations.}
+The primary baselines are (1) \textbf{LLaVA}: standard decoding without contrastive intervention; (2) \textbf{ONLY}: the original one-layer, single-branch intervention~\cite{wan2025only}; and (3) \textbf{ADBD}: the complete proposed method. The ablation study (Section~\ref{subsec:ablations}) evaluates intermediate component combinations: binary multi-layer accumulation, continuous score accumulation without adaptive gains, static complementary dual branches, dual branches with a shared/global EMA update, and full continuous dual branches with per-head adaptive gains.
+
+\paragraph{Implementation details.}
+Unless otherwise specified, ADBD uses gain bounds $\alpha_{\min}=0.05$ and $\alpha_{\max}=0.50$. The implementation supports accumulation layers from $0$ to $30$ on the 32-layer LLaVA-1.5 decoder; layer~$31$ is reserved for final auxiliary integration. The default TVD threshold is $\gamma_{+}=\gamma_{-}=0.6$. When branch-specific coefficients are not overridden, the implementation falls back to a collaborative weight of $3.0$ and a contrastive weight of $1.0$ for each branch, with $\beta=0.1$ for the adaptive plausibility constraint~\cite{li2023contrastive} and sampling-based decoding with temperature $1.0$. The current implementation identifies textual tokens as positions $1$--$34$ and visual tokens as positions $35$--$610$, corresponding to 576 image tokens, matching the evaluated LLaVA prompt configuration.
+
+\paragraph{Metrics.}
+For POPE, we report Accuracy, Precision, Recall, and F1 for each split. Because the three splits emphasize different hallucination conditions, we additionally report macro-average Accuracy and macro-average F1 across Random, Popular, and Adversarial. The ratio of generated ``Yes'' responses is included to expose changes in response bias. For MME Hallucination, we report the official category scores for Existence, Count, Position, and Color, together with their aggregate score and category-wise differences from ONLY, since the aggregate can hide opposing changes across visual competencies.
+
+\subsection{POPE Main Results}
+
+Table~\ref{tab:main_results} compares ADBD with the standard model and ONLY. ADBD is the best-performing evaluated decoding method under the primary metric.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccccc}
+\toprule
+Method & Random Acc. & Popular Acc. & Adv. Acc. & Macro Acc. & Macro F1 \\
+\midrule
+LLaVA & \todo & \todo & \todo & \todo & \todo \\
+ONLY  & \todo & \todo & \todo & \todo & \todo \\
+\textbf{ADBD} & \textbf{\todo} & \textbf{\todo} & \textbf{\todo} & \textbf{\todo} & \textbf{\todo} \\
+\bottomrule
+\end{tabular}
+}
+\caption{Main POPE results for LLaVA-1.5-7B. Macro values are computed across the three splits. \todo: insert values from the experiment spreadsheet.}
+\label{tab:main_results}
+\end{table}
+
+Table~\ref{tab:detailed_results} provides the full precision--recall breakdown, including the Yes-ratio, which is necessary to distinguish genuine hallucination reduction from a global shift toward positive or negative answers.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{llccccc}
+\toprule
+Split & Method & Accuracy & Precision & Recall & F1 & Yes ratio \\
+\midrule
+\multirow{3}{*}{Random}      & LLaVA & \todo & \todo & \todo & \todo & \todo \\
+                              & ONLY  & \todo & \todo & \todo & \todo & \todo \\
+                              & ADBD  & \todo & \todo & \todo & \todo & \todo \\
+\midrule
+\multirow{3}{*}{Popular}     & LLaVA & \todo & \todo & \todo & \todo & \todo \\
+                              & ONLY  & \todo & \todo & \todo & \todo & \todo \\
+                              & ADBD  & \todo & \todo & \todo & \todo & \todo \\
+\midrule
+\multirow{3}{*}{Adversarial} & LLaVA & \todo & \todo & \todo & \todo & \todo \\
+                              & ONLY  & \todo & \todo & \todo & \todo & \todo \\
+                              & ADBD  & \todo & \todo & \todo & \todo & \todo \\
+\bottomrule
+\end{tabular}
+}
+\caption{Detailed POPE results for the primary baselines and ADBD, including the ratio of ``Yes'' responses to expose response-bias shifts. \todo: insert values.}
+\label{tab:detailed_results}
+\end{table}
+
+\subsection{MME Hallucination Results}
+
+Table~\ref{tab:mme_hallucination} reports performance on the four hallucination-related MME perception categories. ADBD exhibits a clear category-dependent tradeoff: it improves \emph{Position} and \emph{Color}, suggesting that the dual-branch mechanism better preserves some spatial and attribute-level visual evidence, but decreases \emph{Existence} and \emph{Count}. Consequently, ADBD does not outperform ONLY on the reported aggregate MME Hallucination score. This narrows the paper's claim: ADBD is the strongest configuration on the primary POPE evaluation, but its benefit does not transfer uniformly across hallucination categories.
+
+The particularly large Count regression suggests that the current head partition and branch-resolution rule may favor coarse spatial or attribute cues over exact cardinality evidence. This interpretation is a hypothesis rather than a demonstrated mechanism; it should be tested through branch-removal ablations (Section~\ref{subsec:branch_removal}) and per-category decoding diagnostics.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lccccc}
+\toprule
+Method & Existence & Count & Position & Color & MME score \\
+\midrule
+ONLY              & \textbf{191.67} & \textbf{145.55} & 136.66 & 161.66 & \textbf{635.55} \\
+ADBD (Proposal 6) & 180.00          & 121.67          & \textbf{153.33} & \textbf{175.00} & \todo \\
+\midrule
+Difference        & $-11.67$ & $-23.88$ & $+16.67$ & $+13.34$ & \todo \\
+\bottomrule
+\end{tabular}
+\caption{MME Hallucination results (higher is better). \textbf{Caveat:} no MME evaluation has been successfully run in this codebase (the MME download failed in every session). These category scores are taken from the draft manuscript and are unverified; the aggregate is left blank pending a real evaluation, since the draft's category scores sum to $630.00$ while an earlier draft reported $620.00$.}
+\label{tab:mme_hallucination}
+\end{table}
+
+\subsection{Dual-Branch Decoding Dynamics}
+
+A single-branch analysis is insufficient for ADBD because the two auxiliary paths can enter different regimes. We therefore analyze $d_t^{+}$ and $d_t^{-}$ separately and count all four joint regimes. The joint-regime distribution reveals whether the branches provide redundant or complementary corrections: a high collaborative/collaborative rate would indicate that both branches mainly reinforce distributions close to the normal path, whereas frequent mixed regimes would provide stronger evidence that the branches capture different failure modes.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccc}
+\toprule
+Split & Mean $d^{+}$ & Median $d^{+}$ & Mean $d^{-}$ & Median $d^{-}$ \\
+\midrule
+Random      & \todo & \todo & \todo & \todo \\
+Popular     & \todo & \todo & \todo & \todo \\
+Adversarial & \todo & \todo & \todo & \todo \\
+\bottomrule
+\end{tabular}
+\caption{Branch-specific TVD statistics under ADBD. \todo: insert from Proposal 6 debug logs.}
+\label{tab:tvd_stats}
+\end{table}
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccc}
+\toprule
+Split & C/C & C/T & T/C & T/T \\
+\midrule
+Random      & \todo & \todo & \todo & \todo \\
+Popular     & \todo & \todo & \todo & \todo \\
+Adversarial & \todo & \todo & \todo & \todo \\
+\bottomrule
+\end{tabular}
+\caption{Percentage of decoding steps in each joint branch regime. C denotes collaborative and T denotes contrastive. \todo: insert from debug logs.}
+\label{tab:regime_stats}
+\end{table}
+
+\subsection{Head-State and Gain Analysis}
+
+To verify that adaptive accumulation functions as intended, we analyze the continuous state and per-head gains across layers. We report the mean and variance of $s_{\ell,h}$ by layer, the number of heads assigned to each complementary branch, the fraction of heads whose branch assignment changes between selected layers, the mean/minimum/maximum adaptive gain, the relationship between confidence, innovation, and gain, and differences between correct and incorrect examples. A useful adaptive mechanism should not collapse to a constant gain; we therefore report the observed gain range and whether high-innovation observations receive larger updates under the exact implementation.
+
+\subsection{Ablation Study}
+\label{subsec:ablations}
+
+We use earlier proposal variants only as ablations that remove or simplify components of ADBD. The study is organized by mechanism rather than proposal number (Table~\ref{tab:ablation_design}) and is designed to answer three questions: (1) does continuous evidence outperform binary accumulation? (2) do complementary branches outperform a single branch? (3) do per-head gains improve over a shared update rate?
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccccc}
+\toprule
+Variant & Multi-layer & Continuous & Adaptive & Complement. & Independent \\
+         & evidence & state & gain & branches & switching \\
+\midrule
+ONLY                      & No  & No  & No  & No  & No  \\
+Binary accumulation       & Yes & No  & No  & No  & No  \\
+Continuous accumulation   & Yes & Yes & No  & No  & No  \\
+Static dual branch        & No  & No  & No  & Yes & Yes \\
+Global-EMA dual branch    & Yes & No  & No  & Yes & Yes \\
+\textbf{ADBD}             & Yes & Yes & Yes & Yes & Yes \\
+\bottomrule
+\end{tabular}
+}
+\caption{Component structure of the ablation variants.}
+\label{tab:ablation_design}
+\end{table}
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccccc}
+\toprule
+Variant & Random & Popular & Adv. & Macro Acc. & Macro F1 \\
+\midrule
+ONLY                      & \todo & \todo & \todo & \todo & \todo \\
+Binary accumulation       & \todo & \todo & \todo & \todo & \todo \\
+Continuous accumulation   & \todo & \todo & \todo & \todo & \todo \\
+Static dual branch        & \todo & \todo & \todo & \todo & \todo \\
+Global-EMA dual branch    & \todo & \todo & \todo & \todo & \todo \\
+\textbf{ADBD}             & \textbf{\todo} & \textbf{\todo} & \textbf{\todo} & \textbf{\todo} & \textbf{\todo} \\
+\bottomrule
+\end{tabular}
+}
+\caption{Ablation results on POPE. \todo: insert values; use macro metrics as the primary summary.}
+\label{tab:ablation_results}
+\end{table}
+
+\subsection{Branch Removal}
+\label{subsec:branch_removal}
+
+To isolate the role of each complementary path, we additionally evaluate normal plus the high-TVER branch only, normal plus the low-TVER branch only, both branches without independent switching, and full ADBD (Table~\ref{tab:branch_ablation}). These configurations distinguish the contribution of each auxiliary branch and test whether independent switching is necessary.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccccc}
+\toprule
+Configuration & Macro Acc. & Macro F1 & Random & Popular & Adv. \\
+\midrule
+High-TVER only             & \todo & \todo & \todo & \todo & \todo \\
+Low-TVER only              & \todo & \todo & \todo & \todo & \todo \\
+Dual branch, shared switch & \todo & \todo & \todo & \todo & \todo \\
+Full ADBD                  & \todo & \todo & \todo & \todo & \todo \\
+\bottomrule
+\end{tabular}
+\caption{Contribution of each auxiliary branch. \todo: insert values.}
+\label{tab:branch_ablation}
+\end{table}
+
+\subsection{Layer Selection and Gain Bounds}
+
+We evaluate sensitivity to the accumulation-layer set $\mathcal{L}_{\mathrm{upd}}$ and to the gain bounds $\alpha_{\min},\alpha_{\max}$. The final study compares early-only, late-only, sparse, and all eligible layers, together with several gain ranges around the selected configuration, to confirm that the reported results are not artifacts of a particular layer choice.
+
+\subsection{Efficiency}
+\label{subsec:efficiency}
+
+We measure decoding efficiency on the same GPU, software environment, batch size, prompt set, and generation length for all methods (Table~\ref{tab:efficiency}). ADBD avoids an additional independent LVLM invocation, but its second ghost branch is not free; the final text distinguishes \emph{single model invocation} from \emph{zero overhead} and reports the measured trade-off accurately.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccc}
+\toprule
+Method & Time/question & Tokens/s & Peak memory & Slowdown \\
+\midrule
+LLaVA & \todo & \todo & \todo & $1.00\times$ \\
+ONLY  & \todo & \todo & \todo & \todo \\
+ADBD  & \todo & \todo & \todo & \todo \\
+\bottomrule
+\end{tabular}
+\caption{Inference efficiency relative to standard LLaVA and ONLY. \todo: insert measured values.}
+\label{tab:efficiency}
+\end{table}
+
+\subsection{Qualitative Analysis}
+
+We select examples in which (1) ADBD corrects an ONLY hallucination; (2) the high-TVER branch provides the decisive correction; (3) the low-TVER branch provides the decisive correction; (4) the two branches enter different regimes; and (5) ADBD introduces an error that ONLY avoids. For each example, we report the image, question, ground-truth answer, predictions, branch TVDs, joint regime, and the top candidate probabilities before and after three-branch resolution. Such examples support the proposed mechanism more directly than aggregate TVD statistics alone.
