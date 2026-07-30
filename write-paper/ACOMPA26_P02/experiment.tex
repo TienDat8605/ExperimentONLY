@@ -89,12 +89,12 @@ The particularly large Count regression suggests that the current head partition
 Method & Existence & Count & Position & Color & MME score \\
 \midrule
 ONLY              & \textbf{191.67} & \textbf{145.55} & 136.66 & 161.66 & \textbf{635.55} \\
-ADBD (Proposal 6) & 180.00          & 121.67          & \textbf{153.33} & \textbf{175.00} & 630.00 \\
+ADBD (Proposal 6) & 180.00          & 121.67          & \textbf{153.33} & \textbf{175.00} & \todo \\
 \midrule
-Difference        & $-11.67$ & $-23.88$ & $+16.67$ & $+13.34$ & $-5.55$ \\
+Difference        & $-11.67$ & $-23.88$ & $+16.67$ & $+13.34$ & \todo \\
 \bottomrule
 \end{tabular}
-\caption{MME Hallucination results (higher is better). The ADBD category scores sum to $630.00$, which is the aggregate reported here. \todo: verify the aggregate against the experiment log before camera-ready.}
+\caption{MME Hallucination results (higher is better). \textbf{Caveat:} no MME evaluation has been successfully run in this codebase (the MME download failed in every session). These category scores are taken from the draft manuscript and are unverified; the aggregate is left blank pending a real evaluation, since the draft's category scores sum to $630.00$ while an earlier draft reported $620.00$.}
 \label{tab:mme_hallucination}
 \end{table}
 
