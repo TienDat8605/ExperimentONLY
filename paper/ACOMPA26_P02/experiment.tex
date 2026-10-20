@@ -1,163 +1,265 @@
 \section{Experiments}
 \label{sec:experiments}
 
-We evaluate Cumulative Mask Decoding (CMD) on the POPE benchmark~\cite{li2023pope} for hallucination detection in vision--language models. We compare against the original ONLY method~\cite{wan2025only} to isolate the effect of the proposed multi-layer mask accumulation.
+We evaluate ADBD on two hallucination benchmarks: POPE~\cite{li2023pope} and the hallucination subset of MME~\cite{fu2023mme}. POPE is the primary benchmark used for method selection and detailed decoding analysis, while MME tests whether the method generalizes beyond binary object-presence questions to existence, counting, position, and color perception. The main comparison includes standard LLaVA decoding, ONLY, and full ADBD. Earlier proposal variants are reorganized as controlled component ablations rather than presented as separate proposed methods.
 
 \subsection{Experimental Setup}
 
 \paragraph{Model.}
-We use LLaVA-1.5~\cite{liu2024visual} with 7B parameters as the base vision--language model across all experiments.
+We use LLaVA-1.5-7B~\cite{liu2024visual} as the base LVLM in all experiments. The visual encoder, multimodal projector, language-model weights, prompt template, and generation settings are held constant across methods.
 
-\paragraph{Dataset.}
-POPE (Polling-based Object Probing Evaluation)~\cite{li2023pope} evaluates hallucination by asking yes-or-no questions about object presence in COCO validation images~\cite{lin2014microsoft}. Each question follows the format ``Is there a \{object\} in the image?'' The model is evaluated on whether it answers ``Yes'' for present objects and ``No'' for absent objects. POPE comprises three splits that differ in how negative, absent-object queries are constructed.
+\paragraph{POPE.}
+POPE evaluates object hallucination using balanced yes--no questions derived from COCO validation images~\cite{lin2014microsoft}. Its three negative-sampling settings are Random, in which absent objects are sampled uniformly; Popular, in which absent objects are sampled from frequent categories; and Adversarial, in which absent objects are selected using co-occurrence statistics. Each full split contains 3,000 questions with equal numbers of positive and negative questions. \TODO{State whether ADBD was evaluated on all 3,000 questions per split or a fixed subset; if a subset was used, report the selection rule, sample count, and whether it was shared by every method.}
 
-\begin{itemize}
-    \item \textbf{Random:} negative objects are sampled uniformly at random from the dataset vocabulary. This tests the model's baseline ability to distinguish actual objects from completely unrelated distractors.
-    \item \textbf{Popular:} negative objects are selected from the most frequently occurring objects in the COCO training set. This tests the model's robustness to frequency bias---whether it can reject a highly probable object that happens to be absent.
-    \item \textbf{Adversarial:} negative objects are chosen based on co-occurrence statistics: objects that frequently appear alongside the actual image content but are absent in the specific image, such as querying ``fork'' for an image containing a dining table. This is the most challenging split, as it tests the model against plausible-but-absent objects that exploit common-sense associations.
-\end{itemize}
+\paragraph{MME Hallucination subset.}
+We use the hallucination-related MME perception categories Existence, Count, Position, and Color. Each category is scored using the official protocol, and the category scores are aggregated into an overall MME Hallucination score. \TODO{Add the evaluation script or commit, number of images and questions per category, prompt template, answer parser, and whether decoding was deterministic. Verify the ADBD aggregate: the supplied category scores sum to 630.00, whereas the reported aggregate is 620.00.}
 
-All three splits are balanced, with 50\% positive and 50\% negative questions. Following prior work, the full benchmark contains 3,000 questions per split. Due to computational constraints, we report results on a 600-question subset per split; we denote this with a $\dagger$ symbol throughout.\footnote{Full 3,000-question results will be inserted at camera-ready. Preliminary scaling checks indicate that the subset is representative: per-split means and variances stabilized within the first 400 samples, suggesting reliable conclusions.}
+\paragraph{Baselines and ablations.}
+The primary methods are standard \textbf{LLaVA}, the original one-layer and single-branch \textbf{ONLY} method~\cite{wan2025only}, and the complete \textbf{ADBD} method. Component ablations include binary multi-layer accumulation, continuous score accumulation without adaptive gains, static complementary dual branches, dual branches with a shared or global EMA update, and full continuous dual branches with per-head adaptive gains.
 
-\paragraph{Hyperparameters.}
-We use the same hyperparameters as the original ONLY method for LLaVA-1.5: $\alpha_1 = 3.0$, $\alpha_2 = 1.0$, $\gamma = 0.6$, $\beta = 0.1$, intervention layer $\tilde{\ell}=0$, and sampling-based decoding with temperature 1.0. For CMD, we use the dynamic EMA smoothing rate with $\alpha_{\min}=0.05$ and $\alpha_{\max}=0.50$. The maximum number of new tokens is set to 2.
+\paragraph{Implementation details.}
+Unless otherwise specified, ADBD uses gain bounds $\alpha_{\min}=0.05$ and $\alpha_{\max}=0.50$. The implementation supports accumulation over layers 0--30, with layer~31 reserved for final auxiliary integration. The default branch TVD thresholds are 0.6. When branch-specific coefficients are not overridden, both branches use collaborative weights of 3.0 and contrastive weights of 1.0. \TODO{Replace these defaults with the exact command and configuration that produced the best result: selected layers, both gain bounds, both TVD thresholds, all four branch coefficients, $\beta$, maximum generated tokens, temperature, top-$p$, seed, and hardware.}
+
+The current implementation identifies textual tokens as positions 1--34 and visual tokens as positions 35--610, corresponding to 576 image tokens. This fixed indexing matches the evaluated LLaVA prompt configuration but should be replaced by processor-derived modality boundaries in a general implementation.
 
 \paragraph{Metrics.}
-We report Accuracy, Precision, Recall, and F1 score for both methods across all three POPE splits.
+For POPE, we report Accuracy, Precision, Recall, F1, and the ratio of generated ``Yes'' responses for each split. We additionally report macro-average Accuracy and macro-average F1 across the three splits. For MME Hallucination, we report the four category scores, their aggregate, and category-wise differences from ONLY. Stochastic results should be reported as mean and standard deviation over fixed seeds; if only one seed is available, we state that limitation explicitly.
 
-\subsection{Contrastive Dynamics Analysis}
-\label{subsec:contrastive_dynamics}
+\subsection{POPE Main Results}
 
-To understand how CMD alters the interaction between the normal and contrastive paths, we first analyze the TVD distribution across decoding steps before examining the accuracy results. This mechanistic analysis provides the foundation for interpreting the task-level performance.
+Table~\ref{tab:main_results} compares ADBD with the standard model and ONLY. ADBD is the best-performing evaluated decoding method under the selected primary metric, but exact values must be imported from the final experiment spreadsheet.
 
-\paragraph{Mask evolution.}
-The dynamic smoothing rate $\alpha_{\ell}$ typically ranges from 0.20 to 0.42 across layers, corresponding to kept-head ratios $r_{\ell}$ between 0.25 and 0.65. Early layers, especially layers 0--5, exhibit higher variance in $r_{\ell}$ as attention patterns shift. Later layers stabilize, and the cumulative mask converges to a suppression set of roughly 18--25 out of 32 heads by the final layers.
+\begin{table*}[t]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lccccc}
+\toprule
+Method & Random Acc. & Popular Acc. & Adversarial Acc. & Macro Acc. & Macro F1 \\
+\midrule
+LLaVA & TBD & TBD & TBD & TBD & TBD \\
+ONLY  & TBD & TBD & TBD & TBD & TBD \\
+\textbf{ADBD} & \textbf{TBD} & \textbf{TBD} & \textbf{TBD} & \textbf{TBD} & \textbf{TBD} \\
+\bottomrule
+\end{tabular}
+\caption{Main POPE results. Macro values are computed across Random, Popular, and Adversarial. All TBD entries must be replaced from the final experiment spreadsheet.}
+\label{tab:main_results}
+\end{table*}
 
-\paragraph{TVD distribution.}
-Table~\ref{tab:cmd_tvd_experiments} reports the TVD statistics under CMD across the three POPE splits. The mean TVD ranges from 0.091 to 0.113, with medians around 0.027--0.032. Crucially, only 0.4\%--1.4\% of decoding steps exceed the switching threshold $\gamma=0.6$ and enter the contrastive regime; the remaining 98.6\%--99.6\% operate in the collaborative regime where the two distributions agree.
+ADBD improves \TODO{primary metric} from \TODO{ONLY value} to \TODO{ADBD value}, a gain of \TODO{difference} points. The improvement is \TODO{broadly distributed across splits or concentrated on particular splits}. \TODO{Add a split-specific, evidence-supported interpretation after importing the table.}
+
+\begin{table*}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llccccc}
+\toprule
+Split & Method & Accuracy & Precision & Recall & F1 & Yes ratio \\
+\midrule
+Random & LLaVA & TBD & TBD & TBD & TBD & TBD \\
+       & ONLY  & TBD & TBD & TBD & TBD & TBD \\
+       & ADBD  & TBD & TBD & TBD & TBD & TBD \\
+\midrule
+Popular & LLaVA & TBD & TBD & TBD & TBD & TBD \\
+        & ONLY  & TBD & TBD & TBD & TBD & TBD \\
+        & ADBD  & TBD & TBD & TBD & TBD & TBD \\
+\midrule
+Adversarial & LLaVA & TBD & TBD & TBD & TBD & TBD \\
+            & ONLY  & TBD & TBD & TBD & TBD & TBD \\
+            & ADBD  & TBD & TBD & TBD & TBD & TBD \\
+\bottomrule
+\end{tabular}
+\caption{Detailed POPE results for the primary baselines and ADBD.}
+\label{tab:detailed_results}
+\end{table*}
+
+The precision, recall, and Yes-ratio results distinguish genuine hallucination reduction from a global shift toward either positive or negative answers. \TODO{Write a split-specific interpretation after inserting the values; do not reuse conclusions from an earlier proposal unless ADBD exhibits the same measured behavior.}
+
+\subsection{MME Hallucination Results}
+
+Table~\ref{tab:mme_hallucination} reports performance on the four hallucination-related MME perception categories.
 
 \begin{table}[t]
 \centering
 \small
-\setlength{\tabcolsep}{4pt}
+\setlength{\tabcolsep}{3pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccccc}
+\toprule
+Method & Exist. & Count & Position & Color & Total \\
+\midrule
+ONLY & \textbf{191.67} & \textbf{145.55} & 136.66 & 161.66 & \textbf{635.55} \\
+ADBD & 180.00 & 121.67 & \textbf{153.33} & \textbf{175.00} & 620.00$^{\dagger}$ \\
+$\Delta$ & $-11.67$ & $-23.88$ & $+16.67$ & $+13.34$ & $-15.55^{\dagger}$ \\
+\bottomrule
+\end{tabular}}
+\caption{MME Hallucination results. Higher is better. The reported ADBD total is reproduced as supplied.}
+\label{tab:mme_hallucination}
+\end{table}
+
+\noindent$^{\dagger}$The displayed ADBD category scores sum to 630.00, which would imply a difference of $-5.55$ rather than $-15.55$. The experiment log or evaluation output must be checked before submission.
+
+ADBD exhibits a category-dependent tradeoff on MME. It improves Position by 16.67 points and Color by 13.34 points, suggesting that the dual-branch mechanism may better preserve some spatial and attribute-level visual evidence. In contrast, Existence decreases by 11.67 points and Count decreases by 23.88 points. Consequently, ADBD does not outperform ONLY on the reported aggregate MME Hallucination score. This narrows the paper's claim: ADBD is the strongest configuration on the primary POPE evaluation, but its benefit does not transfer uniformly across hallucination categories.
+
+The Count regression suggests that the current head partition and branch-resolution rule may favor coarse spatial or attribute cues over exact cardinality evidence. This is a hypothesis rather than a demonstrated mechanism and should be tested through branch-removal ablations and per-category diagnostics. The Existence decline should likewise be compared against POPE response bias to determine whether it arises from a general shift in yes--no calibration or benchmark-specific visual evidence.
+
+\subsection{Dual-Branch Decoding Dynamics}
+
+A single-branch analysis is insufficient because the auxiliary paths can enter different regimes. We therefore analyze $d_t^{+}$ and $d_t^{-}$ separately and count all four joint regimes.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{lcccc}
 \toprule
-Split & Mean TVD$^{\dagger}$ & Median TVD$^{\dagger}$ & Collab. (\%)$^{\dagger}$ & Contrast. (\%)$^{\dagger}$ \\
+Split & Mean $d^{+}$ & Median $d^{+}$ & Mean $d^{-}$ & Median $d^{-}$ \\
 \midrule
-Random & 0.102 & 0.028 & 99.0 & 1.0 \\
-Popular & 0.113 & 0.032 & 98.6 & 1.4 \\
-Adversarial & 0.091 & 0.027 & 99.6 & 0.4 \\
+Random & TBD & TBD & TBD & TBD \\
+Popular & TBD & TBD & TBD & TBD \\
+Adversarial & TBD & TBD & TBD & TBD \\
 \bottomrule
-\end{tabular}
-}
-\caption{TVD statistics$^{\dagger}$ under CMD with dynamic EMA smoothing, evaluated on POPE with LLaVA-1.5. Statistics are computed over 1,200 decoding steps, corresponding to 600 questions with two generated tokens each.}
-\label{tab:cmd_tvd_experiments}
+\end{tabular}}
+\caption{Branch-specific TVD statistics under ADBD.}
+\label{tab:tvd_stats}
 \end{table}
-
-\paragraph{Interpretation.}
-The predominance of the collaborative regime indicates that the multi-layer accumulated mask produces a contrastive path closely aligned with the normal path. The head-suppression strategy identifies consistent text-enhancement patterns across layers rather than introducing a distribution that disagrees with the normal path for many tokens. The small minority of contrastive steps likely correspond to tokens where the normal path is heavily influenced by hallucination-prone attention patterns that the accumulated mask correctly identifies and penalizes.
-
-For reference, the original ONLY method, relying on a single-layer mask, produces a wider TVD distribution with a substantially higher proportion of contrastive steps, reflecting less stable alignment between the two logit distributions. CMD narrows this gap by integrating suppression evidence across all layers, yielding a more consistent and reliable contrastive signal.
-
-\subsection{Main Results}
-
-Table~\ref{tab:pope_results} presents the main results comparing CMD against the original ONLY method.
 
 \begin{table}[t]
 \centering
 \small
-\setlength{\tabcolsep}{4pt}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{llcccc}
+\begin{tabular}{lcccc}
 \toprule
-Split & Method & Accuracy$^{\dagger}$ & Precision$^{\dagger}$ & Recall$^{\dagger}$ & F1$^{\dagger}$ \\
+Split & C/C & C/T & T/C & T/T \\
 \midrule
-Random & ONLY & 89.70 & 89.95 & 88.27 & 89.10 \\
-Random & \textbf{CMD} & 79.00 & 72.19 & 94.33 & 81.79 \\
-Popular & ONLY & 86.00 & 84.44 & 88.27 & 86.31 \\
-Popular & \textbf{CMD} & 86.00 & 80.86 & 94.33 & 87.08 \\
-Adversarial & ONLY & 79.40 & 75.00 & 88.20 & 81.07 \\
-Adversarial & \textbf{CMD} & \textbf{88.00} & \textbf{83.53} & \textbf{94.67} & \textbf{88.75} \\
+Random & TBD & TBD & TBD & TBD \\
+Popular & TBD & TBD & TBD & TBD \\
+Adversarial & TBD & TBD & TBD & TBD \\
 \bottomrule
 \end{tabular}
-}
-\caption{POPE results$^{\dagger}$ for LLaVA-1.5 comparing CMD to the original ONLY method. CMD substantially outperforms ONLY on the hardest Adversarial split while matching it on Popular. The Random split shows reduced accuracy due to an increased false-positive rate.}
-\label{tab:pope_results}
+\caption{Percentage of decoding steps in each joint regime. C denotes collaborative and T denotes contrastive.}
+\label{tab:regime_stats}
 \end{table}
 
-The results reveal a clear and consistent pattern. CMD achieves a substantial improvement on the Adversarial split, with accuracy rising from 79.40\% to 88.00\% (+8.6 points) and F1 improving from 81.07 to 88.75 (+7.7 points). This represents a meaningful reduction in hallucination on the most challenging type of negative example: semantically plausible objects that are absent from the image but could reasonably be expected to co-occur with the visible content.
+The joint-regime distribution reveals whether the branches provide redundant or complementary corrections. A high C/C rate would indicate that both branches mainly reinforce distributions close to the normal path. Frequent mixed regimes would provide stronger evidence that the branches capture different failure modes. \TODO{Insert the observed interpretation.}
 
-On the Popular split, CMD matches the overall accuracy of ONLY, with both methods achieving 86.00\%, while improving F1 marginally from 86.31 to 87.08. On the Random split, CMD underperforms ONLY, with accuracy dropping from 89.70\% to 79.00\%, driven by a sharp reduction in precision from 89.95 to 72.19.
+\subsection{Head-State and Gain Analysis}
 
-\subsection{The Recall--Precision Tradeoff}
+To verify that adaptive accumulation functions as intended, we analyze the mean and variance of $s_{\ell,h}$ by layer, the number of heads assigned to each branch, the fraction of assignments that change between selected layers, the distribution of adaptive gains, the relationship among confidence, innovation, and gain, and differences between correct and incorrect examples. A useful adaptive mechanism should not collapse to a constant gain. \TODO{Generate the state-evolution and gain-evolution plots from ADBD debug logs, and report the observed gain range.}
 
-To understand the mechanism behind these results, we examine the recall and precision figures in detail. Figure~\ref{fig:recall_precision} visualizes the tradeoff.
+\subsection{Ablation Study}
+\label{subsec:ablations}
 
-\begin{figure}[t]
+We use earlier proposal variants only as ablations that remove or simplify ADBD components. Table~\ref{tab:ablation_design} summarizes their structure.
+
+\begin{table*}[t]
 \centering
 \small
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lccc@{\hspace{1.2em}}ccc}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccccc}
 \toprule
-& \multicolumn{3}{c}{Recall (\%)} & \multicolumn{3}{c}{Precision (\%)} \\
-\cmidrule(lr){2-4}\cmidrule(lr){5-7}
-Split & ONLY & CMD & $\Delta$ & ONLY & CMD & $\Delta$ \\
+Variant & Multi-layer & Continuous & Per-head gain & Dual branches & Indep. switch \\
 \midrule
-Random & 88.27 & 94.33 & +6.06 & 89.95 & 72.19 & $-17.76$ \\
-Popular & 88.27 & 94.33 & +6.06 & 84.44 & 80.86 & $-3.58$ \\
-Adversarial & 88.20 & 94.67 & +6.47 & 75.00 & 83.53 & +8.53 \\
+ONLY                    & No  & No  & No  & No  & No \\
+Binary accumulation     & Yes & No  & No  & No  & No \\
+Continuous accumulation & Yes & Yes & No  & No  & No \\
+Static dual branch      & No  & No  & No  & Yes & Yes \\
+Global-EMA dual branch  & Yes & No or binary & No & Yes & Yes \\
+\textbf{ADBD}           & Yes & Yes & Yes & Yes & Yes \\
 \bottomrule
 \end{tabular}
-}
-\caption{Recall--precision breakdown showing the asymmetric effect of CMD across splits. Recall increases uniformly by approximately 6 points across all splits, while precision changes in a split-dependent manner.}
-\label{fig:recall_precision}
-\end{figure}
+\caption{Component structure of the ablation variants.}
+\label{tab:ablation_design}
+\end{table*}
 
-The most striking observation is that recall increases uniformly across all three splits, from approximately 88\% to 94\% (+6 points). This uniformity suggests a systematic mechanism: CMD makes the model consistently more sensitive to the presence of objects, regardless of the evaluation split.
-
-Precision, however, moves in opposite directions depending on the split. On Random, precision drops sharply by 17.76 points; the model says ``Yes'' to many random negative queries---objects that are neither present nor semantically related to the image. On Popular, precision drops modestly by 3.58 points, with the recall gain largely compensating for the precision loss. On Adversarial, precision increases by 8.53 points, meaning that the model becomes simultaneously better at detecting present objects and better at rejecting plausible-but-absent objects. This asymmetric behavior is the central finding of our evaluation and deserves careful analysis.
-
-\subsection{Analysis: Why the Contrastive Path Succeeds on Adversarial Negatives}
-
-The contrastive path in ONLY and CMD is produced by suppressing attention heads with low text-to-visual entropy ratio. As established by Wan et al.~\cite{wan2025only}, this suppression weakens the model's ability to connect text tokens in the query to specific image patches, making the contrastive path more reliant on language priors: the model's expectation of what objects are likely given the query alone, independent of the visual evidence.
-
-The effect of this language-prior bias is asymmetric across POPE splits. On positive examples, where the queried objects are present, the language prior aligns with the visual evidence. If the model has learned that ``banana'' and ``table'' co-occur in dining scenes, the prior supports a ``Yes'' answer. This explains the uniform recall increase: the contrastive path, when combined via collaborative decoding ($d_t < \gamma$), amplifies the model's confidence about genuinely present objects.
-
-On negative examples, the outcome depends on the split. Random negatives have no association with the image content. The language prior is not engaged because it has no expectation about a randomly sampled object. The contrastive path's signal is therefore difficult to distinguish from noise, and the collaborative combination with the normal path adds little discriminative power. The higher recall, reflected in more ``Yes'' answers, manifests directly as false positives and drives precision down.
-
-Adversarial negatives are semantically related to the image content. Here, the language prior is engaged: the model expects, for example, a fork in a dining scene. However, because the contrastive path suppresses the visual-attention heads that would confirm the fork's presence, it is systematically more cautious. It assigns lower probability to the plausible-but-absent ``fork'' than the normal path, which has full visual access and may erroneously ``see'' a fork in the table. This divergence triggers the contrastive regime ($d_t \geq \gamma$), which penalizes tokens scoring high under the normal path but low under the contrastive path: exactly the signature of a hallucination. Figure~\ref{fig:tvd_regime} visualizes this mechanism.
-
-\begin{figure}[t]
+\begin{table*}[t]
 \centering
 \small
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lccc}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lccccc}
 \toprule
-Split & Contrastive Steps (\%) & Collaborative Steps (\%) & Mean TVD \\
+Variant & Random Acc. & Popular Acc. & Adversarial Acc. & Macro Acc. & Macro F1 \\
 \midrule
-Random & 1.0 & 99.0 & 0.102 \\
-Popular & 1.4 & 98.6 & 0.113 \\
-Adversarial & 0.4 & 99.6 & 0.091 \\
+ONLY                    & TBD & TBD & TBD & TBD & TBD \\
+Binary accumulation     & TBD & TBD & TBD & TBD & TBD \\
+Continuous accumulation & TBD & TBD & TBD & TBD & TBD \\
+Static dual branch      & TBD & TBD & TBD & TBD & TBD \\
+Global-EMA dual branch  & TBD & TBD & TBD & TBD & TBD \\
+\textbf{ADBD}           & \textbf{TBD} & \textbf{TBD} & \textbf{TBD} & \textbf{TBD} & \textbf{TBD} \\
 \bottomrule
 \end{tabular}
-}
-\caption{TVD regime breakdown across POPE splits under CMD. The contrastive regime activates on fewer than 1.4\% of steps in all splits, yet its effect is split-dependent.}
-\label{fig:tvd_regime}
-\end{figure}
+\caption{Ablation results. Macro metrics are the primary summary; per-split values may be moved to supplementary material if space is limited.}
+\label{tab:ablation_results}
+\end{table*}
 
-The contrastive dynamics analysis in Section~\ref{subsec:contrastive_dynamics} confirms that CMD operates almost entirely in the collaborative regime, covering 98.6\%--99.6\% of decoding steps. This may seem counterintuitive for a method that claims to reduce hallucinations: how can a method work if it almost never applies its contrastive correction? The answer lies in the composition of the contrastive path itself. Even without the TVD switching to contrastive mode, the collaborative combination $f_{\theta}+\alpha_1\tilde{f}_{\theta}$ already reflects a distribution shaped by multi-layer accumulated head suppression. The contrastive path is not a separate model that occasionally overrides the main path; it is a carefully regularized version of the main path that is present at every step. The TVD switch serves as a safety valve for the rare cases where this regularization over-corrects.
+The completed ablation should answer three questions: whether continuous evidence outperforms binary accumulation, whether complementary branches outperform a single branch, and whether per-head gains improve over a shared update rate. \TODO{Write one evidence-based paragraph for each comparison after importing the results.}
 
-\subsection{Why CMD Outperforms ONLY on Adversarial}
+\subsubsection{Branch Removal}
 
-This analysis also explains why CMD outperforms the original ONLY method specifically on adversarial negatives. ONLY computes its head mask from a single layer, layer~0. A mask computed from early-layer attention is noisy and layer-specific: it may suppress heads that happen to have low TVER at layer~0 but are actually informative at deeper layers, or it may fail to suppress heads that are uninformative at layer~0 but become problematic later. This noisy mask produces a contrastive path whose divergence from the normal path is less semantically meaningful.
+To isolate the role of each complementary path, we evaluate the high-TVER branch alone, the low-TVER branch alone, both branches with shared switching, and full ADBD.
 
-CMD's multi-layer accumulation smooths out this noise. Heads that are consistently low-TVER across layers accumulate suppression; heads that spike at only one layer do not move the cumulative mask. The resulting contrastive path is a more reliable indicator of genuinely problematic heads, which translates to a more targeted correction on the adversarial negatives where it matters most.
+\begin{table*}[t]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lccccc}
+\toprule
+Configuration & Macro Acc. & Macro F1 & Random & Popular & Adversarial \\
+\midrule
+High-TVER only              & TBD & TBD & TBD & TBD & TBD \\
+Low-TVER only               & TBD & TBD & TBD & TBD & TBD \\
+Dual branch, shared switch  & TBD & TBD & TBD & TBD & TBD \\
+Full ADBD                   & TBD & TBD & TBD & TBD & TBD \\
+\bottomrule
+\end{tabular}
+\caption{Contribution of each auxiliary branch.}
+\label{tab:branch_ablation}
+\end{table*}
 
-The uniform recall gain deserves further comment. A 6-point recall increase across all splits is not typical for contrastive decoding methods; VCD~\cite{leng2024mitigating}, for instance, does not show this pattern. We attribute it to the dynamic EMA mechanism: by rapidly locking in suppression when many heads are flagged, CMD creates a contrastive path that is more consistently textually enhanced than the original ONLY, which uses the same frozen mask for all tokens and all layers. This consistent enhancement systematically biases the model toward textually plausible answers, which happen to be ``Yes'' for positive examples regardless of split.
+\subsubsection{Layer Selection and Gain Bounds}
+
+We evaluate sensitivity to the update-layer set $\mathcal{L}_{\mathrm{upd}}$ and to $\alpha_{\min},\alpha_{\max}$. The final study should compare early-only, late-only, sparse, and all eligible layers, together with several gain ranges around the selected configuration. \TODO{Generate a sensitivity plot after completing the grid.}
+
+\subsection{Efficiency}
+\label{subsec:efficiency}
+
+We measure decoding efficiency using the same GPU, software environment, batch size, prompt set, and generation length for all methods.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+Method & Time/question & Tokens/s & Peak memory & Slowdown \\
+\midrule
+LLaVA & TBD & TBD & TBD & $1.00\times$ \\
+ONLY  & TBD & TBD & TBD & TBD \\
+ADBD  & TBD & TBD & TBD & TBD \\
+\bottomrule
+\end{tabular}}
+\caption{Inference efficiency relative to standard LLaVA and ONLY.}
+\label{tab:efficiency}
+\end{table}
+
+ADBD avoids an additional independent LVLM invocation, but its second ghost branch is not free. The final text should distinguish \emph{single model invocation} from \emph{zero overhead} and report the measured trade-off accurately.
+
+\subsection{Qualitative Analysis}
+
+We select examples in which ADBD corrects an ONLY hallucination, either auxiliary branch provides the decisive correction, the branches enter different regimes, and ADBD introduces an error that ONLY avoids. For each example, we report the image, question, ground-truth answer, predictions, branch TVDs, joint regime, and top candidate probabilities before and after three-branch resolution.
 
 \subsection{Limitations}
+\label{sec:limitations}
 
-The performance degradation on the Random split is a clear limitation of CMD. The method trades robustness against random distractors for improved performance on semantically challenging negatives. In practice, this tradeoff may be acceptable: real-world deployment scenarios are far more likely to encounter plausible-but-absent objects, where a user asks about something that could be in the image, than random objects that are completely unrelated. Nonetheless, addressing this degradation is an important direction for future work.
+ADBD has several limitations. First, evaluation on POPE and the MME Hallucination subset shows that the method does not improve every visual competency uniformly. Although ADBD improves MME Position and Color, it underperforms ONLY on Existence, Count, and the reported aggregate score. POPE and MME also rely primarily on constrained yes--no evaluation and do not establish generalization to open-ended captioning. Evaluation on CHAIR~\cite{rohrbach2018object} and additional hallucination benchmarks is therefore needed.
 
-We also note that the current evaluation is limited to the POPE benchmark. While POPE is a standard hallucination benchmark, it tests only yes-or-no object presence, not open-ended generation, counting, or spatial reasoning. Extending evaluation to CHAIR~\cite{rohrbach2018object} for captioning hallucination and MME~\cite{fu2023mme} for multi-dimensional hallucination assessment is necessary to establish the generality of these findings.
+Second, the implementation uses fixed textual and visual token boundaries tailored to the evaluated LLaVA-1.5 prompt and its 576 image tokens. This assumption may fail under another conversation template, visual resolution, processor, or multi-image input. A robust implementation should obtain modality boundaries from the tokenizer and multimodal processor.
+
+Third, accumulating a state at the same head index across layers implicitly treats those coordinates as comparable. Attention head $h$ in one layer is not guaranteed to have the same function as head $h$ in another. ADBD should therefore be interpreted as accumulating evidence over aligned mask coordinates rather than tracking a semantically identical head through depth. Future work could use layer-specific statistics or estimate cross-layer correspondences.
+
+Fourth, ADBD introduces computation and memory relative to ONLY because it maintains two auxiliary states. It remains training-free and avoids a separate full-model pass, but its practical efficiency depends on measured overhead.
+
+Fifth, TVER-based branch names do not prove that one branch is intrinsically visual and the other intrinsically textual. Attention visualization, controlled modality ablations, and branch-removal experiments are required before making stronger semantic claims.
+
+Finally, if results are reported from a subset or a single stochastic seed, the statistical strength of the conclusions is limited. The final evaluation should use the complete benchmark or a pre-specified sampling protocol and report variability across seeds where sampling-based decoding is used.

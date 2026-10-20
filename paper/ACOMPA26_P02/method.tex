@@ -1,162 +1,229 @@
 \section{Method}
 \label{sec:method}
 
-We present \emph{Cumulative Mask Decoding} (CMD), a training-free decoding method that mitigates hallucinations in large vision--language models (LVLMs) by progressively accumulating head-suppression evidence across Transformer layers. CMD extends the ONLY framework~\cite{wan2025only} by replacing its static, single-layer head mask with a dynamically evolving mask computed at every layer through an exponential moving average (EMA). We first review the base framework and then describe the proposed cumulative masking strategy.
+We present \emph{Adaptive Dual-Branch Decoding} (ADBD), a training-free decoding method that augments the normal LVLM path with two complementary auxiliary paths. ADBD consists of four stages: computing layer-specific TVER evidence, accumulating this evidence through per-head adaptive updates, constructing complementary high- and low-TVER ghost branches, and resolving the three distributions with independently switched, anchored decoding.
 
-\subsection{Preliminaries: The ONLY Framework}
+\subsection{Preliminaries: ONLY}
 
-ONLY is a training-free, single-forward-pass decoding approach that produces two logit distributions simultaneously: a normal distribution and a textually enhanced contrastive distribution. These distributions are then combined through an adaptive switching rule~\cite{wan2025only}.
+ONLY~\cite{wan2025only} produces a normal distribution and one auxiliary contrastive distribution in a single forward process. We briefly review the components retained by ADBD.
 
 \subsubsection{Text-to-Visual Entropy Ratio}
 
-At a chosen intervention layer $\tilde{\ell}$, the attention weights $a_{\tilde{\ell},i}$ for each head $i$ are split into textual and visual subsets according to token position:
+At decoder layer $\ell$, let $a_{\ell,h}$ denote the attention weights of head $h$ for the final query position. The attention vector is divided into textual and visual subsets according to token position:
 \begin{equation}
 \begin{aligned}
-a_{\tilde{\ell},i}^{\mathcal{T}} &= \{a_{\tilde{\ell},i,j} \mid j \in \mathrm{indices}_{\mathcal{T}}\}, \\
-a_{\tilde{\ell},i}^{\mathcal{V}} &= \{a_{\tilde{\ell},i,j} \mid j \in \mathrm{indices}_{\mathcal{V}}\}.
+a_{\ell,h}^{\mathcal{T}} &=
+ \{a_{\ell,h,j}\mid j\in\mathcal{I}_{\mathcal{T}}\},\\
+a_{\ell,h}^{\mathcal{V}} &=
+ \{a_{\ell,h,j}\mid j\in\mathcal{I}_{\mathcal{V}}\}.
 \end{aligned}
 \end{equation}
-Within each subset, outlier attention values exceeding $\mu + \sigma$ are zeroed out and the remaining weights are re-normalized. The Text-to-Visual Entropy Ratio (TVER) for head $i$ is then defined as
+Following ONLY, values exceeding the subset mean plus one standard deviation are removed and each subset is renormalized. The textual and visual entropies are
 \begin{equation}
-\mathrm{TVER}_{\tilde{\ell},i} =
-\frac{H(a_{\tilde{\ell},i}^{\mathcal{T}})}{H(a_{\tilde{\ell},i}^{\mathcal{V}})},
+H_{\ell,h}^{\mathcal{T}}
+=-\sum_{j\in\mathcal{I}_{\mathcal{T}}}
+\hat a_{\ell,h,j}^{\mathcal{T}}
+\log\!\left(\hat a_{\ell,h,j}^{\mathcal{T}}+\epsilon\right),
 \end{equation}
-where $H(\cdot)$ denotes Shannon entropy. A low TVER indicates that a head is concentrated on a small number of textual tokens while remaining diffuse over image patches. Wan et al.~\cite{wan2025only} characterize such heads as uncertain connectors that can mediate spurious visual--textual correlations and contribute to hallucinations.
-
-\subsubsection{Single-Layer Head Suppression and Ghost Path}
-
-ONLY suppresses heads whose TVER falls below the layer average by zeroing their attention weights:
 \begin{equation}
-\tilde{a}_{\tilde{\ell},i} =
+H_{\ell,h}^{\mathcal{V}}
+=-\sum_{j\in\mathcal{I}_{\mathcal{V}}}
+\hat a_{\ell,h,j}^{\mathcal{V}}
+\log\!\left(\hat a_{\ell,h,j}^{\mathcal{V}}+\epsilon\right).
+\end{equation}
+The TVER of head $h$ is
+\begin{equation}
+r_{\ell,h}
+=
+\frac{H_{\ell,h}^{\mathcal{T}}}
+     {H_{\ell,h}^{\mathcal{V}}}.
+\end{equation}
+A low ratio indicates concentrated textual attention relative to diffuse visual attention, whereas a high ratio indicates the complementary entropy pattern.
+
+\subsubsection{One-Layer Mask and Ghost Path}
+
+ONLY computes a binary mask at one intervention layer $\tilde{\ell}$ using the mean ratio across heads:
+\begin{equation}
+m_{\tilde{\ell},h}
+=
+\mathbb{1}\!\left[
+r_{\tilde{\ell},h}\geq
+\frac{1}{H}\sum_{j=1}^{H}r_{\tilde{\ell},j}
+\right].
+\end{equation}
+The attention outputs of suppressed heads are zeroed to create an auxiliary hidden state. This state is threaded through the remaining decoder layers without the complete normal residual and feed-forward computation, then processed and anchored to the normal representation at the final layer. Applying the language-model head produces the auxiliary logits.
+
+\subsubsection{Single-Branch TVD Switching}
+
+Let $f_t^{0}$ and $f_t^{\mathrm{aux}}$ be the normal and auxiliary logits at autoregressive step $t$, with probability distributions $p_t^{0}$ and $p_t^{\mathrm{aux}}$. ONLY measures
+\begin{equation}
+d_t
+=
+\frac{1}{2}\sum_{y\in\mathcal{V}}
+\left|p_t^{0}(y)-p_t^{\mathrm{aux}}(y)\right|.
+\end{equation}
+The auxiliary logits are added when $d_t<\gamma$ and subtracted otherwise. A plausibility constraint~\cite{li2023contrastive} removes candidates whose normal logits fall below
+\begin{equation}
+\log\beta+\max_{y\in\mathcal{V}}f_t^{0}(y).
+\end{equation}
+
+\subsection{Adaptive Dual-Branch Decoding}
+
+\subsubsection{Continuous Layer-Wise TVER Evidence}
+
+A binary mask records only whether a head lies above or below a threshold. It discards the distance from that threshold and cannot express uncertainty near the boundary. ADBD therefore maps the raw TVER vector at every selected layer to continuous evidence. Let
+\begin{equation}
+\bar r_{\ell}=\frac{1}{H}\sum_{h=1}^{H}r_{\ell,h},
+\qquad
+\sigma_{\ell}=
+\sqrt{\frac{1}{H}\sum_{h=1}^{H}(r_{\ell,h}-\bar r_\ell)^2}.
+\end{equation}
+The frozen implementation defines
+\begin{equation}
+e_{\ell,h}
+=
+\operatorname{sigmoid}\!\left(
+\frac{r_{\ell,h}-\bar r_{\ell}}
+     {\max(\sigma_{\ell},10^{-6})}
+\right).
+\label{eq:continuous_evidence}
+\end{equation}
+Thus, $e_{\ell,h}\in(0,1)$, values above $0.5$ denote the high-TVER side of the layer reference, and the distance from $0.5$ retains the strength of that evidence.
+
+\subsubsection{Per-Head Adaptive State Update}
+
+For each head index $h$, ADBD maintains a continuous high-TVER state $s_{\ell,h}$. At the first selected layer $\ell_0$, the state is initialized as
+\begin{equation}
+s_{\ell_0,h}=e_{\ell_0,h}.
+\end{equation}
+At every later selected layer, the implementation computes confidence and innovation as
+\begin{equation}
+c_{\ell,h}=\left|2e_{\ell,h}-1\right|,
+\qquad
+\iota_{\ell,h}
+=\left|e_{\ell,h}-s_{\ell^{-},h}\right|,
+\end{equation}
+where $\ell^{-}$ is the previous selected layer. The head-specific gain is
+\begin{equation}
+g_{\ell,h}
+=
+\alpha_{\min}
++(\alpha_{\max}-\alpha_{\min})
+c_{\ell,h}\iota_{\ell,h},
+\label{eq:adaptive_gain}
+\end{equation}
+and the state update is
+\begin{equation}
+s_{\ell,h}
+=(1-g_{\ell,h})s_{\ell^{-},h}
++g_{\ell,h}e_{\ell,h}.
+\label{eq:state_update}
+\end{equation}
+Because both confidence and innovation lie in $[0,1]$, the gain is bounded by
+$\alpha_{\min}\leq g_{\ell,h}\leq\alpha_{\max}$. Strong evidence that differs from the accumulated state receives a larger update, whereas evidence near the layer mean or close to the current state produces a smaller update. At the first selected layer, the state is initialized directly and the logged gain is zero.
+
+The update is performed only at a chosen set of layers $\mathcal{L}_{\mathrm{upd}}$. Non-selected layers reuse the most recent state. In the default LLaVA-1.5-7B configuration, layers 0--30 are eligible for accumulation and layer~31 is reserved for final auxiliary-path integration.
+
+\subsubsection{Complementary Head Partition}
+
+The implementation stores the complementary state $1-s_{\ell,h}$ alongside $s_{\ell,h}$. The accumulated state partitions the heads into disjoint and exhaustive sets:
+\begin{equation}
+k_{\ell,h}^{+}=\mathbb{1}[s_{\ell,h}\geq 0.5],
+\qquad
+k_{\ell,h}^{-}=1-k_{\ell,h}^{+}.
+\label{eq:complementary_masks}
+\end{equation}
+The $+$ mask retains heads whose accumulated evidence lies on the high-TVER side, while the $-$ mask retains heads on the low-TVER side. We use the descriptive names \emph{high-TVER branch} and \emph{low-TVER branch}; these avoid asserting an intrinsic visual or textual specialization that has not been independently established.
+
+For branch $b\in\{+,-\}$, masked attention is
+\begin{equation}
+\tilde a_{\ell,h}^{b}
+=
 \begin{cases}
-a_{\tilde{\ell},i}, & \mathrm{TVER}_{\tilde{\ell},i} \geq \frac{1}{H}\sum_{h=1}^{H} \mathrm{TVER}_{\tilde{\ell},h}, \\
-0, & \text{otherwise}.
+a_{\ell,h}, & k_{\ell,h}^{b}=1,\\
+0, & k_{\ell,h}^{b}=0.
 \end{cases}
 \end{equation}
-The masked attention output, denoted $\texttt{TE-MHA}_{\tilde{\ell}}(\cdot)$, produces the contrastive hidden state $h^{\mathrm{cd}}$. This state then passes through the subsequent layers $\tilde{\ell}+1,\ldots,L-1$ in a ghost path: it receives no layer normalization, residual update, or MLP computation until the final integration stage. At the final layer, the ghost path is re-integrated with the normal path as
+This produces two auxiliary attention outputs at each relevant layer.
+
+\subsubsection{Dual Ghost Paths}
+
+Let $h_{\ell}^{0}$ denote the normal hidden representation and $h_{\ell}^{+},h_{\ell}^{-}$ denote the two auxiliary representations. Both auxiliary states are propagated through the decoder's ghost-path mechanism. At the final layer, each branch is normalized, receives a residual anchor from the normal path, passes through the final MLP, and is again anchored to the normal final representation before the language-model head. This yields three logit vectors:
+\begin{equation}
+f_t^{0},\qquad f_t^{+},\qquad f_t^{-}.
+\end{equation}
+Both auxiliary branches share the same integration structure; their distinction arises solely from the complementary head masks.
+
+\subsubsection{Independent Branch Disagreement}
+
+ADBD calculates branch-specific TVDs from the normal distribution:
 \begin{align}
-h^{\mathrm{cd}}_{L-1} &= \texttt{LayerNorm}(h^{\mathrm{cd}}_{L-2}), \\
-h^{\mathrm{cd}}_{L-1} &= 0.2 \cdot r_{L-1} + h^{\mathrm{cd}}_{L-1}, \\
-h^{\mathrm{cd}}_{L-1} &= \texttt{MLP}(h^{\mathrm{cd}}_{L-1}) + r^{\mathrm{cd}}_{L-1}, \\
-\tilde{h}^{\mathrm{cd}} &= \texttt{LayerNorm}(h^{\mathrm{cd}}_{L-1}) + 0.5 \cdot \tilde{h}^{\mathrm{normal}}_{L-1}, \\
-\mathrm{logits}_{\mathrm{cd}} &= \texttt{lm\_head}(\tilde{h}^{\mathrm{cd}}).
+d_t^{+}
+&=\frac{1}{2}\sum_{y\in\mathcal{V}}
+\left|p_t^{0}(y)-p_t^{+}(y)\right|,\\
+d_t^{-}
+&=\frac{1}{2}\sum_{y\in\mathcal{V}}
+\left|p_t^{0}(y)-p_t^{-}(y)\right|.
 \end{align}
-The residual injection terms $0.2 \cdot r_{L-1}$ and $0.5 \cdot \tilde{h}^{\mathrm{normal}}_{L-1}$ stabilize the ghost signal by anchoring it to the normal-path representation.
+Each distance is compared with its own threshold $\gamma_{+}$ or $\gamma_{-}$. Consequently, one branch can be collaborative while the other is contrastive at the same generation step.
 
-\subsubsection{TVD-Based Switching Rule}
+\subsubsection{Anchored Three-Branch Resolution}
 
-At each autoregressive step $t$, the Total Variation Distance (TVD) between the normal and contrastive distributions determines the decoding strategy:
+The high-TVER branch contributes
 \begin{equation}
-d_t = \sum_{y_t \in \mathcal{V}} \left|p_{\theta}(y_t \mid v,x,y_{<t}) - \tilde{p}_{\theta}(y_t \mid v,x,y_{<t})\right|.
+\Delta_t^{+}
+=
+\begin{cases}
+\alpha_{+}^{\mathrm{col}}f_t^{+},
+    & d_t^{+}<\gamma_{+},\\
+-\alpha_{+}^{\mathrm{con}}f_t^{+},
+    & d_t^{+}\geq\gamma_{+},
+\end{cases}
 \end{equation}
-When $d_t < \gamma$, the two distributions agree and collaborative decoding amplifies the shared signal:
+and the low-TVER branch contributes
 \begin{equation}
-f^{\mathrm{final}} = f_{\theta} + \alpha_1 \cdot \tilde{f}_{\theta}.
+\Delta_t^{-}
+=
+\begin{cases}
+\alpha_{-}^{\mathrm{col}}f_t^{-},
+    & d_t^{-}<\gamma_{-},\\
+-\alpha_{-}^{\mathrm{con}}f_t^{-},
+    & d_t^{-}\geq\gamma_{-}.
+\end{cases}
 \end{equation}
-When $d_t \geq \gamma$, the distributions diverge and contrastive decoding penalizes tokens that score highly under the contrastive path:
+To stabilize subtraction, ADBD increases the normal-logit anchor for every branch that enters the contrastive regime:
 \begin{equation}
-f^{\mathrm{final}} = (1 + \alpha_2) \cdot f_{\theta} - \alpha_2 \cdot \tilde{f}_{\theta}.
+\begin{split}
+\kappa_t=1
+&+\alpha_{+}^{\mathrm{con}}
+ \mathbb{1}[d_t^{+}\geq\gamma_{+}]\\
+&+\alpha_{-}^{\mathrm{con}}
+ \mathbb{1}[d_t^{-}\geq\gamma_{-}].
+\end{split}
 \end{equation}
-An adaptive plausibility constraint~\cite{li2023contrastive}, with $\beta = 0.1$, discards tokens with near-zero probability under the normal distribution before sampling.
-
-\subsection{Cumulative Mask Decoding}
-
-The ONLY framework computes the TVER-based head mask exactly once at the intervention layer $\tilde{\ell}$ and freezes it for all remaining layers. This design imposes an information bottleneck: deeper layers, which capture higher-order visual--textual correspondences~\cite{abnar2020quantifying,clark2019does}, contribute no information to the suppression decision. As a result, a head that exhibits a spurious low TVER at layer~0 may be suppressed indiscriminately across subsequent layers, while a genuinely problematic head with a moderate TVER at layer~0 may escape suppression entirely.
-
-CMD addresses this limitation by computing a fresh head mask at every layer and blending it into a running cumulative mask through EMA. This allows the suppression signal to be refined iteratively as the model processes deeper representations, while the EMA mechanism prevents per-layer noise from destabilizing the mask.
-
-\subsubsection{Multi-Layer Mask Accumulation}
-
-At each layer $\ell$, CMD computes a fresh binary mask from the layer-specific TVER values:
+The final logits are
 \begin{equation}
-m_{\ell,i} = \mathbb{1}\left[\mathrm{TVER}_{\ell,i} \geq \frac{1}{H}\sum_{h=1}^{H} \mathrm{TVER}_{\ell,h}\right].
+f_t^{\mathrm{final}}
+=
+\kappa_t f_t^{0}
++\Delta_t^{+}
++\Delta_t^{-}.
+\label{eq:final_logits}
 \end{equation}
-The per-layer masks are accumulated into a running cumulative mask $M_{\ell}$ via EMA:
-\begin{equation}
-M_{\ell} = \alpha_{\ell} \cdot m_{\ell} + (1 - \alpha_{\ell}) \cdot M_{\ell-1},
-\end{equation}
-where $M_0 = m_0$. Thus, the initial mask is identical to the original ONLY mask, but later layers update the suppression decision using newly observed attention patterns. The cumulative mask $M_{\ell}$ is applied to the contrastive path at layer $\ell$ by zeroing heads whose cumulative value falls below $0.5$. All other components of ONLY---the ghost path, final-layer integration, TVD switching rule, and plausibility constraint---remain unchanged.
+This rule yields four joint regimes: both auxiliary distributions may be reinforced, either one may be reinforced while the other is penalized, or both may be penalized while the normal anchor is strengthened twice. The adaptive plausibility constraint is applied using the normal logits before sampling.
 
-\begin{center}
-\begin{minipage}{0.95\linewidth}
-\hrule
-\vspace{0.5em}
-\noindent\textbf{Algorithm 1: Cumulative Mask Decoding}
-\vspace{0.25em}
+\subsection{Algorithm Summary}
 
-\noindent\textbf{Input:} layers $\ell = 0,1,\ldots,L-1$ and attention weights $\{a_{\ell}\}_{\ell=0}^{L-1}$\par
-\noindent\textbf{Output:} contrastive logits $\mathrm{logits}_{\mathrm{cd}}$ at each decoding step
 \begin{enumerate}
-    \item Initialize $M \leftarrow \emptyset$.
-    \item For each layer $\ell = 0$ to $L-1$:
-    \begin{enumerate}
-        \item Compute $\mathrm{TVER}_{\ell,i}$ for each head $i$ from $a_{\ell}$.
-        \item Set $m_{\ell} \leftarrow \mathbb{1}[\mathrm{TVER}_{\ell} \geq \mathrm{mean}(\mathrm{TVER}_{\ell})]$.
-        \item If $\ell = 0$, set $M \leftarrow m_{\ell}$.
-        \item Otherwise, compute $r \leftarrow (\sum_i m_{\ell,i})/H$, set $\alpha \leftarrow 0.05 + 0.45(1-r)$, and update $M \leftarrow \alpha m_{\ell} + (1-\alpha)M$.
-        \item Apply $M$ by zeroing contrastive-path heads for which $M_i < 0.5$.
-    \end{enumerate}
-    \item Propagate $h^{\mathrm{cd}}$ through the ghost path and integrate it at the final layer.
-    \item Return $\mathrm{logits}_{\mathrm{cd}}$.
+    \item Initialize the continuous head state $s\leftarrow\emptyset$.
+    \item For each decoder layer $\ell$, compute the normal self-attention output.
+    \item If $\ell\in\mathcal{L}_{\mathrm{upd}}$, compute TVER, map it to continuous evidence with Eq.~\eqref{eq:continuous_evidence}, and initialize or update $s$ using Eqs.~\eqref{eq:adaptive_gain}--\eqref{eq:state_update}.
+    \item Construct the complementary masks in Eq.~\eqref{eq:complementary_masks}, then produce and propagate the two masked ghost states.
+    \item At the final layer, integrate both ghost states and obtain $f_t^{+}$ and $f_t^{-}$ alongside $f_t^{0}$.
+    \item Compute $d_t^{+}$ and $d_t^{-}$, independently select the collaborative or contrastive contribution of each branch, and form the anchored logits in Eq.~\eqref{eq:final_logits}.
+    \item Apply the adaptive plausibility constraint and sample the next token.
 \end{enumerate}
-\hrule
-\end{minipage}
-\end{center}
 
-\subsubsection{Dynamic Smoothing Rate}
+\subsection{Computational Characteristics}
 
-The smoothing rate $\alpha_{\ell}$ controls how quickly the cumulative mask adapts to new layer-level evidence. Rather than using a fixed constant, CMD uses a dynamic smoothing rate determined by the suppression statistics at each layer:
-\begin{equation}
-\alpha_{\ell} = \alpha_{\min} + (\alpha_{\max} - \alpha_{\min}) \cdot (1 - r_{\ell}),
-\end{equation}
-where
-\begin{equation}
-r_{\ell} = \frac{1}{H}\sum_{h=1}^{H} m_{\ell,h}
-\end{equation}
-is the fraction of heads retained by the fresh mask, with $\alpha_{\min}=0.05$ and $\alpha_{\max}=0.50$.
-
-This formulation yields two useful regimes. When many heads are suppressed, $r_{\ell} \to 0$ and $\alpha_{\ell} \to 0.50$, so the cumulative mask updates rapidly and locks in a strong suppression signal. This corresponds to hallucination-prone conditions in which many heads exhibit imbalanced text--image attention. Conversely, when few heads are suppressed, $r_{\ell} \to 1$ and $\alpha_{\ell} \to 0.05$, so the cumulative mask changes only minimally, preventing single-layer noise from corrupting the suppression decision. A fixed-$\alpha$ variant, such as $\alpha=0.2$, is recovered as a special case and can be used as an ablation baseline.
-
-\subsubsection{Computational Cost}
-
-The additional computation introduced by CMD consists of three lightweight operations at each layer: computing TVER from the already available attention matrix, comparing the resulting values to the layer mean to produce a binary mask, and performing one element-wise multiply-add for the EMA update. CMD therefore requires no additional forward pass and adds negligible overhead to the original ONLY decoding procedure. In our implementation, the added runtime is below $0.5\%$ of total inference time.
-
-\subsection{Empirical Analysis of the Contrastive Dynamics}
-
-To understand how CMD changes the interaction between the normal and contrastive paths, we analyze the TVD distribution across decoding steps on the POPE benchmark~\cite{li2023pope} using LLaVA-1.5~\cite{liu2024visual} with 32 attention heads per layer.
-
-\paragraph{Mask evolution.}
-The dynamic smoothing rate $\alpha_{\ell}$ typically ranges from $0.20$ to $0.42$ across layers, corresponding to kept-head ratios $r_{\ell}$ between $0.25$ and $0.65$. Early layers, especially layers 0--5, exhibit higher variance in $r_{\ell}$ as attention patterns shift. Later layers stabilize, and the cumulative mask converges to a suppression set of roughly 18--25 out of 32 heads by the final layers.
-
-\paragraph{TVD distribution.}
-Table~\ref{tab:tvd_stats} reports the TVD statistics under CMD across the three POPE splits. The mean TVD ranges from $0.091$ to $0.113$, with medians around $0.027$--$0.032$. Crucially, only $0.4\%$--$1.4\%$ of decoding steps exceed the switching threshold $\gamma=0.6$ and enter the contrastive regime; the remaining $98.6\%$--$99.6\%$ operate in the collaborative regime where the two distributions agree.
-
-\begin{table}[t]
-\centering
-\small
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lcccc}
-\toprule
-Split & Mean & Median & Collab. (\%) & Contrast. (\%) \\
-\midrule
-Random & 0.102 & 0.028 & 99.0 & 1.0 \\
-Popular & 0.113 & 0.032 & 98.6 & 1.4 \\
-Adversarial & 0.091 & 0.027 & 99.6 & 0.4 \\
-\bottomrule
-\end{tabular}
-}
-\caption{TVD statistics under CMD with dynamic EMA smoothing, evaluated on POPE with LLaVA-1.5. Statistics are computed over 1,200 decoding steps, corresponding to 600 questions with two generated tokens each.}
-\label{tab:tvd_stats}
-\end{table}
-
-\paragraph{Interpretation.}
-The predominance of the collaborative regime indicates that the multi-layer accumulated mask produces a contrastive path that remains closely aligned with the normal path. In other words, CMD identifies consistent text-enhancement patterns across layers rather than introducing a distribution that disagrees with the normal path for a large fraction of tokens. The small minority of contrastive steps likely correspond to tokens for which the normal path is more strongly influenced by hallucination-prone attention patterns that the accumulated mask identifies and penalizes.
-
-For reference, the original ONLY method, which relies on a single-layer mask, produces a wider TVD distribution with a substantially higher proportion of contrastive steps. This suggests less stable alignment between the two logit distributions. CMD narrows this gap by integrating suppression evidence across layers, yielding a more consistent and reliable contrastive signal.
-
-\subsection{Discussion}
-\label{subsec:discussion}
-
-The near-saturation of decoding steps into the collaborative regime, exceeding $98\%$ in all POPE splits, suggests that the TVD threshold $\gamma=0.6$ may be conservative for CMD. This threshold was originally calibrated for the wider TVD distribution induced by a single-layer mask. A lower threshold, such as $\gamma=0.05$, could restore a more balanced switching distribution and increase the impact of contrastive correction on the small fraction of tokens where it matters most. We leave the joint optimization of $\gamma$ and the EMA dynamics to future work.
-
-We also note that the current formulation blends binary mask values across layers. Since the semantic interpretation of a mask value depends on the attention patterns at the layer where it was computed, directly blending masks may introduce noise. A more principled alternative is to accumulate the underlying TVER scores rather than the binarized masks, thereby decoupling the accumulation signal from per-layer thresholding. We explore this direction in Appendix~A.
+ADBD is training-free and does not require another image encoding or an independent second invocation of the full LVLM. It reuses the normal attention tensors to construct two masked attention outputs and propagates two lightweight auxiliary states. Relative to ONLY, the method adds a second auxiliary branch, per-layer TVER-state updates on selected layers, and one additional language-model-head projection. These operations increase arithmetic and memory use, so efficiency must be established empirically rather than described as negligible. We report the intended efficiency protocol in Section~\ref{subsec:efficiency}.

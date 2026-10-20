@@ -1,0 +1,25 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Large vision--language models (LVLMs) have demonstrated remarkable capabilities in tasks such as image captioning, visual question answering, and visual reasoning~\cite{alayrac2022flamingo,li2023blip2,liu2024visual}. Despite their success, these models exhibit a persistent and well-documented tendency to hallucinate: generating descriptions of objects that do not appear in the input image~\cite{rohrbach2018object,li2023pope}. This reliability gap limits their deployment in high-stakes applications such as medical imaging, autonomous navigation, and assistive technologies.
+
+A dominant class of hallucination mitigation methods is contrastive decoding, which compares the model's standard output against a deliberately distorted counterpart and penalizes tokens that the distorted version favors. Early approaches such as VCD~\cite{leng2024mitigating} apply visual noise to the input image to create the distorted path, while M3ID~\cite{fayyaz2024m3id} manipulates the input instruction. These methods are effective but require two or more forward passes per decoding step, approximately doubling inference latency and memory use, which is a significant practical limitation.
+
+The ONLY method~\cite{wan2025only} breaks this pattern by producing both the normal and contrastive distributions in a single forward pass. It does so by computing a head-suppression mask at a single intervention layer, layer~0, based on the Text-to-Visual Entropy Ratio (TVER): heads whose textual attention entropy is low relative to their visual attention entropy are identified as uncertain connectors that mediate spurious text--image correlations, and their attention weights are zeroed out. The resulting contrastive hidden state passes through the remaining layers in a ghost path with no additional computation, producing a second logit distribution at nearly no extra cost. ONLY achieves strong hallucination mitigation across POPE, CHAIR, MME, and MMBench while adding only modest inference overhead.
+
+\paragraph{Limitation of ONLY.}
+The head-suppression mask in ONLY is computed exactly once at layer~0 and frozen for all subsequent layers. This design choice imposes an information bottleneck: deeper layers, where the model constructs higher-order visual--textual correspondences, contribute no information to the suppression decision. A head that exhibits a spurious low TVER at layer~0 is suppressed indiscriminately across all layers, while a head that is genuinely problematic but shows a moderate TVER at layer~0 escapes suppression entirely. The mask has no mechanism to correct or refine itself as more layers are processed.
+
+\paragraph{This work.}
+We present Cumulative Mask Decoding (CMD), a training-free method that addresses this limitation by replacing the static single-layer mask with a dynamically evolving mask accumulated across all layers. At each Transformer layer, CMD computes a fresh binary head mask from that layer's attention distribution and blends it into a running cumulative mask via exponential moving average (EMA). We introduce a dynamic smoothing rate that adapts to the layer's suppression statistics: when many heads exhibit imbalanced attention, a signal of hallucination-prone conditions, the smoothing rate increases to lock in suppression quickly; when few heads need suppression, the rate decreases to prevent single-layer noise from destabilizing the mask. All other components of the ONLY framework, including the ghost path, the TVD-based switching rule, and the adaptive plausibility constraint, remain unchanged.
+
+We evaluate CMD on the POPE benchmark~\cite{li2023pope} using LLaVA-1.5~\cite{liu2024visual}. Our results reveal an asymmetric pattern:
+\begin{itemize}
+    \item On \textbf{Adversarial} negatives, which contain semantically plausible but absent objects, CMD improves accuracy from 79.40\% to 88.00\% and F1 from 81.07 to 88.75.
+    \item On \textbf{Popular} negatives, CMD matches the original method's accuracy, with both methods achieving 86.00\%, and yields a marginal F1 improvement.
+    \item On \textbf{Random} negatives, CMD underperforms ONLY, with accuracy dropping from 89.70\% to 79.00\%, driven by a sharp reduction in precision as the model becomes overly permissive.
+\end{itemize}
+
+Analysis of the contrastive dynamics reveals that CMD operates almost entirely in the collaborative regime, covering more than 98.6\% of decoding steps. This means that the normal and contrastive paths agree to a much greater degree than under the original ONLY method. CMD's primary effect is therefore to produce a more stable and reliable contrastive path: one that aligns with the normal distribution on the vast majority of tokens but provides targeted correction where it matters most. The method adds less than 0.5\% computational overhead and requires no training or architectural modifications.
+
+The remainder of this paper is organized as follows. Section~\ref{sec:method} describes the ONLY framework and details CMD. Section~\ref{sec:experiments} presents experimental results and analysis.

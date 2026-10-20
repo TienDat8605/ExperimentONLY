@@ -1,0 +1,13 @@
+{
+  "completed_at_utc": "2026-10-20T11:29:07.214402+00:00",
+  "verified_moved_files": 48,
+  "backup": "docs/reorganization/backups/originals-20261020T112907Z.tar.gz",
+  "backup_sha256": "84be87f20821da9f7e097891c323964f0d0b6c4779b023d502d4af1ab8655593",
+  "compatibility_symlink": "ACOMPA26_P02 -> paper/ACOMPA26_P02",
+  "unrelated_script_sha256": {
+    "colab.sh": "1010af7b5b07210be2fede42b708781353f1a69138c2200afb6f8f2b65a450c7",
+    "recover_pope_log.py": "1dc9f4b02c0b7ba72defae66a71558033d7beaf0e5797fdfe435094dfcd99915",
+    "run_proposal4_colab.sh": "4234139776c9e5da5369b325b0fb2fa119c4e14ca74dec4adb8ecf70217a590c"
+  },
+  "peer_repository_modified": false
+}

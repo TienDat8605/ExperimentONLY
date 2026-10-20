@@ -1,0 +1,7 @@
+\begin{abstract}
+Large vision--language models often hallucinate content unsupported by the image. Training-free contrastive decoding can reduce these errors, but commonly requires multiple model evaluations. ONLY avoids this cost by creating an auxiliary distribution from a TVER-based head mask in one forward process, yet freezes the mask at a single early layer.
+
+We introduce \emph{Adaptive Dual-Branch Decoding} (ADBD), which accumulates continuous TVER evidence over four decoder layers using head-specific adaptive gains. The resulting state forms complementary high- and low-TVER ghost branches. Their distances from the normal distribution independently determine whether each branch is reinforced or penalized in an anchored three-branch rule.
+
+On full POPE with LLaVA-1.5-7B, ADBD reaches 82.10\%, 86.37\%, and 89.13\% accuracy on Random, Popular, and Adversarial, yielding 85.87\% macro accuracy and 85.48\% macro F1. On MME Hallucination, it improves Position and Color but declines on Existence and Count. The category scores total 630.00 versus 635.55 for ONLY, although the supplied aggregate is 620.00 and requires verification. ADBD remains training-free and avoids a separate full-model invocation, but its gains are category-dependent.
+\end{abstract}

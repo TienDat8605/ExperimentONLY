@@ -1,0 +1,49 @@
+order,source,destination,role,bytes,sha256
+1,paper/ACOMPA26_P02/abstract.tex,paper/versions/initial/abstract.tex,product: earlier manuscript,1819,99278ae69d9f1e2e1efa0944e7692a3c3edb4085bceb76b3ff2d1ce59a32d5ee
+1,paper/ACOMPA26_P02/bibliography.tex,paper/versions/initial/bibliography.tex,product: earlier manuscript,4363,855bbc614233436c7774709b0ea99e116c03e2b050155b67c688c500baa82d92
+1,paper/ACOMPA26_P02/conclusion.tex,paper/versions/initial/conclusion.tex,product: earlier manuscript,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+1,paper/ACOMPA26_P02/experiment.tex,paper/versions/initial/experiment.tex,product: earlier manuscript,15932,b7c84bd50b5f700f3c4f47f8b1eb0f4dd57285d7f5d505202b958397f76f2424
+1,paper/ACOMPA26_P02/introduction.tex,paper/versions/initial/introduction.tex,product: earlier manuscript,5104,168aa894d407ebcf43a1ab29cfa2cd06f6fcf16b8c2e9289b218122496113fcd
+1,paper/ACOMPA26_P02/main.aux,paper/versions/initial/main.aux,product: earlier manuscript,7380,ec2a88bc9df994c82d8c6e315aabce53cad449905db4fbf46acafbeeed6d498d
+1,paper/ACOMPA26_P02/main.pdf,paper/versions/initial/main.pdf,product: earlier manuscript,232232,1966caaa431a44b5a1fb9679c52453b02f201e25c7a55a526837b4aebc8159c1
+1,paper/ACOMPA26_P02/main.tex,paper/versions/initial/main.tex,product: earlier manuscript,423,874c6c25618536758dd611892694fea78707ad075421ad2285b77070bbf5c4d4
+1,paper/ACOMPA26_P02/method.tex,paper/versions/initial/method.tex,product: earlier manuscript,13214,e42a3f4c3e37069cbd141e6afdd39fb4ae171363cc028f3b743d08ab6aadc4c4
+1,paper/ACOMPA26_P02/relatedwork.tex,paper/versions/initial/relatedwork.tex,product: earlier manuscript,22,f19af0ef3eeb7d4e1b3fad03ad11d752d5a147caabbcf7fb3f8880b1d5024341
+2,write-paper/ACOMPA26_P02/abstract.tex,paper/versions/july-rewrite/abstract.tex,product: earlier rewrite,1272,3f4ab137a8fd417e74cfa256a43aaae96e47b2d674f8d0ebe57d28ada0674575
+2,write-paper/ACOMPA26_P02/bibliography.tex,paper/versions/july-rewrite/bibliography.tex,product: earlier rewrite,4363,855bbc614233436c7774709b0ea99e116c03e2b050155b67c688c500baa82d92
+2,write-paper/ACOMPA26_P02/conclusion.tex,paper/versions/july-rewrite/conclusion.tex,product: earlier rewrite,1383,364040e4a7c4e3365629bd6c150b68264a29f44d11df11e87d0c23c8216a29c6
+2,write-paper/ACOMPA26_P02/experiment.tex,paper/versions/july-rewrite/experiment.tex,product: earlier rewrite,5340,facdb5df10eb49569fbf70eafb4ea3c808712abf0c81c6c2f9314c7ec13dbb34
+2,write-paper/ACOMPA26_P02/introduction.tex,paper/versions/july-rewrite/introduction.tex,product: earlier rewrite,4655,4a13b60ae2f9db647875a776411ba20890c6eb83197a02adc0ea35884909cb37
+2,write-paper/ACOMPA26_P02/main-old.aux,paper/versions/july-rewrite/main-old.aux,product: earlier rewrite,5186,0167ac75557427edb623d250cd03c61da53ede5ce68c8296819984a0178349ff
+2,write-paper/ACOMPA26_P02/main-old.fdb_latexmk,paper/versions/july-rewrite/main-old.fdb_latexmk,product: earlier rewrite,7326,79e4dd401ef8ae034ce1442b76470024b84e1cecfc58ca122930fc8dafab8007
+2,write-paper/ACOMPA26_P02/main-old.fls,paper/versions/july-rewrite/main-old.fls,product: earlier rewrite,6067,11a7896c6a0f9d45b7166b00afbb337bdb9656e14df45e9a549c79ec0455483b
+2,write-paper/ACOMPA26_P02/main-old.log,paper/versions/july-rewrite/main-old.log,product: earlier rewrite,33673,d1c84c92c4e057255635ddb0bbdac4fe86444377b2fe71ec29eceb2253a5ec49
+2,write-paper/ACOMPA26_P02/main-old.pdf,paper/versions/july-rewrite/main-old.pdf,product: earlier rewrite,267720,3ed86eca9b95f27de7c837e0563e64c14600ae14754928bc05f898b026488d88
+2,write-paper/ACOMPA26_P02/main-old.synctex.gz,paper/versions/july-rewrite/main-old.synctex.gz,product: earlier rewrite,84334,06351f8513cf80b1c691321a21cb50dc1f8973ea0309c18ac51ad1797993e889
+2,write-paper/ACOMPA26_P02/main-old.tex,paper/versions/july-rewrite/main-old.tex,product: earlier rewrite,314,c5a38158f261f1a40fcd656a5d6e4e77310ec458334238fa463342ea5dad1f84
+2,write-paper/ACOMPA26_P02/main.pdf,paper/versions/july-rewrite/main.pdf,product: earlier rewrite,201156,11cd7a1528848a36d607746dd4aebe91fdc1048fca17a5f70efdb217651e422d
+2,write-paper/ACOMPA26_P02/main.tex,paper/versions/july-rewrite/main.tex,product: earlier rewrite,505,50a6e7c59ab3910e45b8a72bd9e2177f80f27cfcf3dff77c1a9d94c96edb056c
+2,write-paper/ACOMPA26_P02/method.tex,paper/versions/july-rewrite/method.tex,product: earlier rewrite,10192,317b9f0f06ef0fabd4744bac5404c573e4b1e93d3a3c59bf44b29b7ac6c81ca2
+2,write-paper/ACOMPA26_P02/relatedwork.tex,paper/versions/july-rewrite/relatedwork.tex,product: earlier rewrite,145,bb1b2bb464efab1f8e1d16704c59230b7e4585b71d82921a49cf1ad05afc16fb
+3,ACOMPA26_P02/abstract.tex,paper/ACOMPA26_P02/abstract.tex,"product: active manuscript, preserve all variants",2546,e6eb1be4b34821e668316bce62c75ddd0f01bfc932cea2555545e5ae8a56f0f6
+3,ACOMPA26_P02/abstract_.tex,paper/ACOMPA26_P02/abstract_.tex,"product: active manuscript, preserve all variants",1587,2376325803ae2fc8a0a3e7ee578fff9492421cb89418a09e1a56d308d8bcf9e3
+3,ACOMPA26_P02/bibliography.tex,paper/ACOMPA26_P02/bibliography.tex,"product: active manuscript, preserve all variants",4363,855bbc614233436c7774709b0ea99e116c03e2b050155b67c688c500baa82d92
+3,ACOMPA26_P02/bibliography_.tex,paper/ACOMPA26_P02/bibliography_.tex,"product: active manuscript, preserve all variants",5517,1bf8674fdabc26f02b79ed93b43daa4cce43ec4ab45351433c8414ed631992b6
+3,ACOMPA26_P02/conclusion.tex,paper/ACOMPA26_P02/conclusion.tex,"product: active manuscript, preserve all variants",1419,ac034fff5e5f781fb03891c8797f93b9784a5c2588ddf6088d546a32a654a59b
+3,ACOMPA26_P02/conclusion_.tex,paper/ACOMPA26_P02/conclusion_.tex,"product: active manuscript, preserve all variants",1254,46fdeb01e7d79d8a125f88c620f47c06f15f71eb13654f036d0c0a3aad2fab04
+3,ACOMPA26_P02/experiment.tex,paper/ACOMPA26_P02/experiment.tex,"product: active manuscript, preserve all variants",17043,f7b1287e06e66a8e572539c5fdd70bfdd6534164a895fd3298942ee64c869535
+3,ACOMPA26_P02/experiment_.tex,paper/ACOMPA26_P02/experiment_.tex,"product: active manuscript, preserve all variants",8584,e5d7da01aeaabe062c8e834e8a15a1132c3c1403cc0dc1d0d102cb81ccd2ad14
+3,ACOMPA26_P02/introduction(2)_.tex,paper/ACOMPA26_P02/introduction(2)_.tex,"product: active manuscript, preserve all variants",5137,2937d7a7f5e9c7284ec9b2c83b1f1a21bfceafe059100e927cc8a79f1a09c22e
+3,ACOMPA26_P02/introduction.tex,paper/ACOMPA26_P02/introduction.tex,"product: active manuscript, preserve all variants",5184,e38fad90c89e1301348e2f2eac165c25ed1528383666a59b2a50f82630dc1475
+3,ACOMPA26_P02/introduction_.tex,paper/ACOMPA26_P02/introduction_.tex,"product: active manuscript, preserve all variants",4868,3d6bbf14978ddf2d845afd726d99f260bb44e32c2bf3581322428ed9418ea4bd
+3,ACOMPA26_P02/main.tex,paper/ACOMPA26_P02/main.tex,"product: active manuscript, preserve all variants",513,e930f90284f41a810ba4d258bb55b1a83fe22e14f6a65df69d3e28ead1ba8934
+3,ACOMPA26_P02/method.tex,paper/ACOMPA26_P02/method.tex,"product: active manuscript, preserve all variants",10743,10df7b00b48de4b34078426d838a54ed8ff080ddf07347ba4a2916dfcdbb8320
+3,ACOMPA26_P02/method_.tex,paper/ACOMPA26_P02/method_.tex,"product: active manuscript, preserve all variants",10742,63d7d510f1526caad3ffa8f2c5c7c3eaec99e61b82ec48f41f75a3ba7a06b0be
+3,ACOMPA26_P02/relatedwork.tex,paper/ACOMPA26_P02/relatedwork.tex,"product: active manuscript, preserve all variants",4491,b8b1e7fa0ea2b8ab8c2fbc076a772825d717b69e75417354d18365f42e0491af
+3,ACOMPA26_P02/relatedwork_.tex,paper/ACOMPA26_P02/relatedwork_.tex,"product: active manuscript, preserve all variants",5113,be25fd7a69b540935439a18dc578e965f227a2059de0f3844b50363a78ea345d
+3,ACOMPA26_P02/visual.png,paper/ACOMPA26_P02/visual.png,"product: active manuscript, preserve all variants",99318,cf693c6d5a8a5acf7a73119dc40c1d98ba07c3b702cd14280c63bba208fecae9
+4,write-paper/main_proposal6_rewrite_with_mme.md,docs/method/main_proposal6_rewrite_with_mme.md,product: earlier writing draft,46887,1264807790a0144ed89ad3232205a546ce9bef46f063fbc549ea8a299c098b83
+5,ONLY_report.md,docs/method/ONLY_report.md,factory: method reference,13592,77c9f988555cdcdb286d93c0d35796225599ec91381ee077f2f1812d359004ae
+6,CMD_abstract_intro_draft.md,docs/method/CMD_abstract_intro_draft.md,product: earlier writing draft,6873,9b6701d66b8b7f05c9b93f52b05e51a33431ececcbbd3db3a066664fa7dc13f4
+7,CMD_method_draft.md,docs/method/CMD_method_draft.md,product: earlier writing draft,9893,ae44a2702ff92195a108b38e140a95ae0209b7ec93825dd2dc60ada441ea53ee
+8,CMD_experiments_draft.md,docs/method/CMD_experiments_draft.md,product: earlier writing draft,16728,34791cba0533c907d87bc6cd6e61c80cdc71cf9c65dad78267bc5ca0287494bc

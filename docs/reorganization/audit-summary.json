@@ -1,0 +1,28 @@
+{
+  "repository_file_counts_including_audit": {
+    "ExperimentONLY": 194,
+    "experiment": 41434
+  },
+  "proposed_move_files": 48,
+  "source_hashes_recorded": 48,
+  "existing_destination_matches": 8,
+  "unexpected_collisions": [],
+  "duplicate_proposed_destinations": 0,
+  "symlinks": 0,
+  "active_latex_inputs": [
+    "abstract_",
+    "introduction_",
+    "relatedwork_",
+    "method_",
+    "experiment_",
+    "conclusion_",
+    "bibliography_"
+  ],
+  "missing_inputs": [],
+  "undefined_latex_refs": [
+    "tab:detailed_results"
+  ],
+  "undefined_citation_keys": [],
+  "missing_figure_files": [],
+  "moves_executed": false
+}

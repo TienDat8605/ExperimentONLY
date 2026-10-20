@@ -1,5 +1,18 @@
 # ONLY — One-Layer Intervention Sufficiently Mitigates Hallucinations
 
+This workspace extends ONLY with Adaptive Dual-Branch Decoding (ADBD / Proposal 6).
+Start with [AGENTS.md](AGENTS.md) for task routing or [CONTEXT.md](CONTEXT.md) for the
+method → evaluation → manuscript workflow.
+
+The current paper is [paper/ACOMPA26_P02/main.tex](paper/ACOMPA26_P02/main.tex);
+it includes the underscore-suffixed sections. Read its
+[editing/build contract](paper/ACOMPA26_P02/CONTEXT.md) before making changes.
+[Earlier manuscripts](paper/versions/CONTEXT.md), [method notes](docs/method/CONTEXT.md),
+and [experiment evidence](logs/CONTEXT.md) have separate homes.
+The root `ACOMPA26_P02` path remains a compatibility symlink.
+The sibling `/home/dat/HCMUS/experiment` repository uses a different Proposal 4;
+its configurations and results are kept separate.
+
 A training-free decoding method for reducing hallucinations in Vision-Language Models (VLMs). Suppresses "entropy-imbalanced" attention heads to produce a contrastive logit distribution, then combines it with the normal distribution via a TVD-based switching rule.
 
 ## Method

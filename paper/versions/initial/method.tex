@@ -1,0 +1,162 @@
+\section{Method}
+\label{sec:method}
+
+We present \emph{Cumulative Mask Decoding} (CMD), a training-free decoding method that mitigates hallucinations in large vision--language models (LVLMs) by progressively accumulating head-suppression evidence across Transformer layers. CMD extends the ONLY framework~\cite{wan2025only} by replacing its static, single-layer head mask with a dynamically evolving mask computed at every layer through an exponential moving average (EMA). We first review the base framework and then describe the proposed cumulative masking strategy.
+
+\subsection{Preliminaries: The ONLY Framework}
+
+ONLY is a training-free, single-forward-pass decoding approach that produces two logit distributions simultaneously: a normal distribution and a textually enhanced contrastive distribution. These distributions are then combined through an adaptive switching rule~\cite{wan2025only}.
+
+\subsubsection{Text-to-Visual Entropy Ratio}
+
+At a chosen intervention layer $\tilde{\ell}$, the attention weights $a_{\tilde{\ell},i}$ for each head $i$ are split into textual and visual subsets according to token position:
+\begin{equation}
+\begin{aligned}
+a_{\tilde{\ell},i}^{\mathcal{T}} &= \{a_{\tilde{\ell},i,j} \mid j \in \mathrm{indices}_{\mathcal{T}}\}, \\
+a_{\tilde{\ell},i}^{\mathcal{V}} &= \{a_{\tilde{\ell},i,j} \mid j \in \mathrm{indices}_{\mathcal{V}}\}.
+\end{aligned}
+\end{equation}
+Within each subset, outlier attention values exceeding $\mu + \sigma$ are zeroed out and the remaining weights are re-normalized. The Text-to-Visual Entropy Ratio (TVER) for head $i$ is then defined as
+\begin{equation}
+\mathrm{TVER}_{\tilde{\ell},i} =
+\frac{H(a_{\tilde{\ell},i}^{\mathcal{T}})}{H(a_{\tilde{\ell},i}^{\mathcal{V}})},
+\end{equation}
+where $H(\cdot)$ denotes Shannon entropy. A low TVER indicates that a head is concentrated on a small number of textual tokens while remaining diffuse over image patches. Wan et al.~\cite{wan2025only} characterize such heads as uncertain connectors that can mediate spurious visual--textual correlations and contribute to hallucinations.
+
+\subsubsection{Single-Layer Head Suppression and Ghost Path}
+
+ONLY suppresses heads whose TVER falls below the layer average by zeroing their attention weights:
+\begin{equation}
+\tilde{a}_{\tilde{\ell},i} =
+\begin{cases}
+a_{\tilde{\ell},i}, & \mathrm{TVER}_{\tilde{\ell},i} \geq \frac{1}{H}\sum_{h=1}^{H} \mathrm{TVER}_{\tilde{\ell},h}, \\
+0, & \text{otherwise}.
+\end{cases}
+\end{equation}
+The masked attention output, denoted $\texttt{TE-MHA}_{\tilde{\ell}}(\cdot)$, produces the contrastive hidden state $h^{\mathrm{cd}}$. This state then passes through the subsequent layers $\tilde{\ell}+1,\ldots,L-1$ in a ghost path: it receives no layer normalization, residual update, or MLP computation until the final integration stage. At the final layer, the ghost path is re-integrated with the normal path as
+\begin{align}
+h^{\mathrm{cd}}_{L-1} &= \texttt{LayerNorm}(h^{\mathrm{cd}}_{L-2}), \\
+h^{\mathrm{cd}}_{L-1} &= 0.2 \cdot r_{L-1} + h^{\mathrm{cd}}_{L-1}, \\
+h^{\mathrm{cd}}_{L-1} &= \texttt{MLP}(h^{\mathrm{cd}}_{L-1}) + r^{\mathrm{cd}}_{L-1}, \\
+\tilde{h}^{\mathrm{cd}} &= \texttt{LayerNorm}(h^{\mathrm{cd}}_{L-1}) + 0.5 \cdot \tilde{h}^{\mathrm{normal}}_{L-1}, \\
+\mathrm{logits}_{\mathrm{cd}} &= \texttt{lm\_head}(\tilde{h}^{\mathrm{cd}}).
+\end{align}
+The residual injection terms $0.2 \cdot r_{L-1}$ and $0.5 \cdot \tilde{h}^{\mathrm{normal}}_{L-1}$ stabilize the ghost signal by anchoring it to the normal-path representation.
+
+\subsubsection{TVD-Based Switching Rule}
+
+At each autoregressive step $t$, the Total Variation Distance (TVD) between the normal and contrastive distributions determines the decoding strategy:
+\begin{equation}
+d_t = \sum_{y_t \in \mathcal{V}} \left|p_{\theta}(y_t \mid v,x,y_{<t}) - \tilde{p}_{\theta}(y_t \mid v,x,y_{<t})\right|.
+\end{equation}
+When $d_t < \gamma$, the two distributions agree and collaborative decoding amplifies the shared signal:
+\begin{equation}
+f^{\mathrm{final}} = f_{\theta} + \alpha_1 \cdot \tilde{f}_{\theta}.
+\end{equation}
+When $d_t \geq \gamma$, the distributions diverge and contrastive decoding penalizes tokens that score highly under the contrastive path:
+\begin{equation}
+f^{\mathrm{final}} = (1 + \alpha_2) \cdot f_{\theta} - \alpha_2 \cdot \tilde{f}_{\theta}.
+\end{equation}
+An adaptive plausibility constraint~\cite{li2023contrastive}, with $\beta = 0.1$, discards tokens with near-zero probability under the normal distribution before sampling.
+
+\subsection{Cumulative Mask Decoding}
+
+The ONLY framework computes the TVER-based head mask exactly once at the intervention layer $\tilde{\ell}$ and freezes it for all remaining layers. This design imposes an information bottleneck: deeper layers, which capture higher-order visual--textual correspondences~\cite{abnar2020quantifying,clark2019does}, contribute no information to the suppression decision. As a result, a head that exhibits a spurious low TVER at layer~0 may be suppressed indiscriminately across subsequent layers, while a genuinely problematic head with a moderate TVER at layer~0 may escape suppression entirely.
+
+CMD addresses this limitation by computing a fresh head mask at every layer and blending it into a running cumulative mask through EMA. This allows the suppression signal to be refined iteratively as the model processes deeper representations, while the EMA mechanism prevents per-layer noise from destabilizing the mask.
+
+\subsubsection{Multi-Layer Mask Accumulation}
+
+At each layer $\ell$, CMD computes a fresh binary mask from the layer-specific TVER values:
+\begin{equation}
+m_{\ell,i} = \mathbb{1}\left[\mathrm{TVER}_{\ell,i} \geq \frac{1}{H}\sum_{h=1}^{H} \mathrm{TVER}_{\ell,h}\right].
+\end{equation}
+The per-layer masks are accumulated into a running cumulative mask $M_{\ell}$ via EMA:
+\begin{equation}
+M_{\ell} = \alpha_{\ell} \cdot m_{\ell} + (1 - \alpha_{\ell}) \cdot M_{\ell-1},
+\end{equation}
+where $M_0 = m_0$. Thus, the initial mask is identical to the original ONLY mask, but later layers update the suppression decision using newly observed attention patterns. The cumulative mask $M_{\ell}$ is applied to the contrastive path at layer $\ell$ by zeroing heads whose cumulative value falls below $0.5$. All other components of ONLY---the ghost path, final-layer integration, TVD switching rule, and plausibility constraint---remain unchanged.
+
+\begin{center}
+\begin{minipage}{0.95\linewidth}
+\hrule
+\vspace{0.5em}
+\noindent\textbf{Algorithm 1: Cumulative Mask Decoding}
+\vspace{0.25em}
+
+\noindent\textbf{Input:} layers $\ell = 0,1,\ldots,L-1$ and attention weights $\{a_{\ell}\}_{\ell=0}^{L-1}$\par
+\noindent\textbf{Output:} contrastive logits $\mathrm{logits}_{\mathrm{cd}}$ at each decoding step
+\begin{enumerate}
+    \item Initialize $M \leftarrow \emptyset$.
+    \item For each layer $\ell = 0$ to $L-1$:
+    \begin{enumerate}
+        \item Compute $\mathrm{TVER}_{\ell,i}$ for each head $i$ from $a_{\ell}$.
+        \item Set $m_{\ell} \leftarrow \mathbb{1}[\mathrm{TVER}_{\ell} \geq \mathrm{mean}(\mathrm{TVER}_{\ell})]$.
+        \item If $\ell = 0$, set $M \leftarrow m_{\ell}$.
+        \item Otherwise, compute $r \leftarrow (\sum_i m_{\ell,i})/H$, set $\alpha \leftarrow 0.05 + 0.45(1-r)$, and update $M \leftarrow \alpha m_{\ell} + (1-\alpha)M$.
+        \item Apply $M$ by zeroing contrastive-path heads for which $M_i < 0.5$.
+    \end{enumerate}
+    \item Propagate $h^{\mathrm{cd}}$ through the ghost path and integrate it at the final layer.
+    \item Return $\mathrm{logits}_{\mathrm{cd}}$.
+\end{enumerate}
+\hrule
+\end{minipage}
+\end{center}
+
+\subsubsection{Dynamic Smoothing Rate}
+
+The smoothing rate $\alpha_{\ell}$ controls how quickly the cumulative mask adapts to new layer-level evidence. Rather than using a fixed constant, CMD uses a dynamic smoothing rate determined by the suppression statistics at each layer:
+\begin{equation}
+\alpha_{\ell} = \alpha_{\min} + (\alpha_{\max} - \alpha_{\min}) \cdot (1 - r_{\ell}),
+\end{equation}
+where
+\begin{equation}
+r_{\ell} = \frac{1}{H}\sum_{h=1}^{H} m_{\ell,h}
+\end{equation}
+is the fraction of heads retained by the fresh mask, with $\alpha_{\min}=0.05$ and $\alpha_{\max}=0.50$.
+
+This formulation yields two useful regimes. When many heads are suppressed, $r_{\ell} \to 0$ and $\alpha_{\ell} \to 0.50$, so the cumulative mask updates rapidly and locks in a strong suppression signal. This corresponds to hallucination-prone conditions in which many heads exhibit imbalanced text--image attention. Conversely, when few heads are suppressed, $r_{\ell} \to 1$ and $\alpha_{\ell} \to 0.05$, so the cumulative mask changes only minimally, preventing single-layer noise from corrupting the suppression decision. A fixed-$\alpha$ variant, such as $\alpha=0.2$, is recovered as a special case and can be used as an ablation baseline.
+
+\subsubsection{Computational Cost}
+
+The additional computation introduced by CMD consists of three lightweight operations at each layer: computing TVER from the already available attention matrix, comparing the resulting values to the layer mean to produce a binary mask, and performing one element-wise multiply-add for the EMA update. CMD therefore requires no additional forward pass and adds negligible overhead to the original ONLY decoding procedure. In our implementation, the added runtime is below $0.5\%$ of total inference time.
+
+\subsection{Empirical Analysis of the Contrastive Dynamics}
+
+To understand how CMD changes the interaction between the normal and contrastive paths, we analyze the TVD distribution across decoding steps on the POPE benchmark~\cite{li2023pope} using LLaVA-1.5~\cite{liu2024visual} with 32 attention heads per layer.
+
+\paragraph{Mask evolution.}
+The dynamic smoothing rate $\alpha_{\ell}$ typically ranges from $0.20$ to $0.42$ across layers, corresponding to kept-head ratios $r_{\ell}$ between $0.25$ and $0.65$. Early layers, especially layers 0--5, exhibit higher variance in $r_{\ell}$ as attention patterns shift. Later layers stabilize, and the cumulative mask converges to a suppression set of roughly 18--25 out of 32 heads by the final layers.
+
+\paragraph{TVD distribution.}
+Table~\ref{tab:tvd_stats} reports the TVD statistics under CMD across the three POPE splits. The mean TVD ranges from $0.091$ to $0.113$, with medians around $0.027$--$0.032$. Crucially, only $0.4\%$--$1.4\%$ of decoding steps exceed the switching threshold $\gamma=0.6$ and enter the contrastive regime; the remaining $98.6\%$--$99.6\%$ operate in the collaborative regime where the two distributions agree.
+
+\begin{table}[t]
+\centering
+\small
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+Split & Mean & Median & Collab. (\%) & Contrast. (\%) \\
+\midrule
+Random & 0.102 & 0.028 & 99.0 & 1.0 \\
+Popular & 0.113 & 0.032 & 98.6 & 1.4 \\
+Adversarial & 0.091 & 0.027 & 99.6 & 0.4 \\
+\bottomrule
+\end{tabular}
+}
+\caption{TVD statistics under CMD with dynamic EMA smoothing, evaluated on POPE with LLaVA-1.5. Statistics are computed over 1,200 decoding steps, corresponding to 600 questions with two generated tokens each.}
+\label{tab:tvd_stats}
+\end{table}
+
+\paragraph{Interpretation.}
+The predominance of the collaborative regime indicates that the multi-layer accumulated mask produces a contrastive path that remains closely aligned with the normal path. In other words, CMD identifies consistent text-enhancement patterns across layers rather than introducing a distribution that disagrees with the normal path for a large fraction of tokens. The small minority of contrastive steps likely correspond to tokens for which the normal path is more strongly influenced by hallucination-prone attention patterns that the accumulated mask identifies and penalizes.
+
+For reference, the original ONLY method, which relies on a single-layer mask, produces a wider TVD distribution with a substantially higher proportion of contrastive steps. This suggests less stable alignment between the two logit distributions. CMD narrows this gap by integrating suppression evidence across layers, yielding a more consistent and reliable contrastive signal.
+
+\subsection{Discussion}
+\label{subsec:discussion}
+
+The near-saturation of decoding steps into the collaborative regime, exceeding $98\%$ in all POPE splits, suggests that the TVD threshold $\gamma=0.6$ may be conservative for CMD. This threshold was originally calibrated for the wider TVD distribution induced by a single-layer mask. A lower threshold, such as $\gamma=0.05$, could restore a more balanced switching distribution and increase the impact of contrastive correction on the small fraction of tokens where it matters most. We leave the joint optimization of $\gamma$ and the EMA dynamics to future work.
+
+We also note that the current formulation blends binary mask values across layers. Since the semantic interpretation of a mask value depends on the attention patterns at the layer where it was computed, directly blending masks may introduce noise. A more principled alternative is to accumulate the underlying TVER scores rather than the binarized masks, thereby decoupling the accumulation signal from per-layer thresholding. We explore this direction in Appendix~A.

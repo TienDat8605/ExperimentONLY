@@ -1,0 +1,221 @@
+\section{Method}
+\label{sec:method}
+
+We present \emph{Adaptive Dual-Branch Decoding} (ADBD), a training-free decoding method that augments the normal LVLM path with two complementary auxiliary paths. ADBD consists of four stages: computing layer-specific TVER evidence, accumulating this evidence through per-head adaptive updates, constructing complementary high- and low-TVER ghost branches, and resolving the three distributions with independently switched, anchored decoding.
+
+\subsection{Preliminaries: ONLY}
+
+ONLY~\cite{wan2025only} produces a normal distribution and one auxiliary contrastive distribution in a single forward process. We briefly review the components retained by ADBD.
+
+\subsubsection{Text-to-Visual Entropy Ratio}
+
+At decoder layer $\ell$, let $a_{\ell,h}$ denote the attention weights of head $h$ for the final query position. The attention vector is divided into textual and visual subsets according to token position:
+\begin{equation}
+\begin{aligned}
+a_{\ell,h}^{\mathcal{T}} &=
+ \{a_{\ell,h,j}\mid j\in\mathcal{I}_{\mathcal{T}}\},\\
+a_{\ell,h}^{\mathcal{V}} &=
+ \{a_{\ell,h,j}\mid j\in\mathcal{I}_{\mathcal{V}}\}.
+\end{aligned}
+\end{equation}
+Following ONLY, values exceeding the subset mean plus one standard deviation are removed and each subset is renormalized. The textual and visual entropies are
+\begin{equation}
+H_{\ell,h}^{\mathcal{T}}
+=-\sum_{j\in\mathcal{I}_{\mathcal{T}}}
+\hat a_{\ell,h,j}^{\mathcal{T}}
+\log\!\left(\hat a_{\ell,h,j}^{\mathcal{T}}+\epsilon\right),
+\end{equation}
+\begin{equation}
+H_{\ell,h}^{\mathcal{V}}
+=-\sum_{j\in\mathcal{I}_{\mathcal{V}}}
+\hat a_{\ell,h,j}^{\mathcal{V}}
+\log\!\left(\hat a_{\ell,h,j}^{\mathcal{V}}+\epsilon\right).
+\end{equation}
+The TVER of head $h$ is
+\begin{equation}
+r_{\ell,h}
+=
+\frac{H_{\ell,h}^{\mathcal{T}}}
+     {H_{\ell,h}^{\mathcal{V}}}.
+\end{equation}
+A low ratio indicates concentrated textual attention relative to diffuse visual attention, whereas a high ratio indicates the complementary entropy pattern.
+
+\subsubsection{One-Layer Mask and Ghost Path}
+
+ONLY computes a binary mask at one intervention layer $\tilde{\ell}$ using the mean ratio across heads:
+\begin{equation}
+m_{\tilde{\ell},h}
+=
+\mathbb{1}\!\left[
+r_{\tilde{\ell},h}\geq
+\frac{1}{H}\sum_{j=1}^{H}r_{\tilde{\ell},j}
+\right].
+\end{equation}
+The attention outputs of suppressed heads are zeroed to create an auxiliary hidden state. This state is threaded through the remaining decoder layers without the complete normal residual and feed-forward computation, then processed and anchored to the normal representation at the final layer. Applying the language-model head produces the auxiliary logits.
+
+\subsubsection{Single-Branch TVD Switching}
+
+Let $f_t^{0}$ and $f_t^{\mathrm{aux}}$ be the normal and auxiliary logits at autoregressive step $t$, with probability distributions $p_t^{0}$ and $p_t^{\mathrm{aux}}$. ONLY measures
+\begin{equation}
+d_t
+=
+\frac{1}{2}\sum_{y\in\mathcal{V}}
+\left|p_t^{0}(y)-p_t^{\mathrm{aux}}(y)\right|.
+\end{equation}
+The auxiliary logits are added when $d_t<\gamma$ and subtracted otherwise. A plausibility constraint~\cite{li2023contrastive} removes candidates whose normal logits fall below
+\begin{equation}
+\log\beta+\max_{y\in\mathcal{V}}f_t^{0}(y).
+\end{equation}
+
+\subsection{Adaptive Dual-Branch Decoding}
+
+\subsubsection{Continuous Layer-Wise TVER Evidence}
+
+A binary mask records only whether a head lies above or below a threshold. It discards the distance from that threshold and cannot express uncertainty near the boundary. ADBD therefore maps the raw TVER vector at every selected layer to continuous evidence. Let
+\begin{equation}
+\bar r_{\ell}=\frac{1}{H}\sum_{h=1}^{H}r_{\ell,h},
+\qquad
+\sigma_{\ell}=
+\sqrt{\frac{1}{H}\sum_{h=1}^{H}(r_{\ell,h}-\bar r_\ell)^2}.
+\end{equation}
+The frozen implementation defines
+\begin{equation}
+e_{\ell,h}
+=
+\operatorname{sigmoid}\!\left(
+\frac{r_{\ell,h}-\bar r_{\ell}}
+     {\max(\sigma_{\ell},10^{-6})}
+\right).
+\label{eq:continuous_evidence}
+\end{equation}
+Thus, $e_{\ell,h}\in(0,1)$, values above $0.5$ denote the high-TVER side of the layer reference, and the distance from $0.5$ retains the strength of that evidence.
+
+\subsubsection{Per-Head Adaptive State Update}
+
+For each head index $h$, ADBD maintains a continuous high-TVER state $s_{\ell,h}$. At the first selected layer $\ell_0$, the state is initialized as
+\begin{equation}
+s_{\ell_0,h}=e_{\ell_0,h}.
+\end{equation}
+At every later selected layer, the implementation computes confidence and innovation as
+\begin{equation}
+c_{\ell,h}=\left|2e_{\ell,h}-1\right|,
+\qquad
+\iota_{\ell,h}
+=\left|e_{\ell,h}-s_{\ell^{-},h}\right|,
+\end{equation}
+where $\ell^{-}$ is the previous selected layer. The head-specific gain is
+\begin{equation}
+g_{\ell,h}
+=
+\alpha_{\min}
++(\alpha_{\max}-\alpha_{\min})
+c_{\ell,h}\iota_{\ell,h},
+\label{eq:adaptive_gain}
+\end{equation}
+and the state update is
+\begin{equation}
+s_{\ell,h}
+=(1-g_{\ell,h})s_{\ell^{-},h}
++g_{\ell,h}e_{\ell,h}.
+\label{eq:state_update}
+\end{equation}
+Because both confidence and innovation lie in $[0,1]$, the gain is bounded by
+$\alpha_{\min}\leq g_{\ell,h}\leq\alpha_{\max}$. Strong evidence that differs from the accumulated state receives a larger update, whereas evidence near the layer mean or close to the current state produces a smaller update. At the first selected layer, the state is initialized directly and the logged gain is zero.
+
+The update is performed only at a chosen set of layers $\mathcal{L}_{\mathrm{upd}}$. Non-selected layers reuse the most recent state. In the default LLaVA-1.5-7B configuration, layers 0--30 are eligible for accumulation and layer~31 is reserved for final auxiliary-path integration.
+
+\subsubsection{Complementary Head Partition}
+
+The implementation stores the complementary state $1-s_{\ell,h}$ alongside $s_{\ell,h}$. The accumulated state partitions the heads into disjoint and exhaustive sets:
+\begin{equation}
+k_{\ell,h}^{+}=\mathbb{1}[s_{\ell,h}\geq 0.5],
+\qquad
+k_{\ell,h}^{-}=1-k_{\ell,h}^{+}.
+\label{eq:complementary_masks}
+\end{equation}
+The $+$ mask retains heads whose accumulated evidence lies on the high-TVER side, while the $-$ mask retains heads on the low-TVER side. We use the descriptive names \emph{high-TVER branch} and \emph{low-TVER branch}; these avoid asserting an intrinsic visual or textual specialization that has not been independently established.
+
+For branch $b\in\{+,-\}$, masked attention is
+\begin{equation}
+\tilde a_{\ell,h}^{b}
+=
+\begin{cases}
+a_{\ell,h}, & k_{\ell,h}^{b}=1,\\
+0, & k_{\ell,h}^{b}=0.
+\end{cases}
+\end{equation}
+This produces two auxiliary attention outputs at each relevant layer.
+
+\subsubsection{Dual Ghost Paths}
+
+Let $h_{\ell}^{0}$ denote the normal hidden representation and $h_{\ell}^{+},h_{\ell}^{-}$ denote the two auxiliary representations. Both auxiliary states are propagated through the decoder's ghost-path mechanism. At the final layer, each branch is normalized, receives a residual anchor from the normal path, passes through the final MLP, and is again anchored to the normal final representation before the language-model head. This yields three logit vectors:
+\begin{equation}
+f_t^{0},\qquad f_t^{+},\qquad f_t^{-}.
+\end{equation}
+Both auxiliary branches share the same integration structure; their distinction arises solely from the complementary head masks.
+
+\subsubsection{Independent Branch Disagreement}
+
+ADBD calculates branch-specific TVDs from the normal distribution:
+\begin{align}
+d_t^{+}
+&=\frac{1}{2}\sum_{y\in\mathcal{V}}
+\left|p_t^{0}(y)-p_t^{+}(y)\right|,\\
+d_t^{-}
+&=\frac{1}{2}\sum_{y\in\mathcal{V}}
+\left|p_t^{0}(y)-p_t^{-}(y)\right|.
+\end{align}
+Each distance is compared with its own threshold $\gamma_{+}$ or $\gamma_{-}$. Consequently, one branch can be collaborative while the other is contrastive at the same generation step.
+
+\subsubsection{Anchored Three-Branch Resolution}
+
+The high-TVER branch contributes
+\begin{equation}
+\Delta_t^{+}
+=
+\begin{cases}
+\alpha_{+}^{\mathrm{col}}f_t^{+},
+    & d_t^{+}<\gamma_{+},\\
+-\alpha_{+}^{\mathrm{con}}f_t^{+},
+    & d_t^{+}\geq\gamma_{+},
+\end{cases}
+\end{equation}
+and the low-TVER branch contributes
+\begin{equation}
+\Delta_t^{-}
+=
+\begin{cases}
+\alpha_{-}^{\mathrm{col}}f_t^{-},
+    & d_t^{-}<\gamma_{-},\\
+-\alpha_{-}^{\mathrm{con}}f_t^{-},
+    & d_t^{-}\geq\gamma_{-}.
+\end{cases}
+\end{equation}
+To stabilize subtraction, ADBD increases the normal-logit anchor for every branch that enters the contrastive regime:
+\begin{equation}
+\begin{split}
+\kappa_t=1
+&+\alpha_{+}^{\mathrm{con}}
+ \mathbb{1}[d_t^{+}\geq\gamma_{+}]\\
+&+\alpha_{-}^{\mathrm{con}}
+ \mathbb{1}[d_t^{-}\geq\gamma_{-}].
+\end{split}
+\end{equation}
+The final logits are
+\begin{equation}
+f_t^{\mathrm{final}}
+=
+\kappa_t f_t^{0}
++\Delta_t^{+}
++\Delta_t^{-}.
+\label{eq:final_logits}
+\end{equation}
+This rule yields four joint regimes: both auxiliary distributions may be reinforced, either one may be reinforced while the other is penalized, or both may be penalized while the normal anchor is strengthened twice. The adaptive plausibility constraint is applied using the normal logits before sampling.
+
+\subsection{Algorithm Summary}
+
+At each generation step, ADBD initializes an empty continuous head state and computes normal self-attention through the decoder. At layers in $\mathcal{L}_{\mathrm{upd}}$, it maps TVER to continuous evidence with Eq.~\eqref{eq:continuous_evidence} and updates the state using Eqs.~\eqref{eq:adaptive_gain}--\eqref{eq:state_update}. The complementary masks in Eq.~\eqref{eq:complementary_masks} produce two ghost states that are propagated to the final layer. ADBD then obtains $f_t^{0}$, $f_t^{+}$, and $f_t^{-}$, resolves both auxiliary branches using their TVDs, forms the anchored logits in Eq.~\eqref{eq:final_logits}, and applies the plausibility constraint before sampling.
+
+\subsection{Computational Characteristics}
+
+ADBD is training-free and avoids a second full-model invocation. It reuses normal attention tensors for two masked outputs and propagates two auxiliary states. Relative to ONLY, it adds a second branch, per-layer TVER updates, and one language-model-head projection; their runtime and memory costs require empirical measurement.

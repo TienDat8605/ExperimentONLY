@@ -1,0 +1,89 @@
+\section{Experiments}
+\label{sec:experiments}
+
+We evaluate ADBD on POPE~\cite{li2023pope} and the hallucination subset of MME~\cite{fu2023mme}.
+
+\subsection{Experimental Setup}
+
+\paragraph{Model.}
+We use LLaVA-1.5-7B~\cite{liu2024visual} for all experiments.
+
+\paragraph{POPE.}
+POPE uses balanced yes--no questions from COCO images~\cite{lin2014microsoft} with Random, Popular, and Adversarial negative sampling. We evaluate all 3,000 questions in each split.
+
+\paragraph{MME Hallucination subset.}
+We use MME's Existence, Count, Position, and Color categories. \TODO{Add evaluation details and verify the ADBD aggregate: its category scores sum to 630.00, but the supplied total is 620.00.}
+
+\paragraph{Baselines.}
+We compare ADBD with standard LLaVA and ONLY~\cite{wan2025only}.
+
+\paragraph{Implementation details.}
+ADBD accumulates over four layers and generates up to eight tokens. Its branch coefficients are $(\alpha_1,\alpha_2,\alpha_3,\alpha_4)=(0.4,1.8,0.35,2.2)$, with both TVD thresholds set to 0.15. \TODO{Report the four layer indices, gain bounds, $\beta$, sampling parameters, seed, and hardware.}
+
+\paragraph{Metrics.}
+For POPE, we report Accuracy, Precision, Recall, and F1 for each split, plus macro Accuracy and F1. For MME, we report four category scores and their total.
+
+\subsection{POPE Main Results}
+
+Table~\ref{tab:pope_results} reports ADBD on the full POPE splits.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccc}
+\toprule
+Split & Acc. & Prec. & Rec. & F1 \\
+\midrule
+Random      & 82.10 & 81.78 & 82.60 & 82.19 \\
+Popular     & 86.37 & 89.16 & 82.80 & 85.86 \\
+Adversarial & 89.13 & 94.81 & 82.80 & 88.40 \\
+\midrule
+Macro       & 85.87 & 88.58 & 82.73 & 85.48 \\
+\bottomrule
+\end{tabular}
+\caption{ADBD results on full POPE splits (\%).}
+\label{tab:pope_results}
+\end{table}
+
+ADBD obtains 85.87\% macro accuracy and 85.48\% macro F1. Accuracy rises from 82.10\% on Random to 89.13\% on Adversarial. Recall stays near 82.7\%, while precision rises from 81.78\% to 94.81\%, indicating fewer false positives on harder negative samples. Matching full-split LLaVA and ONLY results are needed for a controlled baseline comparison.
+
+\subsection{MME Hallucination Results}
+
+Table~\ref{tab:mme_hallucination} reports the four MME categories.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccccc}
+\toprule
+Method & Exist. & Count & Pos. & Color & Total \\
+\midrule
+ONLY & \textbf{191.67} & \textbf{145.55} & 136.66 & 161.66 & \textbf{635.55} \\
+ADBD & 180.00 & 121.67 & \textbf{153.33} & \textbf{175.00} & 620.00$^{\dagger}$ \\
+\bottomrule
+\end{tabular}}
+\caption{MME Hallucination scores.}
+\label{tab:mme_hallucination}
+\end{table}
+
+\noindent$^{\dagger}$The displayed ADBD category scores sum to 630.00, which would imply a difference of $-5.55$ rather than $-15.55$. The experiment log or evaluation output must be checked before submission.
+
+ADBD improves Position by 16.67 points and Color by 13.34, but decreases Existence by 11.67 and Count by 23.88. It therefore does not improve the MME total over ONLY, showing that its gains are category-dependent.
+
+\subsection{Limitations}
+\label{sec:limitations}
+
+ADBD has several limitations. First, evaluation on POPE and the MME Hallucination subset shows that the method does not improve every visual competency uniformly. Although ADBD improves MME Position and Color, it underperforms ONLY on Existence, Count, and the reported aggregate score. POPE and MME also rely primarily on constrained yes--no evaluation and do not establish generalization to open-ended captioning. Evaluation on CHAIR~\cite{rohrbach2018object} and additional hallucination benchmarks is therefore needed.
+
+Second, the implementation uses fixed textual and visual token boundaries tailored to the evaluated LLaVA-1.5 prompt and its 576 image tokens. This assumption may fail under another conversation template, visual resolution, processor, or multi-image input. A robust implementation should obtain modality boundaries from the tokenizer and multimodal processor.
+
+Third, accumulating a state at the same head index across layers implicitly treats those coordinates as comparable. Attention head $h$ in one layer is not guaranteed to have the same function as head $h$ in another. ADBD should therefore be interpreted as accumulating evidence over aligned mask coordinates rather than tracking a semantically identical head through depth. Future work could use layer-specific statistics or estimate cross-layer correspondences.
+
+Fourth, ADBD introduces computation and memory relative to ONLY because it maintains two auxiliary states. It remains training-free and avoids a separate full-model pass, but its practical efficiency depends on measured overhead.
+
+Fifth, TVER-based branch names do not prove that one branch is intrinsically visual and the other intrinsically textual. Attention visualization and controlled branch analysis are required before making stronger semantic claims.
+
+Finally, if results are reported from a subset or a single stochastic seed, the statistical strength of the conclusions is limited. The final evaluation should use the complete benchmark or a pre-specified sampling protocol and report variability across seeds where sampling-based decoding is used.

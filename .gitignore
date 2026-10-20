@@ -30,3 +30,7 @@ Thumbs.db
 
 # Claude project memory
 .claude/
+
+# Local migration preservation bundles and new LaTeX build intermediates
+/docs/reorganization/backups/
+/paper/ACOMPA26_P02/build/

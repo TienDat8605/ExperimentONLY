@@ -1,0 +1,838 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.6.8)  31 JUL 2026 08:33
+entering extended mode
+ restricted \write18 enabled.
+ file:line:error style messages enabled.
+ %&-line parsing enabled.
+**/home/dat/HCMUS/ExperimentONLY/write-paper/ACOMPA26_P02/main-old.tex
+(/home/dat/HCMUS/ExperimentONLY/write-paper/ACOMPA26_P02/main-old.tex
+LaTeX2e <2025-11-01>
+L3 programming layer <2026-03-20>
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2025/01/22 v1.4n Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size10.clo
+File: size10.clo 2025/01/22 v1.4n Standard LaTeX file (size option)
+)
+\c@part=\count275
+\c@section=\count276
+\c@subsection=\count277
+\c@subsubsection=\count278
+\c@paragraph=\count279
+\c@subparagraph=\count280
+\c@figure=\count281
+\c@table=\count282
+\abovecaptionskip=\skip49
+\belowcaptionskip=\skip50
+\bibindent=\dimen150
+) (/usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 2024/12/31 v1.2e Enhanced LaTeX Graphics (DPC,SPQR)
+ (/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty
+Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
+\KV@toks@=\toks17
+) (/usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2024/08/06 v1.4g Standard LaTeX Graphics (DPC,SPQR)
+ (/usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 2023/12/02 v1.11 sin cos tan (DPC)
+) (/usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 106.
+ (/usr/share/texlive/texmf-dist/tex/latex/graphics-def/pdftex.def
+File: pdftex.def 2025/09/29 v1.2d Graphics/color driver for pdftex
+))
+\Gin@req@height=\dimen151
+\Gin@req@width=\dimen152
+) (/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
+File: l3backend-pdftex.def 2026-02-18 L3 backend support: PDF output (pdfTeX)
+\l__color_backend_stack_int=\count283
+) (./main-old.aux)
+\openout1 = `main-old.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+ (/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count284
+\scratchdimen=\dimen153
+\scratchbox=\box53
+\nofMPsegments=\count285
+\nofMParguments=\count286
+\everyMPshowfont=\toks18
+\MPscratchCnt=\count287
+\MPscratchDim=\dimen154
+\MPnumerator=\count288
+\makeMPintoPDFobject=\count289
+\everyMPtoPDFconversion=\toks19
+) (/usr/share/texlive/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 485.
+ (/usr/share/texlive/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
+))
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 10.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 10.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 10.
+ (./abstract.tex) (./introduction.tex
+
+LaTeX Warning: Citation `alayrac2022flamingo' on page 1 undefined on input line 4.
+
+
+LaTeX Warning: Citation `li2023blip2' on page 1 undefined on input line 4.
+
+
+LaTeX Warning: Citation `liu2024visual' on page 1 undefined on input line 4.
+
+
+LaTeX Warning: Citation `rohrbach2018object' on page 1 undefined on input line 4.
+
+
+LaTeX Warning: Citation `li2023pope' on page 1 undefined on input line 4.
+
+
+LaTeX Warning: Citation `leng2024mitigating' on page 1 undefined on input line 6.
+
+
+LaTeX Warning: Citation `fayyaz2024m3id' on page 1 undefined on input line 6.
+
+[1
+
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
+
+LaTeX Warning: Citation `wan2025only' on page 2 undefined on input line 8.
+
+[2]
+
+LaTeX Warning: Reference `sec:related_work' on page 3 undefined on input line 24.
+
+
+LaTeX Warning: Reference `sec:method' on page 3 undefined on input line 24.
+
+
+LaTeX Warning: Reference `sec:experiments' on page 3 undefined on input line 24.
+
+
+LaTeX Warning: Reference `sec:conclusion' on page 3 undefined on input line 24.
+
+) (./relatedwork.tex
+./relatedwork.tex:4: Undefined control sequence.
+l.4 \TODO
+         {Complete the Related Work section. It is intentionally omitted fro...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+) (./method.tex
+
+LaTeX Warning: Citation `wan2025only' on page 3 undefined on input line 8.
+
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 12.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 12.
+
+./method.tex:14: LaTeX Error: Environment aligned undefined.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.14 \begin{aligned}
+                    
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+./method.tex:15: Misplaced alignment tab character &.
+l.15 a_{\ell,h}^{\mathcal{T}} &
+                               =
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+./method.tex:17: Misplaced alignment tab character &.
+l.17 a_{\ell,h}^{\mathcal{V}} &
+                               =
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+
+./method.tex:19: LaTeX Error: \begin{equation} on input line 13 ended by \end{aligned}.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.19 \end{aligned}
+                  
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+[3]
+./method.tex:49: Undefined control sequence.
+l.49 \mathbb
+            {1}\!\left[
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+LaTeX Warning: Citation `li2023contrastive' on page 4 undefined on input line 65.
+
+[4]
+./method.tex:85: Undefined control sequence.
+l.85 \operatorname
+                  {sigmoid}\!\left(
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./method.tex:131: Undefined control sequence.
+l.131 k_{\ell,h}^{+}=\mathbb
+                            {1}[s_{\ell,h}\geq 0.5],
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+[5]
+./method.tex:143: Misplaced alignment tab character &.
+l.143 a_{\ell,h}, &
+                    k_{\ell,h}^{b}=1,\\
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+./method.tex:144: Misplaced alignment tab character &.
+l.144 0, &
+           k_{\ell,h}^{b}=0.
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+
+./method.tex:160: LaTeX Error: Environment align undefined.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.160 \begin{align}
+                   
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+./method.tex:161: Missing $ inserted.
+<inserted text> 
+                $
+l.161 d_
+        t^{+}
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+./method.tex:162: Misplaced alignment tab character &.
+l.162 &
+       =\frac{1}{2}\sum_{y\in\mathcal{V}}
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+./method.tex:165: Misplaced alignment tab character &.
+l.165 &
+       =\frac{1}{2}\sum_{y\in\mathcal{V}}
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+
+./method.tex:167: LaTeX Error: \begin{document} ended by \end{align}.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.167 \end{align}
+                 
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+./method.tex:167: Missing $ inserted.
+<inserted text> 
+                $
+l.167 \end{align}
+                 
+I've inserted something that you may have forgotten.
+(See the <inserted text> above.)
+With luck, this will get me unwedged. But if you
+really didn't forget anything, try typing `2' now; then
+my insertion and my current dilemma will both disappear.
+
+./method.tex:178: Misplaced alignment tab character &.
+l.178     &
+            d_t^{+}<\gamma_{+},\\
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+./method.tex:180: Misplaced alignment tab character &.
+l.180     &
+            d_t^{+}\geq\gamma_{+},
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+./method.tex:189: Misplaced alignment tab character &.
+l.189     &
+            d_t^{-}<\gamma_{-},\\
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+./method.tex:191: Misplaced alignment tab character &.
+l.191     &
+            d_t^{-}\geq\gamma_{-}.
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+
+./method.tex:196: LaTeX Error: Environment split undefined.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.196 \begin{split}
+                   
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+./method.tex:198: Misplaced alignment tab character &.
+l.198 &
+       +\alpha_{+}^{\mathrm{con}}
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+./method.tex:199: Undefined control sequence.
+l.199  \mathbb
+              {1}[d_t^{+}\geq\gamma_{+}]\\
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./method.tex:200: Misplaced alignment tab character &.
+<recently read> &
+                 
+l.200 &
+       +\alpha_{-}^{\mathrm{con}}
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+./method.tex:201: Undefined control sequence.
+l.201  \mathbb
+              {1}[d_t^{-}\geq\gamma_{-}].
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+./method.tex:202: LaTeX Error: \begin{equation} on input line 195 ended by \end{split}.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.202 \end{split}
+                 
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+[6]
+./method.tex:220: Undefined control sequence.
+l.220 ...it to continuous evidence with Eq.~\eqref
+                                                  {eq:continuous_evidence}, ...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./method.tex:220: Missing $ inserted.
+<inserted text> 
+                $
+l.220 ...s evidence with Eq.~\eqref{eq:continuous_
+                                                  evidence}, and initialize ...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+./method.tex:220: Extra }, or forgotten $.
+l.220 ...e with Eq.~\eqref{eq:continuous_evidence}
+                                                  , and initialize or update...
+I've deleted a group-closing symbol because it seems to be
+spurious, as in `$x}$'. But perhaps the } is legitimate and
+you forgot something else, as in `\hbox{$x}'. In such cases
+the way to recover is to insert both the forgotten and the
+deleted material, e.g., by typing `I$}'.
+
+./method.tex:220: Undefined control sequence.
+l.220 ...nitialize or update $s$ using Eqs.~\eqref
+                                                  {eq:adaptive_gain}--\eqref...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./method.tex:220: Undefined control sequence.
+l.220 ...ing Eqs.~\eqref{eq:adaptive_gain}--\eqref
+                                                  {eq:state_update}.
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+./method.tex:221: LaTeX Error: Command \item invalid in math mode.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.221     \item
+                Construct the complementary masks in Eq.~\eqref{eq:complemen...
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+./method.tex:221: Missing $ inserted.
+<inserted text> 
+                $
+l.221     \item C
+                 onstruct the complementary masks in Eq.~\eqref{eq:complemen...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (305.48206pt too wide) in paragraph at lines 220--221
+[]\OT1/cmr/m/n/10 If $\OML/cmm/m/it/10 ` \OMS/cmsy/m/n/10 2 L[]$\OT1/cmr/m/n/10 , com-pute TVER, map it to con-tin-u-ous ev-i-dence with Eq. eq:continuous$[]\OML/cmm/m/it/10 vidence; andinitializeorupdate$\OT1/cmr/m/n/10 s$\OML/cmm/m/it/10 usingEqs: [] \OMS/cmsy/m/n/10 ^^@
+ []
+
+./method.tex:221: Undefined control sequence.
+l.221 ...uct the complementary masks in Eq.~\eqref
+                                                  {eq:complementary_masks}, ...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./method.tex:221: Missing $ inserted.
+<inserted text> 
+                $
+l.221 ...ary masks in Eq.~\eqref{eq:complementary_
+                                                  masks}, then produce and p...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+./method.tex:221: Extra }, or forgotten $.
+l.221 ...sks in Eq.~\eqref{eq:complementary_masks}
+                                                  , then produce and propaga...
+I've deleted a group-closing symbol because it seems to be
+spurious, as in `$x}$'. But perhaps the } is legitimate and
+you forgot something else, as in `\hbox{$x}'. In such cases
+the way to recover is to insert both the forgotten and the
+deleted material, e.g., by typing `I$}'.
+
+
+./method.tex:222: LaTeX Error: Command \item invalid in math mode.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.222     \item
+                At the final layer, integrate both ghost states and obtain $...
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+./method.tex:222: Missing $ inserted.
+<inserted text> 
+                $
+l.222     \item A
+                 t the final layer, integrate both ghost states and obtain $...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (210.62137pt too wide) in paragraph at lines 221--222
+[]\OT1/cmr/m/n/10 Construct the com-ple-men-tary masks in Eq. eq:complementary$[]\OML/cmm/m/it/10 asks; thenproduceandpropagatethetwomaskedghoststates:
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 221--222
+
+ []
+
+./method.tex:223: Undefined control sequence.
+l.223 ...nd form the anchored logits in Eq.~\eqref
+                                                  {eq:final_logits}.
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./method.tex:223: Missing $ inserted.
+<inserted text> 
+                $
+l.223 ...e anchored logits in Eq.~\eqref{eq:final_
+                                                  logits}.
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+./method.tex:223: Extra }, or forgotten $.
+l.223 ...red logits in Eq.~\eqref{eq:final_logits}
+                                                  .
+I've deleted a group-closing symbol because it seems to be
+spurious, as in `$x}$'. But perhaps the } is legitimate and
+you forgot something else, as in `\hbox{$x}'. In such cases
+the way to recover is to insert both the forgotten and the
+deleted material, e.g., by typing `I$}'.
+
+
+./method.tex:224: LaTeX Error: Command \item invalid in math mode.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.224     \item
+                Apply the adaptive plausibility constraint and sample the ne...
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+./method.tex:224: Missing $ inserted.
+<inserted text> 
+                $
+l.224     \item A
+                 pply the adaptive plausibility constraint and sample the ne...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (13.09506pt too wide) in paragraph at lines 223--224
+\OT1/cmr/m/n/10 con-tri-bu-tion of each branch, and form the an-chored log-its in Eq. eq:final$[]\OML/cmm/m/it/10 ogits:
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 223--224
+
+ []
+
+./method.tex:225: Missing } inserted.
+<inserted text> 
+                }
+l.225 \end{enumerate}
+                     
+I've inserted something that you may have forgotten.
+(See the <inserted text> above.)
+With luck, this will get me unwedged. But if you
+really didn't forget anything, try typing `2' now; then
+my insertion and my current dilemma will both disappear.
+
+./method.tex:225: Missing } inserted.
+<inserted text> 
+                }
+l.225 \end{enumerate}
+                     
+I've inserted something that you may have forgotten.
+(See the <inserted text> above.)
+With luck, this will get me unwedged. But if you
+really didn't forget anything, try typing `2' now; then
+my insertion and my current dilemma will both disappear.
+
+./method.tex:225: Missing } inserted.
+<inserted text> 
+                }
+l.225 \end{enumerate}
+                     
+I've inserted something that you may have forgotten.
+(See the <inserted text> above.)
+With luck, this will get me unwedged. But if you
+really didn't forget anything, try typing `2' now; then
+my insertion and my current dilemma will both disappear.
+
+) (./experiment.tex
+
+LaTeX Warning: Citation `li2023pope' on page 7 undefined on input line 4.
+
+
+LaTeX Warning: Citation `fu2023mme' on page 7 undefined on input line 4.
+
+
+LaTeX Warning: Citation `liu2024visual' on page 7 undefined on input line 9.
+
+
+LaTeX Warning: Citation `lin2014microsoft' on page 7 undefined on input line 12.
+
+./experiment.tex:15: Undefined control sequence.
+l.15 ...unt, Position, and Color categories. \TODO
+                                                  {Add evaluation details an...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+[7]
+
+LaTeX Warning: Citation `wan2025only' on page 8 undefined on input line 18.
+
+./experiment.tex:21: Undefined control sequence.
+l.21 ...ith both TVD thresholds set to 0.15. \TODO
+                                                  {Report the four layer ind...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+Overfull \hbox (6.4402pt too wide) in paragraph at lines 21--22
+\OT1/cmr/m/n/10 up to eight to-kens. Its branch co-ef-fi-cients are $(\OML/cmm/m/it/10 []; []; []; []\OT1/cmr/m/n/10 ) = (0\OML/cmm/m/it/10 :\OT1/cmr/m/n/10 4\OML/cmm/m/it/10 ; \OT1/cmr/m/n/10 1\OML/cmm/m/it/10 :\OT1/cmr/m/n/10 8\OML/cmm/m/it/10 ; \OT1/cmr/m/n/10 0\OML/cmm/m/it/10 :\OT1/cmr/m/n/10 35\OML/cmm/m/it/10 ; \OT1/cmr/m/n/10 2\OML/cmm/m/it/10 :\OT1/cmr/m/n/10 2)$,
+ []
+
+
+LaTeX Warning: Reference `tab:pope_results' on page 8 undefined on input line 28.
+
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <9> on input line 34.
+./experiment.tex:35: Undefined control sequence.
+l.35 \toprule
+             
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./experiment.tex:37: Undefined control sequence.
+<recently read> \midrule 
+                         
+l.37 \midrule
+             
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./experiment.tex:41: Undefined control sequence.
+<recently read> \midrule 
+                         
+l.41 \midrule
+             
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./experiment.tex:43: Undefined control sequence.
+<recently read> \bottomrule 
+                            
+l.43 \bottomrule
+                
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+LaTeX Warning: Reference `tab:mme_hallucination' on page 8 undefined on input line 53.
+
+./experiment.tex:67: Undefined control sequence.
+<argument> \begin {tabular}{lccccc} \toprule 
+                                             Method & Exist. & Count & Pos. ...
+l.67 \end{tabular}}
+                   
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./experiment.tex:67: Undefined control sequence.
+<recently read> \midrule 
+                         
+l.67 \end{tabular}}
+                   
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./experiment.tex:67: Undefined control sequence.
+<recently read> \bottomrule 
+                            
+l.67 \end{tabular}}
+                   
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+[8]
+
+LaTeX Warning: Reference `tab:ablation_design' on page 9 undefined on input line 79.
+
+./experiment.tex:96: Undefined control sequence.
+<argument> \begin {tabular}{lccccc} \toprule 
+                                             Variant & Multi & Cont. & Gain ...
+l.96 \end{tabular}}
+                   
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./experiment.tex:96: Undefined control sequence.
+<recently read> \midrule 
+                         
+l.96 \end{tabular}}
+                   
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./experiment.tex:96: Undefined control sequence.
+<recently read> \bottomrule 
+                            
+l.96 \end{tabular}}
+                   
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+./experiment.tex:101: Undefined control sequence.
+l.101 \TODO
+           {Add controlled ablation results when available.}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+LaTeX Warning: Citation `rohrbach2018object' on page 9 undefined on input line 106.
+
+[9]) (./conclusion.tex) (./bibliography.tex
+Overfull \hbox (0.69492pt too wide) in paragraph at lines 6--2
+\OT1/cmr/m/n/10 creases across the three splits while re-call re-mains sta-ble, pro-duc-ing the strongest
+ []
+
+[10] [11]) [12] (./main-old.aux)
+ ***********
+LaTeX2e <2025-11-01>
+L3 programming layer <2026-03-20>
+ ***********
+
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ ) 
+Here is how much of TeX's memory you used:
+ 1421 strings out of 467363
+ 23301 string characters out of 5419002
+ 445951 words of memory out of 6000000
+ 30516 multiletter control sequences out of 15000+600000
+ 633887 words of font info for 60 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 57i,11n,65p,986b,270s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb>
+Output written on main-old.pdf (12 pages, 267720 bytes).
+PDF statistics:
+ 133 PDF objects out of 1000 (max. 8388607)
+ 82 compressed objects within 1 object stream
+ 0 named destinations out of 1000 (max. 500000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+
